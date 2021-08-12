@@ -7,7 +7,7 @@
 
 #include "JuceHeader.h"
 #include "RubberBandStretcher.h"
-#include "RingBuffer.h"
+#include "../RingBuffer.h"
 
 //==============================================================================
 class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
