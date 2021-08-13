@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 
+set(CMAKE_XCODE_GENERATE_SCHEME true)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
+set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
+set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "" FORCE)
+set_property(GLOBAL PROPERTY USE_FOLDERS YES)
+
 project(JUCE_STRETCH VERSION 0.0.1)
 
-find_package(JUCE CONFIG REQUIRED)
+add_subdirectory(Dependencies/JUCE)
 
 find_library(RUBBERBAND NAMES rubberband)
 
