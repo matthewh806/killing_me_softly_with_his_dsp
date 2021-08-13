@@ -6,10 +6,10 @@ set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(JUCE_STRETCH VERSION 0.0.1)
+project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.1)
 
 add_subdirectory(Dependencies/JUCE)
-add_subdirector.appveyor.ymly(Dependencies/rubberband)
+add_subdirectory(Dependencies/rubberband)
 
 find_library(RUBBERBAND NAMES rubberband)
 
