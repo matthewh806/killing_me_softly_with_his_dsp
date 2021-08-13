@@ -9,6 +9,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 project(JUCE_STRETCH VERSION 0.0.1)
 
 add_subdirectory(Dependencies/JUCE)
+add_subdirector.appveyor.ymly(Dependencies/rubberband)
 
 find_library(RUBBERBAND NAMES rubberband)
 
