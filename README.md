@@ -18,6 +18,7 @@ Pull repository and get submodules
 CMake build system
 
 ```
+cd code
 mkdir build; cd build
 cmake .. -GXcode
 ```

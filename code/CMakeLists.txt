@@ -8,8 +8,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.1)
 
-add_subdirectory(Dependencies/JUCE)
-add_subdirectory(Dependencies/rubberband)
+add_subdirectory(dependencies/JUCE)
+add_subdirectory(dependencies/rubberband)
 
 find_library(RUBBERBAND NAMES rubberband)
 
@@ -62,7 +62,7 @@ target_sources(JuceOfflineTimeStretch
         source/Allocators.cpp
         source/sysutils.h
         source/VectorOps.h)
-        
+
 target_compile_definitions(JuceOfflineTimeStretch
     PRIVATE
         # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
