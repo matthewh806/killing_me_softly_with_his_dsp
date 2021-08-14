@@ -190,7 +190,7 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 void MainComponent::performOfflineStretch()
 {
     auto const fileBufferLength = mFileBuffer.getNumSamples();
-    
+    auto const channels = mFileBuffer.getNumChannels();
     if(!mRubberBandStretcher || fileBufferLength <= 0)
     {
         return;
@@ -203,27 +203,138 @@ void MainComponent::performOfflineStretch()
     mRubberBandStretcher->setPitchScale(mPitchShiftSlider.getValue());
     
     // 1. phase 1 is study
-    size_t frame = 0;
+    size_t sample = 0;
     size_t percent = 0;
     
-    // For now pass through in one big chunk
-    //while(frame < fileBufferLength)
-    //{
-    mRubberBandStretcher->study(mFileBuffer.getArrayOfReadPointers(), fileBufferLength, true);
-    mRubberBandStretcher->process(mFileBuffer.getArrayOfReadPointers(), fileBufferLength, true);
+    std::cout << "Phase 1: Studying " << fileBufferLength << " samples\n";
     
-    std::cout << "Buf length: " << fileBufferLength << ", availableSamples: " << mRubberBandStretcher->available() << "\n";
-    
-    auto const available = mRubberBandStretcher->available();
-    if(available > 0)
+    auto constexpr bufferSize = 1024;
+    while(sample < fileBufferLength)
     {
-        auto stretchedBuffer = juce::AudioBuffer<float>(2, available);
-        mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), available);
+        const float* readPtrs[channels];
+        for(size_t ch = 0; ch < channels; ++ch)
+        {
+            readPtrs[ch] = mFileBuffer.getReadPointer(ch, sample);
+        }
         
-        std::unique_ptr<juce::MemoryAudioSource> memSrc (new juce::MemoryAudioSource(stretchedBuffer, false, false));
-        mTransportSource.setSource(memSrc.get(), 0, nullptr, mSampleRate);
-        mStretchedSrc.reset(memSrc.release());
+        auto const samplesThisTime = std::min(bufferSize, fileBufferLength - static_cast<int>(sample));
+        auto const finalSamples = sample + bufferSize >= fileBufferLength;
+        
+        std::cout << "Studying " << samplesThisTime << " samples\n";
+        if(finalSamples)
+        {
+            std::cout << " final frames\n";
+        }
+        mRubberBandStretcher->study(readPtrs, samplesThisTime, finalSamples);
+        
+        auto const p = static_cast<int>(static_cast<double>(sample) * 100.0 / static_cast<double>(fileBufferLength));
+        if(p > percent || sample == 0)
+        {
+            percent = static_cast<size_t>(p);
+            std::cout << "\r" << percent << "%\n";
+        }
+        
+        sample += samplesThisTime;
     }
     
-    //}
+    std::cout << "Phase 1: Studying finished\n";
+    
+    // 2. phase 2 is stretch
+    sample = 0;
+    percent = 0;
+    
+    std::cout << "Phase 2: Stretch Armstrong " << fileBufferLength << " samples\n";
+    
+    // Create buffer based on estimated size...
+    auto stretchedBufferSize = static_cast<int>(fileBufferLength * factor);
+    std::cout << "Estimated output buffer size: " << stretchedBufferSize << "\n";
+    mStretchedBuffer.setSize(channels, stretchedBufferSize, false, true);
+    auto sampleOut = 0;
+    
+    while(sample < fileBufferLength)
+    {
+        auto const samplesThistime = std::min(bufferSize, fileBufferLength - static_cast<int>(sample));
+        std::cout << "Reading file position: " << sample << ", to " << sample + samplesThistime << "\n";
+        const float* readPtrs[channels];
+        for(size_t ch = 0; ch < channels; ++ch)
+        {
+            readPtrs[ch] = mFileBuffer.getReadPointer(ch, sample);
+        }
+        
+        std::cout << "Processing " << samplesThistime << " samples\n";
+        auto const finalSamples = sample + bufferSize >= fileBufferLength;
+        mRubberBandStretcher->process(readPtrs, samplesThistime, finalSamples);
+    
+        auto const available = mRubberBandStretcher->available();
+        std::cout << "File buffer length: " << fileBufferLength << ", availableSamples: " << available << "\n";
+        if(available > 0)
+        {
+            auto stretchedBuffer = juce::AudioBuffer<float>(channels, available);
+            mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), available);
+            
+            if(sampleOut + available > stretchedBufferSize)
+            {
+                // we need to grow the buffer a bit
+                std::cout << "Increasing buffer size: " << stretchedBufferSize << " (orig) to " << (stretchedBufferSize + sampleOut + available) << "\n";
+                mStretchedBuffer.setSize(channels, (stretchedBufferSize + sampleOut + available), true);
+            }
+            
+            std::cout << "Writing to stretched buffer from position " << sampleOut << ", to " << sampleOut + available << "\n";
+            for(size_t ch = 0; ch < channels; ++ch)
+            {
+                for(int i = 0; i < available; ++i)
+                {
+                    auto value = std::max(-1.0f, std::min(1.0f, stretchedBuffer.getSample(ch, i)));
+                    mStretchedBuffer.addSample(ch, sampleOut + i, value);
+                }
+            }
+            
+            sampleOut += available;
+        }
+        
+        auto const p = static_cast<int>(static_cast<double>(sample) * 100.0 / static_cast<double>(fileBufferLength));
+        if(p > percent || sample == 0)
+        {
+            percent = static_cast<size_t>(p);
+            std::cout << "\r" << percent << "%\n";
+        }
+        
+        sample += samplesThistime;
+    }
+    
+    std::cout << "Phase 2: Stretch Armstrong finished\n";
+    
+    std::cout << "Phase 3: Remaining samples\n";
+    std::cout << "Num" << mRubberBandStretcher->available() << "\n";
+    while(mRubberBandStretcher->available() >= 0)
+    {
+        auto const availableSamples = mRubberBandStretcher->available();
+        std::cout << "Completing: number remaining: " << availableSamples << "\n";
+        auto stretchedBuffer = juce::AudioBuffer<float>(channels, availableSamples);
+        mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), availableSamples);
+        
+        if(sampleOut + availableSamples > stretchedBufferSize)
+        {
+            // we need to grow the buffer a bit
+            std::cout << "Increasing buffer size: " << stretchedBufferSize << " (orig) to " << (stretchedBufferSize + sampleOut + availableSamples) << "\n";
+            mStretchedBuffer.setSize(channels, (stretchedBufferSize + sampleOut + availableSamples), true);
+        }
+        
+        std::cout << "Writing to stretched buffer from position " << sampleOut << ", to " << sampleOut + availableSamples << "\n";
+        for(size_t ch = 0; ch < channels; ++ch)
+        {
+            for(int i = 0; i < availableSamples; ++i)
+            {
+                auto value = std::max(-1.0f, std::min(1.0f, stretchedBuffer.getSample(ch, i)));
+                mStretchedBuffer.addSample(ch, sampleOut + i, value);
+            }
+        }
+        
+        sampleOut += availableSamples;
+    }
+    std::cout << "Phase 3: Remaining samples complete\n";
+        
+    std::unique_ptr<juce::MemoryAudioSource> memSrc (new juce::MemoryAudioSource(mStretchedBuffer, false, false));
+    mTransportSource.setSource(memSrc.get(), 0, nullptr, mSampleRate);
+    mStretchedSrc.reset(memSrc.release());
 }
