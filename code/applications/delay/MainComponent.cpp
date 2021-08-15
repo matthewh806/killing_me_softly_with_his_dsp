@@ -9,7 +9,10 @@ MainComponent::MainComponent()
     addAndMakeVisible(&mDelayTimeSlider);
     mDelayTimeSlider.setRange(0.1, 2, 0.1);
     mDelayTimeSlider.setValue(1.0);
-    mDelayTimeSlider.onValueChange = [this] { };
+    mDelayTimeSlider.onValueChange = [this]
+    {
+        mDelayProcessor.setDelayTime(mDelayTimeSlider.getValue());
+    };
     
     addAndMakeVisible(&mDelayTimeLabel);
     mDelayTimeLabel.setText("Delay Time (s)", juce::NotificationType::dontSendNotification);
@@ -18,7 +21,10 @@ MainComponent::MainComponent()
     addAndMakeVisible(&mWetDrySlider);
     mWetDrySlider.setRange(0, 1, 0.1);
     mWetDrySlider.setValue(0.5);
-    mWetDrySlider.onValueChange = [this] { };
+    mWetDrySlider.onValueChange = [this]
+    {
+        mDelayProcessor.setWetDryMix(mWetDrySlider.getValue());
+    };
     
     addAndMakeVisible(&mWetDryLabel);
     mWetDryLabel.setText("Wet/Dry Mix", juce::NotificationType::dontSendNotification);
@@ -31,7 +37,10 @@ MainComponent::MainComponent()
     addAndMakeVisible(&mFeedbackSlider);
     mFeedbackSlider.setRange(0, 100, 1);
     mFeedbackSlider.setValue(50);
-    mFeedbackSlider.onValueChange = [this] { };
+    mFeedbackSlider.onValueChange = [this]
+    {
+        mDelayProcessor.setFeedback(mFeedbackSlider.getValue() / 100.0f);
+    };
 
     setSize (600, 400);
     setAudioChannels (2, 2);
@@ -50,49 +59,18 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
     mBlockSize = samplesPerBlockExpected;
     mSampleRate = static_cast<int>(sampleRate);
     
-    mDelayBuffers = new CircularBuffer<float> *[2];
-    auto const bufferSize = static_cast<int>(2.0 * sampleRate) + 1; // avoid round down?
-    mDelayBuffers[0] = new CircularBuffer<float>();
-    mDelayBuffers[0]->createCircularBuffer(bufferSize);
-    mDelayBuffers[1] = new CircularBuffer<float>();
-    mDelayBuffers[1]->createCircularBuffer(bufferSize);
+    mDelayProcessor.prepareToPlay(sampleRate, samplesPerBlockExpected);
 }
 
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
-//    bufferToFill.clearActiveBufferRegion();
-    
-    auto* device = deviceManager.getCurrentAudioDevice();
-    auto const inputChannels = device->getActiveInputChannels();
-    auto const outputChannels = device->getActiveOutputChannels();
-    
-    auto const delayTime = mDelayTimeSlider.getValue();
-    auto const wetDryRatio = mWetDrySlider.getValue();
-    auto const feedbackAmt = mFeedbackSlider.getValue() / 100.0;
-    
-    auto const channels = bufferToFill.buffer->getNumChannels();
-    if(channels > 2)
-    {
-        return;
-    }
-    
-    auto const numSamples = bufferToFill.numSamples;
-    for(auto ch = 0; ch < channels; ++ch)
-    {
-        for(int sample = 0; sample < numSamples; ++sample)
-        {
-            auto const inputSignal = bufferToFill.buffer->getSample(ch, sample);
-            auto const delayedSample = mDelayBuffers[ch]->readBuffer(delayTime * mSampleRate); // not thread safe...
-
-            double inputToDelayBuffer = inputSignal + feedbackAmt * delayedSample;
-            mDelayBuffers[ch]->writeBuffer(inputToDelayBuffer);
-            bufferToFill.buffer->setSample(ch, sample, (1.0 - wetDryRatio) * inputSignal + wetDryRatio * delayedSample);
-        }
-    }
+    MidiBuffer midiBuffer;
+    mDelayProcessor.processBlock(*bufferToFill.buffer, midiBuffer);
 }
 
 void MainComponent::releaseResources()
 {
+    mDelayProcessor.releaseResources();
 }
 
 

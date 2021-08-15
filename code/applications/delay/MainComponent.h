@@ -1,7 +1,7 @@
 #pragma once
 
 #include "JuceHeader.h"
-#include "../../core/CircularBuffer.h"
+#include "../../dsp/processors/SimpleDelayProcessor.h"
 
 //==============================================================================
 class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
@@ -25,8 +25,6 @@ private:
     //==============================================================================
     juce::AudioDeviceSelectorComponent mAudioDeviceComponent;
     
-    juce::Random random;
-    
     juce::Label mDelayTimeLabel;
     juce::Slider mDelayTimeSlider;
     
@@ -36,7 +34,7 @@ private:
     juce::Label mFeedbackLabel;
     juce::Slider mFeedbackSlider;
     
-    CircularBuffer<float>** mDelayBuffers;
+    SimpleDelayProcessor mDelayProcessor;
 
     int mBlockSize;
     int mSampleRate;

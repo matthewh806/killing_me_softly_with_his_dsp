@@ -89,10 +89,23 @@ juce_add_gui_app(SimpleDelay
 
 juce_generate_juce_header(SimpleDelay)
 
-target_sources(SimpleDelay PRIVATE
+set(DspSources
+    dsp/processors/SimpleDelayProcessor.h
+    dsp/processors/SimpleDelayProcessor.cpp
+)
+source_group("Source/DspSources" FILES ${DspSources})
+
+set(SimpleDelayApplicationSources
     applications/delay/Main.cpp
     applications/delay/MainComponent.h
-    applications/delay/MainComponent.cpp)
+    applications/delay/MainComponent.cpp
+)
+source_group("Source/ApplicationSources" FILES ${SimpleDelayApplicationSources})
+
+target_sources(SimpleDelay PRIVATE
+    ${DspSources}
+    ${SimpleDelayApplicationSources}
+)
 
 target_compile_definitions(SimpleDelay PRIVATE
     # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
