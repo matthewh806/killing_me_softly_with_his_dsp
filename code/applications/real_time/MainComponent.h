@@ -6,11 +6,10 @@
 // you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
 
 #include "JuceHeader.h"
-#include "RubberBandStretcher.h"
-#include "../../core/RingBuffer.h"
+#include "../../dsp/processors/RealTimeStretchProcessor.h"
 
 //==============================================================================
-class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
+class MainComponent   : public juce::AudioAppComponent
 {
 public:
     //==============================================================================
@@ -26,29 +25,11 @@ public:
     void resized() override;
 
 private:
-    enum TransportState
-    {
-        Stopped,
-        Starting,
-        Playing,
-        Stopping
-    };
-    
-    void openButtonClicked();
-    void playButtonClicked();
-    void stopButtonClicked();
-    
     void stretchValueChanged();
     void pitchShiftValueChanged();
     
-    void changeState(TransportState newState);
-    
-    void changeListenerCallback (juce::ChangeBroadcaster* source) override;
-    
     //==============================================================================
-    juce::TextButton mOpenButton;
-    juce::TextButton mPlayButton;
-    juce::TextButton mStopButton;
+    juce::AudioDeviceSelectorComponent mAudioDeviceComponent;
     
     juce::Label mStretchFactorLabel;
     juce::Slider mStretchFactorSlider;
@@ -56,17 +37,7 @@ private:
     juce::Label mPitchShiftLabel;
     juce::Slider mPitchShiftSlider;
     
-    juce::AudioFormatManager mFormatManager;
-    std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource;
-    juce::AudioTransportSource mTransportSource;
-    
-    TransportState mState;
-    
-    std::unique_ptr<RubberBand::RubberBandStretcher> mRubberBand;
-    
-    juce::AudioSampleBuffer mInput;
-    juce::AudioSampleBuffer mScratchBuffer;
-    RubberBand::RingBuffer<float>** mOutputBuffer;
+    RealTimeStretchProcessor mStretchProcessor;
     
     int mBlockSize;
     int mSampleRate;

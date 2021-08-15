@@ -13,13 +13,23 @@ add_subdirectory(dependencies/rubberband)
 
 find_library(RUBBERBAND NAMES rubberband)
 
+set(DspSources
+    dsp/processors/SimpleDelayProcessor.h
+    dsp/processors/SimpleDelayProcessor.cpp
+    dsp/processors/RealTimeStretchProcessor.h
+    dsp/processors/RealTimeStretchProcessor.cpp
+)
+source_group("Source/DspSources" FILES ${DspSources})
+
 juce_add_gui_app(RealTimeStretch
-    PRODUCT_NAME "Juce Real Time Stretch")
+    PRODUCT_NAME "Juce Real Time Stretch"
+    MICROPHONE_PERMISSION_ENABLED   TRUE)
 
 juce_generate_juce_header(RealTimeStretch)
 
 target_sources(RealTimeStretch
     PRIVATE
+        ${DspSources}
         applications/real_time/Main.cpp
         applications/real_time/MainComponent.h
         applications/real_time/MainComponent.cpp
@@ -88,12 +98,6 @@ juce_add_gui_app(SimpleDelay
     MICROPHONE_PERMISSION_ENABLED   TRUE)
 
 juce_generate_juce_header(SimpleDelay)
-
-set(DspSources
-    dsp/processors/SimpleDelayProcessor.h
-    dsp/processors/SimpleDelayProcessor.cpp
-)
-source_group("Source/DspSources" FILES ${DspSources})
 
 set(SimpleDelayApplicationSources
     applications/delay/Main.cpp
