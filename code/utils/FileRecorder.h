@@ -28,5 +28,5 @@ private:
     juce::TimeSliceThread mBackgroundThread;
     std::atomic<juce::int64> mRecordingDuration;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FileRecorder);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FileRecorder)
 };

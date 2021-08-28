@@ -11,7 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "ReferenceCountedForwardAndReverseBuffer.h"
+#include "../../core/ReferenceCountedForwardAndReverseBuffer.h"
 
 class PositionableRegionAudioSource
 : public juce::PositionableAudioSource

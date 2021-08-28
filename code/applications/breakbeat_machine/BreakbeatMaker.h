@@ -48,9 +48,9 @@
 #pragma once
 
 #include <iostream>
-#include "ReferenceCountedForwardAndReverseBuffer.h"
+#include "../../core/ReferenceCountedForwardAndReverseBuffer.h"
 #include "BreakbeatAudioSource.h"
-#include "FileRecorder.h"
+#include "../../utils/FileRecorder.h"
 #include "SliceExporter.h"
 //==============================================================================
 

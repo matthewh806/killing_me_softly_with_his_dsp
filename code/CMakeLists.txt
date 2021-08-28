@@ -13,6 +13,18 @@ add_subdirectory(dependencies/rubberband)
 
 find_library(RUBBERBAND NAMES rubberband)
 
+set(CoreSources
+    core/Allocators.h
+    core/Allocators.cpp
+    core/CircularBuffer.h
+    core/ReferenceCountedForwardAndReverseBuffer.h
+    core/ReferenceCountedForwardAndReverseBuffer.cpp
+    core/RingBuffer.h
+    core/VectorOps.h
+    core/sysutils.h
+)
+source_group("Source/CoreSources" FILES ${CoreSources})
+
 set(DspSources
     dsp/processors/SimpleDelayProcessor.h
     dsp/processors/SimpleDelayProcessor.cpp
@@ -20,6 +32,12 @@ set(DspSources
     dsp/processors/RealTimeStretchProcessor.cpp
 )
 source_group("Source/DspSources" FILES ${DspSources})
+
+set(UtilsSources
+    utils/FileRecorder.h
+    utils/FileRecorder.cpp
+)
+source_group("Source/UtilsSources" FILES ${UtilsSources})
 
 juce_add_gui_app(RealTimeStretch
     PRODUCT_NAME "Juce Real Time Stretch"
@@ -29,14 +47,11 @@ juce_generate_juce_header(RealTimeStretch)
 
 target_sources(RealTimeStretch
     PRIVATE
+        ${CoreSources}
         ${DspSources}
         applications/real_time/Main.cpp
         applications/real_time/MainComponent.h
-        applications/real_time/MainComponent.cpp
-        core/Allocators.h
-        core/Allocators.cpp
-        core/sysutils.h
-        core/VectorOps.h)
+        applications/real_time/MainComponent.cpp)
 
 target_compile_definitions(RealTimeStretch
     PRIVATE
@@ -46,7 +61,7 @@ target_compile_definitions(RealTimeStretch
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:RealTimeStretch,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:RealTimeStretch,JUCE_VERSION>")
 
-target_include_directories(RealTimeStretch PRIVATE /usr/local/include/rubberband)
+target_include_directories(RealTimeStretch PRIVATE dependencies/rubberband/rubberband)
 
 target_link_libraries(RealTimeStretch
     PRIVATE
@@ -65,13 +80,10 @@ juce_generate_juce_header(OfflineTimeStretch)
 
 target_sources(OfflineTimeStretch
     PRIVATE
+        ${CoreSources}
         applications/offline/Main.cpp
         applications/offline/MainComponent.h
-        applications/offline/MainComponent.cpp
-        core/Allocators.h
-        core/Allocators.cpp
-        core/sysutils.h
-        core/VectorOps.h)
+        applications/offline/MainComponent.cpp)
 
 target_compile_definitions(OfflineTimeStretch
     PRIVATE
@@ -81,7 +93,7 @@ target_compile_definitions(OfflineTimeStretch
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:OfflineTimeStretch,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:OfflineTimeStretch,JUCE_VERSION>")
 
-target_include_directories(OfflineTimeStretch PRIVATE /usr/local/include/rubberband)
+target_include_directories(OfflineTimeStretch PRIVATE dependencies/rubberband/rubberband)
 
 target_link_libraries(OfflineTimeStretch
     PRIVATE
@@ -107,7 +119,8 @@ set(SimpleDelayApplicationSources
 source_group("Source/ApplicationSources" FILES ${SimpleDelayApplicationSources})
 
 target_sources(SimpleDelay PRIVATE
-    ${DspSources}
+    dsp/processors/SimpleDelayProcessor.h
+    dsp/processors/SimpleDelayProcessor.cpp
     ${SimpleDelayApplicationSources}
 )
 
@@ -135,14 +148,12 @@ juce_generate_juce_header(BreakbeatMachine)
 
 target_sources(BreakbeatMachine
     PRIVATE
+        ${CoreSources}
+        ${UtilsSources}
         applications/breakbeat_machine/BreakbeatAudioSource.h
         applications/breakbeat_machine/BreakbeatAudioSource.cpp
         applications/breakbeat_machine/BreakbeatMaker.h
         applications/breakbeat_machine/BreakbeatMaker.cpp
-        applications/breakbeat_machine/FileRecorder.h
-        applications/breakbeat_machine/FileRecorder.cpp
-        applications/breakbeat_machine/ReferenceCountedForwardAndReverseBuffer.h
-        applications/breakbeat_machine/ReferenceCountedForwardAndReverseBuffer.cpp
         applications/breakbeat_machine/SliceExporter.h
         applications/breakbeat_machine/SliceExporter.cpp
         applications/breakbeat_machine/Main.cpp)
