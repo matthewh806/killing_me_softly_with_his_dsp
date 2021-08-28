@@ -37,8 +37,9 @@ public:
     
     void paint(juce::Graphics& g) override;
     juce::Rectangle<int> getSliderBounds() const;
-    int getTextHeight() const { return 14; }
+    int getTextHeight() const;
     juce::String getDisplayString() const;
+    juce::String getParameterName() const;
     
     juce::Array<LabelPos> mLabels;
 

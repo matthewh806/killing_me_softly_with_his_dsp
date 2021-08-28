@@ -61,6 +61,15 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
 //    g.setColour(Colours::yellow);
 //    g.drawRect(sliderBounds);
     
+    juce::Rectangle<float> r;
+    auto sliderLabel = mParamName;
+    r.setSize(g.getCurrentFont().getStringWidth(sliderLabel), getTextHeight());
+    r.setCentre(getLocalBounds().getCentre().getX(), 0);
+    r.setY(2);
+    g.setColour(juce::Colour(0u, 172u, 1u));
+    g.setFont(getTextHeight());
+    g.drawFittedText(sliderLabel, r.toNearestInt(), juce::Justification::centred, 1);
+    
     mLookAndFeel.drawRotarySlider(g,
                                   sliderBounds.getX(),
                                   sliderBounds.getY(),
@@ -105,20 +114,29 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
     juce::Rectangle<int> r;
     r.setSize(size, size);
     r.setCentre(bounds.getCentreX(), 0);
-    r.setY(2);
+    r.setY(getTextHeight() + 2);
     
     return r;
+}
+
+int RotarySliderWithLabels::getTextHeight() const
+{
+    return 14;
 }
 
 juce::String RotarySliderWithLabels::getDisplayString() const
 {
     auto str = juce::String(getValue(), 2);
-    
     if(mSuffix.isNotEmpty())
     {
         str << mSuffix;
     }
     
     return str;
+}
+
+juce::String RotarySliderWithLabels::getParameterName() const
+{
+    return mParamName;
 }
 
