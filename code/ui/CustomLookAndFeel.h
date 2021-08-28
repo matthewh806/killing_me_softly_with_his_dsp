@@ -29,10 +29,18 @@ public:
         setLookAndFeel(nullptr);
     }
     
+    struct LabelPos
+    {
+        float pos;
+        juce::String label;
+    };
+    
     void paint(juce::Graphics& g) override;
     juce::Rectangle<int> getSliderBounds() const;
     int getTextHeight() const { return 14; }
     juce::String getDisplayString() const;
+    
+    juce::Array<LabelPos> mLabels;
 
 private:
     CustomLookAndFeel mLookAndFeel;

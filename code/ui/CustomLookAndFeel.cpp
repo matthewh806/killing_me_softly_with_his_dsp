@@ -55,10 +55,11 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     auto range = getRange();
     auto sliderBounds = getSliderBounds();
     
-    g.setColour(juce::Colours::red);
-    g.drawRect(getLocalBounds());
-    g.setColour(Colours::yellow);
-    g.drawRect(sliderBounds);
+    // For debugging purposes:
+//    g.setColour(juce::Colours::red);
+//    g.drawRect(getLocalBounds());
+//    g.setColour(Colours::yellow);
+//    g.drawRect(sliderBounds);
     
     mLookAndFeel.drawRotarySlider(g,
                                   sliderBounds.getX(),
@@ -69,6 +70,31 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
                                   startAngle,
                                   endAngle,
                                   *this);
+    
+    auto center = sliderBounds.toFloat().getCentre();
+    auto radius = sliderBounds.getWidth() * 0.5;
+    
+    g.setColour(juce::Colour(0u, 172u, 1u));
+    g.setFont(getTextHeight());
+    
+    auto const numChoices = mLabels.size();
+    for(int i = 0; i < numChoices; ++i)
+    {
+        auto const pos = mLabels[i].pos;
+        jassert(0.0f <= pos);
+        jassert(pos <= 1.0f);
+        
+        auto ang = jmap(pos, 0.0f, 1.0f, startAngle, endAngle);
+        auto c = center.getPointOnCircumference(radius + getTextHeight() * 0.5f + 1.0f, ang);
+        
+        juce::Rectangle<float> r;
+        auto str = mLabels[i].label;
+        r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+        r.setCentre(c);
+        r.setY(r.getY() + getTextHeight());
+        
+        g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
+    }
 }
 
 juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
