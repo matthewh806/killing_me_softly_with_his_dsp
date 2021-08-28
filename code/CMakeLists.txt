@@ -25,6 +25,12 @@ set(CoreSources
 )
 source_group("Source/CoreSources" FILES ${CoreSources})
 
+set(UISources
+    ui/CustomLookAndFeel.h
+    ui/CustomLookAndFeel.cpp
+)
+source_group("Source/UISources" FILES ${UISources})
+
 set(DspSources
     dsp/processors/SimpleDelayProcessor.h
     dsp/processors/SimpleDelayProcessor.cpp
@@ -48,6 +54,7 @@ juce_generate_juce_header(RealTimeStretch)
 target_sources(RealTimeStretch
     PRIVATE
         ${CoreSources}
+        ${UISources}
         ${DspSources}
         applications/real_time/Main.cpp
         applications/real_time/MainComponent.h
@@ -81,6 +88,7 @@ juce_generate_juce_header(OfflineTimeStretch)
 target_sources(OfflineTimeStretch
     PRIVATE
         ${CoreSources}
+        ${UISources}
         applications/offline/Main.cpp
         applications/offline/MainComponent.h
         applications/offline/MainComponent.cpp)
@@ -112,6 +120,7 @@ juce_add_gui_app(SimpleDelay
 juce_generate_juce_header(SimpleDelay)
 
 set(SimpleDelayApplicationSources
+    ${UISources}
     applications/delay/Main.cpp
     applications/delay/MainComponent.h
     applications/delay/MainComponent.cpp
@@ -149,6 +158,7 @@ juce_generate_juce_header(BreakbeatMachine)
 target_sources(BreakbeatMachine
     PRIVATE
         ${CoreSources}
+        ${UISources}
         ${UtilsSources}
         applications/breakbeat_machine/BreakbeatAudioSource.h
         applications/breakbeat_machine/BreakbeatAudioSource.cpp
