@@ -3,10 +3,15 @@
 //==============================================================================
 MainComponent::MainComponent()
 : mAudioDeviceComponent(deviceManager, 0, 256, 0, 256, false, false, false, true)
+, mDelayTimeSlider("Delay Time", "s")
+, mWetDrySlider("Wet / Dry", "")
+, mFeedbackSlider("Feedback", "%")
 {
     addAndMakeVisible(mAudioDeviceComponent);
     
     addAndMakeVisible(&mDelayTimeSlider);
+    mDelayTimeSlider.mLabels.add({0.0f, "0.1s"});
+    mDelayTimeSlider.mLabels.add({1.0f, "2s"});
     mDelayTimeSlider.setRange(0.1, 2, 0.1);
     mDelayTimeSlider.setValue(1.0);
     mDelayTimeSlider.onValueChange = [this]
@@ -14,11 +19,9 @@ MainComponent::MainComponent()
         mDelayProcessor.setDelayTime(mDelayTimeSlider.getValue());
     };
     
-    addAndMakeVisible(&mDelayTimeLabel);
-    mDelayTimeLabel.setText("Delay Time (s)", juce::NotificationType::dontSendNotification);
-    mDelayTimeLabel.attachToComponent(&mDelayTimeSlider, true);
-    
     addAndMakeVisible(&mWetDrySlider);
+    mWetDrySlider.mLabels.add({0.0f, "0"});
+    mWetDrySlider.mLabels.add({1.0f, "1"});
     mWetDrySlider.setRange(0, 1, 0.1);
     mWetDrySlider.setValue(0.5);
     mWetDrySlider.onValueChange = [this]
@@ -26,15 +29,9 @@ MainComponent::MainComponent()
         mDelayProcessor.setWetDryMix(mWetDrySlider.getValue());
     };
     
-    addAndMakeVisible(&mWetDryLabel);
-    mWetDryLabel.setText("Wet/Dry Mix", juce::NotificationType::dontSendNotification);
-    mWetDryLabel.attachToComponent(&mWetDrySlider, true);
-    
-    addAndMakeVisible(&mFeedbackLabel);
-    mFeedbackLabel.setText("Feedback %", juce::NotificationType::dontSendNotification);
-    mFeedbackLabel.attachToComponent(&mFeedbackSlider, true);
-    
     addAndMakeVisible(&mFeedbackSlider);
+    mFeedbackSlider.mLabels.add({0.0f, "0%"});
+    mFeedbackSlider.mLabels.add({1.0f, "100%"});
     mFeedbackSlider.setRange(0, 100, 1);
     mFeedbackSlider.setValue(50);
     mFeedbackSlider.onValueChange = [this]
@@ -87,22 +84,13 @@ void MainComponent::resized()
     mAudioDeviceComponent.setBounds(bounds.removeFromTop(getHeight() / 2));
     
     bounds.removeFromTop(20);
-    
-    auto delayTimeBounds = bounds.removeFromTop(20);
-    mDelayTimeLabel.setBounds(delayTimeBounds.removeFromLeft(100));
-    mDelayTimeSlider.setBounds(delayTimeBounds);
-    
-    bounds.removeFromTop(10);
-    
-    auto wetDryBounds = bounds.removeFromTop(20);
-    mWetDryLabel.setBounds(wetDryBounds.removeFromLeft(100));
-    mWetDrySlider.setBounds(wetDryBounds);
-    
-    bounds.removeFromTop(10);
-    
-    auto feedbackBounds = bounds.removeFromTop(20);
-    mFeedbackLabel.setBounds(feedbackBounds.removeFromLeft(100));
-    mFeedbackSlider.setBounds(feedbackBounds);
+    auto const rotaryWidth = bounds.getWidth() * 0.30;
+    auto const spacing = (bounds.getWidth() - (rotaryWidth * 3)) / 2.0;
+    mDelayTimeSlider.setBounds(bounds.removeFromLeft(rotaryWidth));
+    bounds.removeFromLeft(spacing);
+    mWetDrySlider.setBounds(bounds.removeFromLeft(rotaryWidth));
+    bounds.removeFromLeft(spacing);
+    mFeedbackSlider.setBounds(bounds.removeFromLeft(rotaryWidth));
 }
 
 void MainComponent::changeListenerCallback (juce::ChangeBroadcaster* source)

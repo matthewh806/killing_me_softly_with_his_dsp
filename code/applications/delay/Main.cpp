@@ -1,4 +1,5 @@
 #include "MainComponent.h"
+#include "../../ui/CustomLookAndFeel.h"
 
 //==============================================================================
 class GuiAppApplication  : public juce::JUCEApplication
@@ -16,10 +17,13 @@ public:
     {
         juce::ignoreUnused (commandLine);
         mainWindow.reset (new MainWindow (getApplicationName()));
+        
+        mainWindow->setLookAndFeel(&customLookAndFeel);
     }
 
     void shutdown() override
     {
+        mainWindow->setLookAndFeel(nullptr);
         mainWindow = nullptr; // (deletes our window)
     }
 
@@ -72,6 +76,7 @@ public:
 
 private:
     std::unique_ptr<MainWindow> mainWindow;
+    CustomLookAndFeel customLookAndFeel;
 };
 
 //==============================================================================

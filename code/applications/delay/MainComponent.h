@@ -2,6 +2,7 @@
 
 #include "JuceHeader.h"
 #include "../../dsp/processors/SimpleDelayProcessor.h"
+#include "../../ui/CustomLookAndFeel.h"
 
 //==============================================================================
 class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
@@ -25,14 +26,9 @@ private:
     //==============================================================================
     juce::AudioDeviceSelectorComponent mAudioDeviceComponent;
     
-    juce::Label mDelayTimeLabel;
-    juce::Slider mDelayTimeSlider;
-    
-    juce::Label mWetDryLabel;
-    juce::Slider mWetDrySlider;
-    
-    juce::Label mFeedbackLabel;
-    juce::Slider mFeedbackSlider;
+    RotarySliderWithLabels mDelayTimeSlider;
+    RotarySliderWithLabels mWetDrySlider;
+    RotarySliderWithLabels mFeedbackSlider;
     
     SimpleDelayProcessor mDelayProcessor;
 
