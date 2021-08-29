@@ -7,13 +7,14 @@
 
 #include "JuceHeader.h"
 #include "../../dsp/processors/RealTimeStretchProcessor.h"
+#include "../../ui/CustomLookAndFeel.h"
 
 //==============================================================================
 class MainComponent   : public juce::AudioAppComponent
 {
 public:
     //==============================================================================
-    MainComponent();
+    MainComponent(juce::AudioDeviceManager& deviceManager);
     ~MainComponent();
     
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
@@ -29,13 +30,9 @@ private:
     void pitchShiftValueChanged();
     
     //==============================================================================
-    juce::AudioDeviceSelectorComponent mAudioDeviceComponent;
     
-    juce::Label mStretchFactorLabel;
-    juce::Slider mStretchFactorSlider;
-    
-    juce::Label mPitchShiftLabel;
-    juce::Slider mPitchShiftSlider;
+    RotarySliderWithLabels mStretchFactorSlider;
+    RotarySliderWithLabels mPitchShiftSlider;
     
     RealTimeStretchProcessor mStretchProcessor;
     
