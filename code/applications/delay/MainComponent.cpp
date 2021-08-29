@@ -1,14 +1,12 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent()
-: mAudioDeviceComponent(deviceManager, 0, 256, 0, 256, false, false, false, true)
+MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
+: juce::AudioAppComponent(deviceManager)
 , mDelayTimeSlider("Delay Time", "s")
 , mWetDrySlider("Wet / Dry", "")
 , mFeedbackSlider("Feedback", "%")
 {
-    addAndMakeVisible(mAudioDeviceComponent);
-    
     addAndMakeVisible(&mDelayTimeSlider);
     mDelayTimeSlider.mLabels.add({0.0f, "0.1s"});
     mDelayTimeSlider.mLabels.add({1.0f, "2s"});
@@ -39,7 +37,7 @@ MainComponent::MainComponent()
         mDelayProcessor.setFeedback(mFeedbackSlider.getValue() / 100.0f);
     };
 
-    setSize (600, 400);
+    setSize (600, 250);
     setAudioChannels (2, 2);
     
     deviceManager.addChangeListener(this);
@@ -81,8 +79,6 @@ void MainComponent::paint (juce::Graphics& g)
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
-    mAudioDeviceComponent.setBounds(bounds.removeFromTop(getHeight() / 2));
-    
     bounds.removeFromTop(20);
     auto const rotaryWidth = bounds.getWidth() * 0.30;
     auto const spacing = (bounds.getWidth() - (rotaryWidth * 3)) / 2.0;

@@ -9,7 +9,7 @@ class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
 {
 public:
     //==============================================================================
-    MainComponent();
+    MainComponent(juce::AudioDeviceManager& deviceManager);
     ~MainComponent();
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
@@ -24,8 +24,6 @@ private:
     void changeListenerCallback (juce::ChangeBroadcaster*) override;
     
     //==============================================================================
-    juce::AudioDeviceSelectorComponent mAudioDeviceComponent;
-    
     RotarySliderWithLabels mDelayTimeSlider;
     RotarySliderWithLabels mWetDrySlider;
     RotarySliderWithLabels mFeedbackSlider;
