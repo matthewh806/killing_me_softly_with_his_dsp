@@ -28,6 +28,7 @@ source_group("Source/CoreSources" FILES ${CoreSources})
 set(UISources
     ui/CustomLookAndFeel.h
     ui/CustomLookAndFeel.cpp
+    ui/MainWindow.h
 )
 source_group("Source/UISources" FILES ${UISources})
 
