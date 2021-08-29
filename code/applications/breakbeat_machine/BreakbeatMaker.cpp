@@ -115,6 +115,8 @@ void MainContentComponent::WaveformComponent::handleAsyncUpdate()
 MainContentComponent::MainContentComponent(juce::RecentlyOpenedFilesList& recentFiles)
 : juce::Thread("Background Thread")
 , mRecentFiles(recentFiles)
+, mChangeSampleProbabilitySlider("Swap slice", "%")
+, mReverseSampleProbabilitySlider("Reverse slice", "%")
 {
     getLookAndFeel().setColour (MainContentComponent::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
     getLookAndFeel().setColour (MainContentComponent::ColourIds::playingButtonColourId, juce::Colours::green);
@@ -182,14 +184,9 @@ MainContentComponent::MainContentComponent(juce::RecentlyOpenedFilesList& recent
         mAudioSource.calculateAudioBlocks();
     };
     
-    addAndMakeVisible(mChangeSampleProbabilityLabel);
-    mChangeSampleProbabilityLabel.setText("Swap %: ", dontSendNotification);
-    mChangeSampleProbabilityLabel.setColour(Label::textColourId, Colours::white);
-    mChangeSampleProbabilityLabel.setEditable(false);
-    mChangeSampleProbabilityLabel.attachToComponent(&mChangeSampleProbabilitySlider, true);
-    mChangeSampleProbabilityLabel.setJustificationType(Justification::right);
-    
     addAndMakeVisible(mChangeSampleProbabilitySlider);
+    mChangeSampleProbabilitySlider.mLabels.add({0.0, "0%"});
+    mChangeSampleProbabilitySlider.mLabels.add({1.0, "100%"});
     mChangeSampleProbabilitySlider.setRange(0.0, 1.0, 0.1);
     mChangeSampleProbabilitySlider.setValue(0.3, dontSendNotification);
     mChangeSampleProbabilitySlider.onValueChange = [this]()
@@ -198,14 +195,9 @@ MainContentComponent::MainContentComponent(juce::RecentlyOpenedFilesList& recent
         mAudioSource.setSampleChangeThreshold(mSampleChangeThreshold);
     };
     
-    addAndMakeVisible(mReverseSampleProbabilityLabel);
-    mReverseSampleProbabilityLabel.setText("Reverse %: ", dontSendNotification);
-    mReverseSampleProbabilityLabel.setColour(Label::textColourId, Colours::white);
-    mReverseSampleProbabilityLabel.setEditable(false);
-    mReverseSampleProbabilityLabel.attachToComponent(&mReverseSampleProbabilitySlider, true);
-    mReverseSampleProbabilityLabel.setJustificationType(Justification::right);
-    
     addAndMakeVisible(mReverseSampleProbabilitySlider);
+    mReverseSampleProbabilitySlider.mLabels.add({0.0, "0%"});
+    mReverseSampleProbabilitySlider.mLabels.add({1.0, "100%"});
     mReverseSampleProbabilitySlider.setRange(0.0, 1.0, 0.1);
     mReverseSampleProbabilitySlider.setValue(0.3, dontSendNotification);
     mReverseSampleProbabilitySlider.onValueChange = [this]()
@@ -273,19 +265,51 @@ MainContentComponent::~MainContentComponent()
 
 void MainContentComponent::resized()
 {
-    mClearButton.setBounds (10, 10, getWidth() - 20, 20);
-    mRandomSlicesToggle.setBounds(10, 40, getWidth() - 20, 20);
-    mmSampleBPMField.setBounds(100, 70, getWidth() - 120, 20);
-    mSliceSizeDropDown.setBounds(100, 100, getWidth() - 120, 20);
-    mChangeSampleProbabilitySlider.setBounds(100, 130, getWidth() - 120, 20);
-    mReverseSampleProbabilitySlider.setBounds(100, 160, getWidth() - 120, 20);
+    auto bounds = getLocalBounds();
+    bounds.reduce(20, 20);
     
-    mWaveformComponent.setBounds(10, 220, getWidth() - 20, 200);
-    mFileNameLabel.setBounds(10, 450, (getWidth() - 20) * 0.5, 20);
-    mFileSampleRateLabel.setBounds(getWidth() * 0.5 + 10, 450, (getWidth() - 20) * 0.5, 20);
-    mPlayButton.setBounds(10, 480, (getWidth() - 20) * 0.25, 20);
-    mRecordButton.setBounds((getWidth() - 20) * 0.50, 480, (getWidth() - 20) * 0.25, 20);
-    mStopButton.setBounds(getWidth() * 0.75 + 10, 480, (getWidth() - 20) * 0.25, 20);
+    auto const twoFieldRowElementWidth = bounds.getWidth() / 3;
+    auto const twoFieldRowSpacing = bounds.getWidth() - twoFieldRowElementWidth * 2;
+    
+    auto const threeFieldRowElementWidth = bounds.getWidth() / 4;
+    auto const threeFieldRowSpacing = (bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0;
+    
+    auto topRowBounds = bounds.removeFromTop(20);
+    mClearButton.setBounds (topRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    topRowBounds.removeFromLeft(twoFieldRowSpacing);
+    mRandomSlicesToggle.setBounds(topRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    topRowBounds.removeFromLeft(twoFieldRowSpacing);
+    
+    bounds.removeFromTop(10);
+    
+    auto secondRowBounds = bounds.removeFromTop(20);
+    mmSampleBPMField.setBounds(secondRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    secondRowBounds.removeFromLeft(twoFieldRowSpacing);
+    mSliceSizeDropDown.setBounds(secondRowBounds.removeFromLeft(twoFieldRowSpacing));
+    
+    bounds.removeFromTop(20);
+    
+    auto thirdRowBounds = bounds.removeFromTop(100);
+    mChangeSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    thirdRowBounds.removeFromLeft(twoFieldRowSpacing);
+    mReverseSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    
+    bounds.removeFromTop(20);
+    
+    auto fourthRowBounds = bounds.removeFromTop(220);
+    mWaveformComponent.setBounds(fourthRowBounds.removeFromTop(200));
+    mFileNameLabel.setBounds(fourthRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    fourthRowBounds.removeFromLeft(twoFieldRowSpacing);
+    mFileSampleRateLabel.setBounds(fourthRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    
+    bounds.removeFromTop(20);
+    
+    auto fifthRowBounds = bounds.removeFromTop(20);
+    mPlayButton.setBounds(fifthRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    fifthRowBounds.removeFromLeft(threeFieldRowSpacing);
+    mRecordButton.setBounds(fifthRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    fifthRowBounds.removeFromLeft(threeFieldRowSpacing);
+    mStopButton.setBounds(fifthRowBounds.removeFromLeft(threeFieldRowElementWidth));
 }
 
 void MainContentComponent::paint(juce::Graphics& g)
