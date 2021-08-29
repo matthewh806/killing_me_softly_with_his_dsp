@@ -3,13 +3,14 @@
 #include "JuceHeader.h"
 #include "RubberBandStretcher.h"
 #include "../../core/RingBuffer.h"
+#include "../../ui/CustomLookAndFeel.h"
 
 //==============================================================================
 class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
 {
 public:
     //==============================================================================
-    MainComponent();
+    MainComponent(juce::AudioDeviceManager& deviceManager);
     ~MainComponent();
     
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
@@ -47,11 +48,8 @@ private:
     juce::TextButton mPlayButton;
     juce::TextButton mStopButton;
     
-    juce::Label mStretchFactorLabel;
-    juce::Slider mStretchFactorSlider;
-    
-    juce::Label mPitchShiftLabel;
-    juce::Slider mPitchShiftSlider;
+    RotarySliderWithLabels mStretchFactorSlider;
+    RotarySliderWithLabels mPitchShiftSlider;
     
     juce::AudioFormatManager mFormatManager;
     juce::AudioTransportSource mTransportSource;
@@ -66,6 +64,8 @@ private:
     
     int mBlockSize;
     int mSampleRate;
+    
+    juce::AudioDeviceManager& mDeviceManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

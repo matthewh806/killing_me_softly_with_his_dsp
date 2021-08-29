@@ -2,7 +2,10 @@
 #include <RubberBandStretcher.h>
 
 //==============================================================================
-MainComponent::MainComponent()
+MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
+: mDeviceManager(deviceManager)
+, mStretchFactorSlider("Stretch Factor", "x")
+, mPitchShiftSlider("Pitch Shift", "x")
 {
     addAndMakeVisible (&mOpenButton);
     mOpenButton.setButtonText ("Open...");
@@ -21,24 +24,20 @@ MainComponent::MainComponent()
     mStopButton.setEnabled (false);
     
     addAndMakeVisible(&mStretchFactorSlider);
+    mStretchFactorSlider.mLabels.add({0.0, "0.1x"});
+    mStretchFactorSlider.mLabels.add({1, "10x"});
     mStretchFactorSlider.setRange(0.1, 4, 0.1);
     mStretchFactorSlider.setValue(1.0);
     mStretchFactorSlider.onValueChange = [this] { stretchValueChanged(); };
     
-    addAndMakeVisible(&mStretchFactorLabel);
-    mStretchFactorLabel.setText("Stretch Factor", juce::NotificationType::dontSendNotification);
-    mStretchFactorLabel.attachToComponent(&mStretchFactorSlider, true);
-    
     addAndMakeVisible(&mPitchShiftSlider);
+    mPitchShiftSlider.mLabels.add({0.0, "0.1x"});
+    mPitchShiftSlider.mLabels.add({1, "10x"});
     mPitchShiftSlider.setRange(0.1, 10, 0.1);
     mPitchShiftSlider.setValue(1.0);
     mPitchShiftSlider.onValueChange = [this] { pitchShiftValueChanged(); };
     
-    addAndMakeVisible(&mPitchShiftLabel);
-    mPitchShiftLabel.setText("Pitch Shift", juce::NotificationType::dontSendNotification);
-    mPitchShiftLabel.attachToComponent(&mPitchShiftSlider, true);
-    
-    setSize (600, 400);
+    setSize (600, 250);
     
     mFormatManager.registerBasicFormats();
     mTransportSource.addChangeListener(this);
@@ -87,13 +86,24 @@ void MainComponent::paint (juce::Graphics& g)
 
 void MainComponent::resized()
 {
-    mOpenButton.setBounds (10, 10, getWidth() - 20, 20);
-    mPlayButton.setBounds (10, 40, getWidth() - 20, 20);
-    mStopButton.setBounds (10, 70, getWidth() - 20, 20);
-    mStretchFactorLabel.setSize(100, 20);
-    mStretchFactorSlider.setBounds(mStretchFactorLabel.getWidth() + 10, 100, getWidth() - 20, 20);
-    mPitchShiftLabel.setSize(100, 20);
-    mPitchShiftSlider.setBounds(mPitchShiftLabel.getWidth() + 10, 130, getWidth() - 20, 20);
+    auto bounds = getLocalBounds();
+    bounds.reduce(20, 20);
+    auto buttonBounds = bounds.removeFromTop(20);
+    auto const buttonWidth = bounds.getWidth() * 0.25;
+    auto const spacing = (bounds.getWidth() - 3*buttonWidth) / 2.0;
+    
+    mOpenButton.setBounds (buttonBounds.removeFromLeft(buttonWidth));
+    buttonBounds.removeFromLeft(spacing);
+    mPlayButton.setBounds (buttonBounds.removeFromLeft(buttonWidth));
+    buttonBounds.removeFromLeft(spacing);
+    mStopButton.setBounds (buttonBounds.removeFromLeft(buttonWidth));
+    
+    bounds.removeFromTop(20);
+
+    auto const sliderWidth = bounds.getWidth() * 0.4;
+    mStretchFactorSlider.setBounds(bounds.removeFromLeft(sliderWidth));
+    bounds.removeFromLeft(bounds.getWidth() * 0.2);
+    mPitchShiftSlider.setBounds(bounds.removeFromLeft(sliderWidth));
 }
 
 void MainComponent::openButtonClicked()

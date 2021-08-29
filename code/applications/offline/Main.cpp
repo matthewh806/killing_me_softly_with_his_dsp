@@ -1,3 +1,5 @@
+#include "../../ui/MainWindow.h"
+#include "../../ui/CustomLookAndFeel.h"
 #include "MainComponent.h"
 
 //==============================================================================
@@ -15,11 +17,16 @@ public:
     void initialise (const juce::String& commandLine) override
     {
         juce::ignoreUnused (commandLine);
-        mainWindow.reset (new MainWindow (getApplicationName()));
+        juce::ignoreUnused (commandLine);
+        mainWindow.reset (new MainWindow (getApplicationName(), new MainComponent(mDefaultDeviceManager), mDefaultDeviceManager));
+        
+        mainWindow->setLookAndFeel(&customLookAndFeel);
     }
 
     void shutdown() override
     {
+        juce::MenuBarModel::setMacMainMenu(nullptr);
+        mainWindow->setLookAndFeel(nullptr);
         mainWindow = nullptr; // (deletes our window)
     }
 
@@ -34,44 +41,11 @@ public:
         juce::ignoreUnused (commandLine);
     }
 
-    //==============================================================================
-    /*
-        This class implements the desktop window that contains an instance of
-        our MainComponent class.
-    */
-    class MainWindow    : public juce::DocumentWindow
-    {
-    public:
-        explicit MainWindow (juce::String name)
-            : DocumentWindow (name,
-                              juce::Desktop::getInstance().getDefaultLookAndFeel()
-                                                          .findColour (ResizableWindow::backgroundColourId),
-                              DocumentWindow::allButtons)
-        {
-            setUsingNativeTitleBar (true);
-            setContentOwned (new MainComponent(), true);
-
-           #if JUCE_IOS || JUCE_ANDROID
-            setFullScreen (true);
-           #else
-            setResizable (true, true);
-            centreWithSize (getWidth(), getHeight());
-           #endif
-
-            setVisible (true);
-        }
-
-        void closeButtonPressed() override
-        {
-            JUCEApplication::getInstance()->systemRequestedQuit();
-        }
-
-    private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
-    };
-
 private:
+    juce::AudioDeviceManager mDefaultDeviceManager;
+    
     std::unique_ptr<MainWindow> mainWindow;
+    CustomLookAndFeel customLookAndFeel;
 };
 
 //==============================================================================
