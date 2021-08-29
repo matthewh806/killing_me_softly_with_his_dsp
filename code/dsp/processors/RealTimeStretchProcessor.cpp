@@ -115,12 +115,22 @@ void RealTimeStretchProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
 
 void RealTimeStretchProcessor::setStretchFactor(float newValue)
 {
+    if(mRubberBand == nullptr)
+    {
+        return;
+    }
+    
     *mStretchFactor = std::max(0.1f, std::min(newValue, 4.0f));
     mRubberBand->setTimeRatio(newValue);
 }
 
 void RealTimeStretchProcessor::setPitchShift(float newValue)
 {
+    if(mRubberBand == nullptr)
+    {
+        return;
+    }
+    
     *mPitchShift = std::max(0.0f, std::min(newValue, 4.0f));
     mRubberBand->setPitchScale(newValue);
 }
