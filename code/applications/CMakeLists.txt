@@ -1,0 +1,5 @@
+add_subdirectory(template)
+add_subdirectory(real_time)
+add_subdirectory(offline)
+add_subdirectory(delay)
+add_subdirectory(breakbeat_machine)

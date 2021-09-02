@@ -1,10 +1,9 @@
 #include "MainComponent.h"
-#include <RubberBandStretcher.h>
+#include "../../dependencies/rubberband/rubberband/RubberBandStretcher.h"
 
 //==============================================================================
 MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
-: mDeviceManager(audioDeviceManager)
-, mStretchFactorSlider("Stretch Factor", "x")
+: mStretchFactorSlider("Stretch Factor", "x")
 , mPitchShiftSlider("Pitch Shift", "x")
 {
     addAndMakeVisible (&mOpenButton);

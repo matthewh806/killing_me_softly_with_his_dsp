@@ -1,7 +1,7 @@
 #pragma once
 
 #include "JuceHeader.h"
-#include "RubberBandStretcher.h"
+#include "../../dsp/processors/RealTimeStretchProcessor.h"
 #include "../../core/RingBuffer.h"
 #include "../../ui/CustomLookAndFeel.h"
 
@@ -16,7 +16,7 @@ public:
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
-    
+
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
@@ -29,41 +29,39 @@ private:
         Playing,
         Stopping
     };
-    
+
     void openButtonClicked();
     void playButtonClicked();
     void stopButtonClicked();
-    
+
     void stretchValueChanged();
     void pitchShiftValueChanged();
-    
+
     void performOfflineStretch();
-    
+
     void changeState(TransportState newState);
 
     void changeListenerCallback (juce::ChangeBroadcaster* source) override;
-    
+
     //==============================================================================
-    juce::AudioDeviceManager& mDeviceManager;
-    
     juce::TextButton mOpenButton;
     juce::TextButton mPlayButton;
     juce::TextButton mStopButton;
-    
+
     RotarySliderWithLabels mStretchFactorSlider;
     RotarySliderWithLabels mPitchShiftSlider;
-    
+
     juce::AudioFormatManager mFormatManager;
     juce::AudioTransportSource mTransportSource;
     juce::AudioSampleBuffer mFileBuffer;
     juce::AudioSampleBuffer mStretchedBuffer;
-    
+
     std::unique_ptr<juce::MemoryAudioSource> mStretchedSrc;
     std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource;
     std::unique_ptr<RubberBand::RubberBandStretcher> mRubberBandStretcher;
-    
+
     TransportState mState;
-    
+
     int mBlockSize;
     int mSampleRate;
 

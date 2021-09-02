@@ -1,7 +1,7 @@
 #pragma once
 
 #include "JuceHeader.h"
-#include "RubberBandStretcher.h"
+#include "../../dependencies/rubberband/rubberband/RubberBandStretcher.h"
 #include "../../core/RingBuffer.h"
 
 //==============================================================================
