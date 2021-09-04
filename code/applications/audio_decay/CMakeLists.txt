@@ -1,5 +1,5 @@
 juce_add_gui_app(AudioDecay
-    PRODUCT_NAME "Audio Decay"
+    PRODUCT_NAME "Smash My Bits Up"
     MICROPHONE_PERMISSION_ENABLED   TRUE)
 
 juce_generate_juce_header(AudioDecay)
