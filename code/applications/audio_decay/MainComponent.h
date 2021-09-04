@@ -9,8 +9,8 @@ class MainComponent   : public juce::AudioAppComponent
 {
 public:
     //==============================================================================
-    MainComponent(juce::AudioDeviceManager& deviceManager);
-    ~MainComponent();
+    MainComponent(juce::AudioDeviceManager& audioDeviceManager);
+    ~MainComponent() override;
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;
@@ -22,7 +22,13 @@ public:
     
 private:
     //==============================================================================
-    AudioDecayProcessor mTemplateProcessor;
+    
+    AudioDecayProcessor mDecayProcessor;
+    
+    RotarySliderWithLabels mBitDepthSlider;
+    RotarySliderWithLabels mWetDrySlider;
+    
+    float mQuantisationLevel = 1.0;
 
     int mBlockSize;
     int mSampleRate;
