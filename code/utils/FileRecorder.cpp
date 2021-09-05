@@ -44,7 +44,7 @@ bool FileRecorder::startRecording(juce::File file, int numChannels, double sampl
         return false;
     }
     
-    auto writer = std::unique_ptr<juce::AudioFormatWriter>(audioFormat->createWriterFor(outputStream.get(), sampleRate, numChannels, bitDepth, {}, 0));
+    auto writer = std::unique_ptr<juce::AudioFormatWriter>(audioFormat->createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(numChannels), bitDepth, {}, 0));
     if(writer == nullptr)
     {
         stopRecording();
