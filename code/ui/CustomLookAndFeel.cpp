@@ -22,7 +22,7 @@ void CustomLookAndFeel::drawRotarySlider (juce::Graphics& g,
         r.setLeft(center.getX() - 2);
         r.setRight(center.getX() + 2);
         r.setTop(bounds.getY());
-        r.setBottom(center.getY() - rswl->getTextHeight() * 1.5);
+        r.setBottom(center.getY() - rswl->getTextHeight() * 1.5f);
         
         Path p;
         p.addRoundedRectangle(r, 2.0f);
@@ -61,27 +61,29 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
 //    g.setColour(Colours::yellow);
 //    g.drawRect(sliderBounds);
     
-    juce::Rectangle<float> r;
-    auto sliderLabel = mParamName;
-    r.setSize(g.getCurrentFont().getStringWidth(sliderLabel), getTextHeight());
-    r.setCentre(getLocalBounds().getCentre().getX(), 0);
-    r.setY(2);
-    g.setColour(juce::Colour(0u, 172u, 1u));
-    g.setFont(getTextHeight());
-    g.drawFittedText(sliderLabel, r.toNearestInt(), juce::Justification::centred, 1);
-    
-    mLookAndFeel.drawRotarySlider(g,
-                                  sliderBounds.getX(),
-                                  sliderBounds.getY(),
-                                  sliderBounds.getWidth(),
-                                  sliderBounds.getHeight(),
-                                  juce::jmap(getValue(), range.getStart(), range.getEnd(), 0.0, 1.0),
-                                  startAngle,
-                                  endAngle,
-                                  *this);
+    {
+        juce::Rectangle<float> r;
+        auto sliderLabel = mParamName;
+        r.setSize(g.getCurrentFont().getStringWidth(sliderLabel), getTextHeight());
+        r.setCentre(getLocalBounds().getCentre().getX(), 0);
+        r.setY(2);
+        g.setColour(juce::Colour(0u, 172u, 1u));
+        g.setFont(getTextHeight());
+        g.drawFittedText(sliderLabel, r.toNearestInt(), juce::Justification::centred, 1);
+        
+        mLookAndFeel.drawRotarySlider(g,
+                                      sliderBounds.getX(),
+                                      sliderBounds.getY(),
+                                      sliderBounds.getWidth(),
+                                      sliderBounds.getHeight(),
+                                      static_cast<float>(juce::jmap(getValue(), range.getStart(), range.getEnd(), 0.0, 1.0)),
+                                      startAngle,
+                                      endAngle,
+                                      *this);
+    }
     
     auto center = sliderBounds.toFloat().getCentre();
-    auto radius = sliderBounds.getWidth() * 0.5;
+    auto radius = sliderBounds.getWidth() * 0.5f;
     
     g.setColour(juce::Colour(0u, 172u, 1u));
     g.setFont(getTextHeight());
