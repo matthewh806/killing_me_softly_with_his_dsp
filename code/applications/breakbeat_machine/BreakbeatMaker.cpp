@@ -248,7 +248,6 @@ MainContentComponent::MainContentComponent(juce::RecentlyOpenedFilesList& recent
     setSize (500, 520);
 
     mFormatManager.registerBasicFormats();
-    setAudioChannels (0, 2);
     
     mTransportSource.addChangeListener(this);
     

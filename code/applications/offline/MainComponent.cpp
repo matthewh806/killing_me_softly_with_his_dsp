@@ -41,7 +41,6 @@ MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
     
     mFormatManager.registerBasicFormats();
     mTransportSource.addChangeListener(this);
-    setAudioChannels (0, 2);
 }
 
 MainComponent::~MainComponent()

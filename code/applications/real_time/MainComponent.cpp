@@ -22,7 +22,6 @@ MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
     mPitchShiftSlider.onValueChange = [this] { pitchShiftValueChanged(); };
     
     setSize (600, 250);
-    setAudioChannels (2, 2);
 }
 
 MainComponent::~MainComponent()
