@@ -46,6 +46,7 @@ private:
 class MainWindow
 : public juce::DocumentWindow
 , public juce::ApplicationCommandTarget
+, private juce::ChangeListener
 {
 public:
     explicit MainWindow (juce::String name, juce::Component* mainComponent, juce::AudioDeviceManager& deviceManager)
@@ -70,9 +71,17 @@ public:
 #if JUCE_MAC && (!defined(JUCE_IOS))
         juce::MenuBarModel::setMacMainMenu(&mMenuModel);
 #endif
-
+        
+        auto audioSettingsXml = loadDeviceSettings();
+        mAudioDeviceComponent.deviceManager.addChangeListener(this);
+        mAudioDeviceComponent.deviceManager.initialise(2, 2, audioSettingsXml.get(), true);
         mAudioDeviceComponent.setSize(300, 300);
         setVisible (true);
+    }
+    
+    ~MainWindow() override
+    {
+        mAudioDeviceComponent.deviceManager.removeChangeListener(this);
     }
 
     void closeButtonPressed() override
@@ -143,6 +152,56 @@ public:
     }
 
 private:
+    void changeListenerCallback (juce::ChangeBroadcaster* source) override
+    {
+        if(source == &mAudioDeviceComponent.deviceManager)
+        {
+            saveDeviceSettings();
+        }
+    }
+    
+    std::unique_ptr<XmlElement> loadDeviceSettings()
+    {
+        auto appDataDir = juce::File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("softly_dsp");
+        if(!appDataDir.exists())
+        {
+            return nullptr;
+        }
+        
+        auto xmlFile = appDataDir.getChildFile("device_settings.xml");
+        if(!xmlFile.exists())
+        {
+            return nullptr;
+        }
+        
+        return juce::parseXML(xmlFile);;
+    }
+    
+    void saveDeviceSettings()
+    {
+        auto const deviceState = mAudioDeviceComponent.deviceManager.createStateXml();
+        if(deviceState == nullptr)
+        {
+            return;
+        }
+        
+        auto appDataDir = juce::File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("softly_dsp");
+        if(!appDataDir.exists())
+        {
+            appDataDir.createDirectory();
+        }
+        
+        if(!appDataDir.isDirectory())
+        {
+            // error just return;
+            return;
+        }
+        
+        auto xmlFile = appDataDir.getChildFile("device_settings.xml");
+        xmlFile.create();
+        deviceState->writeTo(xmlFile);
+    }
+    
     juce::AudioDeviceSelectorComponent mAudioDeviceComponent;
     
     juce::ApplicationCommandManager mCommandManager;
