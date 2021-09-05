@@ -1,10 +1,10 @@
 # General code TODO's
 
-- [ ] **FIX THE WARNINGS YOU LAZY BASTARD**
+- [x] **FIX THE WARNINGS YOU LAZY BASTARD**
 
 - [ ] Once thats done (lol never) implement a proper solution in cmake for defining what warnings want to see
 
-- [ ] Rubber band is a requirement for successful compilation - currently it requires that rubberband is found on the users machine in standard paths, which is totally pointless as I'm including it directly as a depdendency. -> so figure out how to compile this and provide it as a library in cmake
+- [x] Rubber band is a requirement for successful compilation - currently it requires that rubberband is found on the users machine in standard paths, which is totally pointless as I'm including it directly as a depdendency. -> so figure out how to compile this and provide it as a library in cmake
 
 - [ ] Refactor Breakbeat maker
 
@@ -14,7 +14,7 @@
 
 - [ ] Customise look and feel further.
 
-- [ ] AudioDeviceManager should save settings somewhere (globally or per app?) because its very tedious to have to set them each time.
+- [x] AudioDeviceManager should save settings somewhere (globally or per app?) because its very tedious to have to set them each time.
 
 ## Ideas for applications
 

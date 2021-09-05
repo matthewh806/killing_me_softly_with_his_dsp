@@ -18,19 +18,8 @@ brew install cmake
 
 Dependencies will vary between different targets within the subproject. [JUCE](https://juce.com/) is likely to be the foundation of each application so it is added as a submodule.
 
-At the moment [Rubberband](https://breakfastquay.com/rubberband/) which is a dependency of the timestretch applications is required to be installed on the users machine as its not properly compiled + integrated as part of the CMake build system. This is unfortunate and will be addressed in future. But for now:
-
-```
-brew install rubberband
-```
-
-should do the trick.
-
-Pull repository and get submodules
-```
-  git clone git@github.com:matthewh806/killing_me_softly_with_his_dsp.git
-  git submodule update --init --recursive
-```
+[Rubberband](https://breakfastquay.com/rubberband/) is a dependency of the timestretch applications is similarly included as a depdency and
+compiled / linked as part of the cmake build system. 
 
 CMake build system
 
