@@ -9,8 +9,8 @@ class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
 {
 public:
     //==============================================================================
-    MainComponent(juce::AudioDeviceManager& deviceManager);
-    ~MainComponent();
+    MainComponent(juce::AudioDeviceManager& audioDeviceManager);
+    ~MainComponent() override;
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;

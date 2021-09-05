@@ -1,8 +1,8 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
-: juce::AudioAppComponent(deviceManager)
+MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
+: juce::AudioAppComponent(audioDeviceManager)
 , mDelayTimeSlider("Delay Time", "s")
 , mWetDrySlider("Wet / Dry", "")
 , mFeedbackSlider("Feedback", "%")
@@ -14,7 +14,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     mDelayTimeSlider.setValue(1.0);
     mDelayTimeSlider.onValueChange = [this]
     {
-        mDelayProcessor.setDelayTime(mDelayTimeSlider.getValue());
+        mDelayProcessor.setDelayTime(static_cast<float>(mDelayTimeSlider.getValue()));
     };
     
     addAndMakeVisible(&mWetDrySlider);
@@ -24,7 +24,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     mWetDrySlider.setValue(0.5);
     mWetDrySlider.onValueChange = [this]
     {
-        mDelayProcessor.setWetDryMix(mWetDrySlider.getValue());
+        mDelayProcessor.setWetDryMix(static_cast<float>(mWetDrySlider.getValue()));
     };
     
     addAndMakeVisible(&mFeedbackSlider);
@@ -34,11 +34,10 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     mFeedbackSlider.setValue(50);
     mFeedbackSlider.onValueChange = [this]
     {
-        mDelayProcessor.setFeedback(mFeedbackSlider.getValue() / 100.0f);
+        mDelayProcessor.setFeedback(static_cast<float>(mFeedbackSlider.getValue()) / 100.0f);
     };
 
     setSize (600, 250);
-    setAudioChannels (2, 2);
     
     deviceManager.addChangeListener(this);
 }
@@ -80,8 +79,8 @@ void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
     bounds.removeFromTop(20);
-    auto const rotaryWidth = bounds.getWidth() * 0.30;
-    auto const spacing = (bounds.getWidth() - (rotaryWidth * 3)) / 2.0;
+    auto const rotaryWidth = static_cast<int>(bounds.getWidth() * 0.30);
+    auto const spacing = static_cast<int>((bounds.getWidth() - (rotaryWidth * 3)) / 2.0);
     mDelayTimeSlider.setBounds(bounds.removeFromLeft(rotaryWidth));
     bounds.removeFromLeft(spacing);
     mWetDrySlider.setBounds(bounds.removeFromLeft(rotaryWidth));
