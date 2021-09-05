@@ -69,7 +69,7 @@ void SliceExporter::startExport(juce::AudioSampleBuffer* readBuffer, juce::Strin
             throw std::runtime_error("The output stream cannot be allocated");
         }
         
-        auto audioFormatWriter = std::unique_ptr<juce::AudioFormatWriter>(audioFormat->createWriterFor(outputStream.get(), sampleRate, numChannels, bitDepth, {}, 0));
+        auto audioFormatWriter = std::unique_ptr<juce::AudioFormatWriter>(audioFormat->createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(numChannels), bitDepth, {}, 0));
         if(audioFormatWriter == nullptr)
         {
             throw std::runtime_error("The format writer cannot be allocated");

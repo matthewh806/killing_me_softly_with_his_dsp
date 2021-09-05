@@ -80,7 +80,7 @@ void BreakbeatAudioSource::setBlockDivisionFactor(double factor)
 
 void BreakbeatAudioSource::setSampleBpm(double bpm)
 {
-    mBpm.exchange(bpm);
+    mBpm.exchange(static_cast<int>(bpm));
     calculateAudioBlocks();
 }
 
@@ -216,11 +216,6 @@ void BreakbeatAudioSource::setReader(juce::AudioFormatReader* reader)
     calculateAudioBlocks();
 }
 
-void BreakbeatAudioSource::setDirectionFowards(bool status)
-{
-    
-}
-
 void BreakbeatAudioSource::clearFreeBuffers()
 {
     for(auto i = mBuffers.size(); --i >= 0;)
@@ -242,7 +237,7 @@ void BreakbeatAudioSource::clear()
 void BreakbeatAudioSource::calculateAudioBlocks()
 {
     auto const bps = mBpm / 60.0;
-    mNumSlices = std::max(bps * mDuration / static_cast<double>(mBlockDivisionPower), 1.0);
+    mNumSlices = static_cast<int>(std::max(bps * mDuration / static_cast<double>(mBlockDivisionPower), 1.0));
     mSliceSampleSize = roundToInt(getNumSamples() / mNumSlices);
     
     jassert(mNumSlices > 0);

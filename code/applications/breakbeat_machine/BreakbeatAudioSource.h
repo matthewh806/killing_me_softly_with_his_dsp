@@ -60,7 +60,6 @@ public:
     int64 getEndReadPosition() const override;
     
     void setReader(juce::AudioFormatReader* reader);
-    void setDirectionFowards(bool status);
     
     void clearFreeBuffers();
     void clear();
@@ -73,14 +72,13 @@ private:
     std::atomic<int64_t> mStartReadPosition {0};
     std::atomic<int64_t> mEndReadPosition {0};
     
-    std::atomic<float> mSampleChangeThreshold {0.7};
-    std::atomic<float> mReverseSampleThreshold {0.7};
+    std::atomic<float> mSampleChangeThreshold {0.7f};
+    std::atomic<float> mReverseSampleThreshold {0.7f};
     
     std::atomic<bool> mRandomPosition {false};
     std::atomic<bool> mRandomDirection {false};
     
     std::atomic<int> mNumSlices {1};
-    std::atomic<int> mSampleToEndOn;
     std::atomic<int> mSliceSampleSize {1}; // in samples
     std::atomic<int> mBlockIdx {0};
     std::atomic<int> mBpm {120};

@@ -174,6 +174,8 @@ private:
         
         juce::PopupMenu getMenuForIndex(int index, juce::String const& categoryName) override
         {
+            juce::ignoreUnused(index);
+            
             juce::PopupMenu menu;
             
             auto& commandManager = getCommandManager();
@@ -197,6 +199,8 @@ private:
         
         void menuItemSelected(int itemId, int index) override
         {
+            juce::ignoreUnused(index);
+            
             if(itemId >= static_cast<int>(CommandIds::FileOpenRecent) + 1)
             {
                 auto& app = getApp();

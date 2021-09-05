@@ -114,9 +114,9 @@ void MainContentComponent::WaveformComponent::handleAsyncUpdate()
 
 MainContentComponent::MainContentComponent(juce::RecentlyOpenedFilesList& recentFiles)
 : juce::Thread("Background Thread")
-, mRecentFiles(recentFiles)
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
+, mRecentFiles(recentFiles)
 {
     getLookAndFeel().setColour (MainContentComponent::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
     getLookAndFeel().setColour (MainContentComponent::ColourIds::playingButtonColourId, juce::Colours::green);
@@ -191,7 +191,7 @@ MainContentComponent::MainContentComponent(juce::RecentlyOpenedFilesList& recent
     mChangeSampleProbabilitySlider.setValue(0.3, dontSendNotification);
     mChangeSampleProbabilitySlider.onValueChange = [this]()
     {
-        mSampleChangeThreshold = 1.0 - mChangeSampleProbabilitySlider.getValue();
+        mSampleChangeThreshold = 1.0f - static_cast<float>(mChangeSampleProbabilitySlider.getValue());
         mAudioSource.setSampleChangeThreshold(mSampleChangeThreshold);
     };
     
@@ -202,7 +202,7 @@ MainContentComponent::MainContentComponent(juce::RecentlyOpenedFilesList& recent
     mReverseSampleProbabilitySlider.setValue(0.3, dontSendNotification);
     mReverseSampleProbabilitySlider.onValueChange = [this]()
     {
-        mReverseSampleThreshold = 1.0 - mReverseSampleProbabilitySlider.getValue();
+        mReverseSampleThreshold = 1.0f - static_cast<float>(mReverseSampleProbabilitySlider.getValue());
         mAudioSource.setReverseSampleThreshold(mReverseSampleThreshold) ;
     };
     
@@ -272,7 +272,7 @@ void MainContentComponent::resized()
     auto const twoFieldRowSpacing = bounds.getWidth() - twoFieldRowElementWidth * 2;
     
     auto const threeFieldRowElementWidth = bounds.getWidth() / 4;
-    auto const threeFieldRowSpacing = (bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0;
+    auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
     
     auto topRowBounds = bounds.removeFromTop(20);
     mClearButton.setBounds (topRowBounds.removeFromLeft(twoFieldRowElementWidth));
@@ -314,7 +314,7 @@ void MainContentComponent::resized()
 
 void MainContentComponent::paint(juce::Graphics& g)
 {
-    
+    juce::ignoreUnused(g);
 }
 
 void MainContentComponent::prepareToPlay (int samplerPerBlockExpected, double sampleRate)
@@ -347,8 +347,8 @@ void MainContentComponent::getNextAudioBlock (const AudioSourceChannelInfo& buff
 
 void MainContentComponent::releaseResources()
 {
-    mAudioSource.releaseResources();
     mTransportSource.releaseResources();
+    mAudioSource.releaseResources();
 }
 
 void MainContentComponent::run()

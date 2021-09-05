@@ -31,5 +31,5 @@ private:
     std::thread mThread;
     std::mutex mMutex;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SliceExporter);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SliceExporter)
 };
