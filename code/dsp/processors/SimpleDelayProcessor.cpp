@@ -25,7 +25,7 @@ void SimpleDelayProcessor::prepareToPlay (double sampleRate,
     mSampleRate = static_cast<int>(sampleRate);
     
     mDelayBuffers = new CircularBuffer<float> *[2];
-    auto const bufferSize = static_cast<int>(2.0 * sampleRate) + 1; // avoid round down?
+    auto const bufferSize = static_cast<unsigned int>(2.0 * sampleRate) + 1; // avoid round down?
     mDelayBuffers[0] = new CircularBuffer<float>();
     mDelayBuffers[0]->createCircularBuffer(bufferSize);
     mDelayBuffers[1] = new CircularBuffer<float>();
@@ -55,11 +55,11 @@ void SimpleDelayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         for(int sample = 0; sample < numSamples; ++sample)
         {
             auto const inputSignal = buffer.getSample(ch, sample);
-            auto const delayedSample = mDelayBuffers[ch]->readBuffer(delayTime * mSampleRate); // not thread safe...
+            auto const delayedSample = static_cast<float>(mDelayBuffers[ch]->readBuffer(delayTime * mSampleRate)); // not thread safe...
 
             double inputToDelayBuffer = inputSignal + feedbackAmt * delayedSample;
-            mDelayBuffers[ch]->writeBuffer(inputToDelayBuffer);
-            buffer.setSample(ch, sample, (1.0 - wetDryRatio) * inputSignal + wetDryRatio * delayedSample);
+            mDelayBuffers[ch]->writeBuffer(static_cast<float>(inputToDelayBuffer));
+            buffer.setSample(ch, sample, (1.0f - wetDryRatio) * inputSignal + wetDryRatio * delayedSample);
         }
     }
 }

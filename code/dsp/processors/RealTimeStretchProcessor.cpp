@@ -75,7 +75,7 @@ void RealTimeStretchProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         auto retrieved = mRubberBand->retrieve(writePtrs, static_cast<size_t>(outChunk));
         
         std::cout << "available: " << availableSamples << ", outChunk: " << outChunk;
-        if(retrieved != outChunk)
+        if(retrieved != static_cast<unsigned int>(outChunk))
         {
             std::cout << " (" << retrieved << ")";
         }
@@ -104,7 +104,7 @@ void RealTimeStretchProcessor::processBlock (juce::AudioBuffer<float>& buffer, j
         }
         
         auto chunk = std::min(toRead, samples);
-        mOutputBuffer[c]->read(buffer.getWritePointer(c), chunk);
+        mOutputBuffer[c]->read(buffer.getWritePointer(static_cast<int>(c)), chunk);
     }
     
 //    if (mMinfill == 0)
