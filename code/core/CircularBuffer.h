@@ -63,7 +63,7 @@ public:
 		// --- subtract to make read index
 		//     note: -1 here is because we read-before-write,
 		//           so the *last* write location is what we use for the calculation
-		int readIndex = (writeIndex - 1) - delayInSamples;
+		unsigned int readIndex = (writeIndex - 1) - static_cast<unsigned int>(delayInSamples);
 
 		// --- autowrap index
 		readIndex &= wrapMask;

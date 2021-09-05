@@ -12,8 +12,8 @@
 
 ReferenceCountedForwardAndReverseBuffer::ReferenceCountedForwardAndReverseBuffer(const juce::String& nameToUse, juce::AudioFormatReader* formatReader)
 : mName(nameToUse)
-, mForwardBuffer(formatReader->numChannels, static_cast<int>(formatReader->lengthInSamples))
-, mReverseBuffer(formatReader->numChannels, static_cast<int>(formatReader->lengthInSamples))
+, mForwardBuffer(static_cast<int>(formatReader->numChannels), static_cast<int>(formatReader->lengthInSamples))
+, mReverseBuffer(static_cast<int>(formatReader->numChannels), static_cast<int>(formatReader->lengthInSamples))
 {
     std::cout << "Buffer named: '" << mName << "' constructed. numChannels: " << formatReader->numChannels << ", numSamples" << formatReader->lengthInSamples << "\n";
     formatReader->read(&mForwardBuffer, 0, static_cast<int>(formatReader->lengthInSamples), 0, true, true);

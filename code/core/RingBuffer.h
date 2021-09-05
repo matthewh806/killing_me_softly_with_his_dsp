@@ -221,7 +221,7 @@ RingBuffer<T>::~RingBuffer()
 #endif
 
     if (m_mlocked) {
-    MUNLOCK((void *)m_buffer, m_size * sizeof(T));
+    MUNLOCK((void *)m_buffer, static_cast<unsigned long>(m_size) * sizeof(T));
     }
 
     deallocate(m_buffer);

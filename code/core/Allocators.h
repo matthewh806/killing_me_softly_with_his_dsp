@@ -69,7 +69,7 @@ namespace RubberBand {
 template <typename T>
 T *allocate(size_t count)
 {
-    void *ptr = 0;
+    void *ptr = nullptr;
 
     // We'd like to check HAVE_IPP first and, if it's defined, call
     // ippsMalloc_8u(count * sizeof(T)). But that isn't a general
