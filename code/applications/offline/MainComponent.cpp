@@ -221,13 +221,14 @@ void MainComponent::performOfflineStretch()
     auto constexpr bufferSize = static_cast<size_t>(1024);
     while(sample < fileBufferLength)
     {
-        const float* readPtrs[channels];
+        auto const samplesThisTime = std::min(bufferSize, fileBufferLength - (sample));
+        
+        juce::AudioSampleBuffer readBuffer(static_cast<int>(channels), static_cast<int>(samplesThisTime));
         for(size_t ch = 0; ch < channels; ++ch)
         {
-            readPtrs[ch] = mFileBuffer.getReadPointer(static_cast<int>(ch), static_cast<int>(sample));
+            readBuffer.copyFrom(static_cast<int>(ch), 0, mFileBuffer, static_cast<int>(ch), static_cast<int>(sample), static_cast<int>(samplesThisTime));
         }
         
-        auto const samplesThisTime = std::min(bufferSize, fileBufferLength - (sample));
         auto const finalSamples = sample + bufferSize >= fileBufferLength;
         
         std::cout << "Studying " << samplesThisTime << " samples\n";
@@ -235,7 +236,7 @@ void MainComponent::performOfflineStretch()
         {
             std::cout << " final frames\n";
         }
-        mRubberBandStretcher->study(readPtrs, samplesThisTime, finalSamples);
+        mRubberBandStretcher->study(readBuffer.getArrayOfReadPointers(), samplesThisTime, finalSamples);
         
         auto const p = static_cast<size_t>(static_cast<double>(sample) * 100.0 / static_cast<double>(fileBufferLength));
         if(p > percent || sample == 0)
@@ -263,17 +264,17 @@ void MainComponent::performOfflineStretch()
     
     while(sample < fileBufferLength)
     {
-        auto const samplesThistime = std::min(bufferSize, fileBufferLength - sample);
-        std::cout << "Reading file position: " << sample << ", to " << sample + samplesThistime << "\n";
-        const float* readPtrs[channels];
+        auto const samplesThisTime = std::min(bufferSize, fileBufferLength - sample);
+        std::cout << "Reading file position: " << sample << ", to " << sample + samplesThisTime << "\n";
+        juce::AudioSampleBuffer readBuffer(static_cast<int>(channels), static_cast<int>(samplesThisTime));
         for(size_t ch = 0; ch < channels; ++ch)
         {
-            readPtrs[ch] = mFileBuffer.getReadPointer(static_cast<int>(ch), static_cast<int>(sample));
+            readBuffer.copyFrom(static_cast<int>(ch), 0, mFileBuffer, static_cast<int>(ch), static_cast<int>(sample), static_cast<int>(samplesThisTime));
         }
         
-        std::cout << "Processing " << samplesThistime << " samples\n";
+        std::cout << "Processing " << samplesThisTime << " samples\n";
         auto const finalSamples = sample + bufferSize >= fileBufferLength;
-        mRubberBandStretcher->process(readPtrs, samplesThistime, finalSamples);
+        mRubberBandStretcher->process(readBuffer.getArrayOfReadPointers(), samplesThisTime, finalSamples);
     
         auto const available = mRubberBandStretcher->available();
         std::cout << "File buffer length: " << fileBufferLength << ", availableSamples: " << available << "\n";
@@ -309,7 +310,7 @@ void MainComponent::performOfflineStretch()
             std::cout << "\r" << percent << "%\n";
         }
         
-        sample += samplesThistime;
+        sample += samplesThisTime;
     }
     
     std::cout << "Phase 2: Stretch Armstrong finished\n";
