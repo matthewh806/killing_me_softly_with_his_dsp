@@ -2,8 +2,8 @@
 #include <RubberBandStretcher.h>
 
 //==============================================================================
-MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
-: mDeviceManager(deviceManager)
+MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
+: mDeviceManager(audioDeviceManager)
 , mStretchFactorSlider("Stretch Factor", "x")
 , mPitchShiftSlider("Pitch Shift", "x")
 {
@@ -89,8 +89,8 @@ void MainComponent::resized()
     auto bounds = getLocalBounds();
     bounds.reduce(20, 20);
     auto buttonBounds = bounds.removeFromTop(20);
-    auto const buttonWidth = bounds.getWidth() * 0.25;
-    auto const spacing = (bounds.getWidth() - 3*buttonWidth) / 2.0;
+    auto const buttonWidth = static_cast<int>(bounds.getWidth() * 0.25);
+    auto const spacing = (bounds.getWidth() - 3*buttonWidth) / 2;
     
     mOpenButton.setBounds (buttonBounds.removeFromLeft(buttonWidth));
     buttonBounds.removeFromLeft(spacing);
@@ -100,9 +100,9 @@ void MainComponent::resized()
     
     bounds.removeFromTop(20);
 
-    auto const sliderWidth = bounds.getWidth() * 0.4;
+    auto const sliderWidth = static_cast<int>(bounds.getWidth() * 0.4);
     mStretchFactorSlider.setBounds(bounds.removeFromLeft(sliderWidth));
-    bounds.removeFromLeft(bounds.getWidth() * 0.2);
+    bounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.2));
     mPitchShiftSlider.setBounds(bounds.removeFromLeft(sliderWidth));
 }
 
@@ -199,8 +199,8 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 
 void MainComponent::performOfflineStretch()
 {
-    auto const fileBufferLength = mFileBuffer.getNumSamples();
-    auto const channels = mFileBuffer.getNumChannels();
+    auto const fileBufferLength = static_cast<size_t>(mFileBuffer.getNumSamples());
+    auto const channels = static_cast<size_t>(mFileBuffer.getNumChannels());
     if(!mRubberBandStretcher || fileBufferLength <= 0)
     {
         return;
@@ -218,16 +218,16 @@ void MainComponent::performOfflineStretch()
     
     std::cout << "Phase 1: Studying " << fileBufferLength << " samples\n";
     
-    auto constexpr bufferSize = 1024;
+    auto constexpr bufferSize = static_cast<size_t>(1024);
     while(sample < fileBufferLength)
     {
         const float* readPtrs[channels];
         for(size_t ch = 0; ch < channels; ++ch)
         {
-            readPtrs[ch] = mFileBuffer.getReadPointer(ch, sample);
+            readPtrs[ch] = mFileBuffer.getReadPointer(static_cast<int>(ch), static_cast<int>(sample));
         }
         
-        auto const samplesThisTime = std::min(bufferSize, fileBufferLength - static_cast<int>(sample));
+        auto const samplesThisTime = std::min(bufferSize, fileBufferLength - (sample));
         auto const finalSamples = sample + bufferSize >= fileBufferLength;
         
         std::cout << "Studying " << samplesThisTime << " samples\n";
@@ -237,10 +237,10 @@ void MainComponent::performOfflineStretch()
         }
         mRubberBandStretcher->study(readPtrs, samplesThisTime, finalSamples);
         
-        auto const p = static_cast<int>(static_cast<double>(sample) * 100.0 / static_cast<double>(fileBufferLength));
+        auto const p = static_cast<size_t>(static_cast<double>(sample) * 100.0 / static_cast<double>(fileBufferLength));
         if(p > percent || sample == 0)
         {
-            percent = static_cast<size_t>(p);
+            percent = p;
             std::cout << "\r" << percent << "%\n";
         }
         
@@ -258,17 +258,17 @@ void MainComponent::performOfflineStretch()
     // Create buffer based on estimated size...
     auto stretchedBufferSize = static_cast<int>(fileBufferLength * factor);
     std::cout << "Estimated output buffer size: " << stretchedBufferSize << "\n";
-    mStretchedBuffer.setSize(channels, stretchedBufferSize, false, true);
+    mStretchedBuffer.setSize(static_cast<int>(channels), stretchedBufferSize, false, true);
     auto sampleOut = 0;
     
     while(sample < fileBufferLength)
     {
-        auto const samplesThistime = std::min(bufferSize, fileBufferLength - static_cast<int>(sample));
+        auto const samplesThistime = std::min(bufferSize, fileBufferLength - sample);
         std::cout << "Reading file position: " << sample << ", to " << sample + samplesThistime << "\n";
         const float* readPtrs[channels];
         for(size_t ch = 0; ch < channels; ++ch)
         {
-            readPtrs[ch] = mFileBuffer.getReadPointer(ch, sample);
+            readPtrs[ch] = mFileBuffer.getReadPointer(static_cast<int>(ch), static_cast<int>(sample));
         }
         
         std::cout << "Processing " << samplesThistime << " samples\n";
@@ -279,14 +279,14 @@ void MainComponent::performOfflineStretch()
         std::cout << "File buffer length: " << fileBufferLength << ", availableSamples: " << available << "\n";
         if(available > 0)
         {
-            auto stretchedBuffer = juce::AudioBuffer<float>(channels, available);
-            mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), available);
+            auto stretchedBuffer = juce::AudioBuffer<float>(static_cast<int>(channels), available);
+            mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), static_cast<size_t>(available));
             
             if(sampleOut + available > stretchedBufferSize)
             {
                 // we need to grow the buffer a bit
                 std::cout << "Increasing buffer size: " << stretchedBufferSize << " (orig) to " << (stretchedBufferSize + sampleOut + available) << "\n";
-                mStretchedBuffer.setSize(channels, (stretchedBufferSize + sampleOut + available), true);
+                mStretchedBuffer.setSize(static_cast<int>(channels), (stretchedBufferSize + sampleOut + available), true);
             }
             
             std::cout << "Writing to stretched buffer from position " << sampleOut << ", to " << sampleOut + available << "\n";
@@ -294,15 +294,15 @@ void MainComponent::performOfflineStretch()
             {
                 for(int i = 0; i < available; ++i)
                 {
-                    auto value = std::max(-1.0f, std::min(1.0f, stretchedBuffer.getSample(ch, i)));
-                    mStretchedBuffer.addSample(ch, sampleOut + i, value);
+                    auto value = std::max(-1.0f, std::min(1.0f, stretchedBuffer.getSample(static_cast<int>(ch), i)));
+                    mStretchedBuffer.addSample(static_cast<int>(ch), sampleOut + i, value);
                 }
             }
             
             sampleOut += available;
         }
         
-        auto const p = static_cast<int>(static_cast<double>(sample) * 100.0 / static_cast<double>(fileBufferLength));
+        auto const p = static_cast<size_t>(static_cast<double>(sample) * 100.0 / static_cast<double>(fileBufferLength));
         if(p > percent || sample == 0)
         {
             percent = static_cast<size_t>(p);
@@ -320,14 +320,14 @@ void MainComponent::performOfflineStretch()
     {
         auto const availableSamples = mRubberBandStretcher->available();
         std::cout << "Completing: number remaining: " << availableSamples << "\n";
-        auto stretchedBuffer = juce::AudioBuffer<float>(channels, availableSamples);
-        mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), availableSamples);
+        auto stretchedBuffer = juce::AudioBuffer<float>(static_cast<int>(channels), availableSamples);
+        mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), static_cast<size_t>(availableSamples));
         
         if(sampleOut + availableSamples > stretchedBufferSize)
         {
             // we need to grow the buffer a bit
             std::cout << "Increasing buffer size: " << stretchedBufferSize << " (orig) to " << (stretchedBufferSize + sampleOut + availableSamples) << "\n";
-            mStretchedBuffer.setSize(channels, (stretchedBufferSize + sampleOut + availableSamples), true);
+            mStretchedBuffer.setSize(static_cast<int>(channels), (stretchedBufferSize + sampleOut + availableSamples), true);
         }
         
         std::cout << "Writing to stretched buffer from position " << sampleOut << ", to " << sampleOut + availableSamples << "\n";
@@ -335,8 +335,8 @@ void MainComponent::performOfflineStretch()
         {
             for(int i = 0; i < availableSamples; ++i)
             {
-                auto value = std::max(-1.0f, std::min(1.0f, stretchedBuffer.getSample(ch, i)));
-                mStretchedBuffer.addSample(ch, sampleOut + i, value);
+                auto value = std::max(-1.0f, std::min(1.0f, stretchedBuffer.getSample(static_cast<int>(ch), i)));
+                mStretchedBuffer.addSample(static_cast<int>(ch), sampleOut + i, value);
             }
         }
         

@@ -10,8 +10,8 @@ class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
 {
 public:
     //==============================================================================
-    MainComponent(juce::AudioDeviceManager& deviceManager);
-    ~MainComponent();
+    MainComponent(juce::AudioDeviceManager& audioDeviceManager);
+    ~MainComponent() override;
     
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;
@@ -44,6 +44,8 @@ private:
     void changeListenerCallback (juce::ChangeBroadcaster* source) override;
     
     //==============================================================================
+    juce::AudioDeviceManager& mDeviceManager;
+    
     juce::TextButton mOpenButton;
     juce::TextButton mPlayButton;
     juce::TextButton mStopButton;
@@ -64,8 +66,6 @@ private:
     
     int mBlockSize;
     int mSampleRate;
-    
-    juce::AudioDeviceManager& mDeviceManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
