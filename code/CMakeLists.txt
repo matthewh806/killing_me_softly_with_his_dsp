@@ -11,8 +11,6 @@ project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.1)
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
 
-find_library(RUBBERBAND NAMES rubberband)
-
 set(CoreSources
     core/Allocators.h
     core/Allocators.cpp
@@ -79,7 +77,7 @@ target_link_libraries(RealTimeStretch
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
-        ${RUBBERBAND})
+        rubberband)
 
 juce_add_gui_app(OfflineTimeStretch
     PRODUCT_NAME "Juce Offline Time Stretch")
@@ -112,7 +110,7 @@ target_link_libraries(OfflineTimeStretch
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
-        ${RUBBERBAND})
+        rubberband)
 
 juce_add_gui_app(SimpleDelay
     PRODUCT_NAME "Simple Delay"
