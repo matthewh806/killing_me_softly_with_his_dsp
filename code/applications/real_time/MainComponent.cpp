@@ -2,8 +2,8 @@
 #include <RubberBandStretcher.h>
 
 //==============================================================================
-MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
-: juce::AudioAppComponent(deviceManager)
+MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
+: juce::AudioAppComponent(audioDeviceManager)
 , mStretchFactorSlider("Stretch Factor", "x")
 , mPitchShiftSlider("Pitch Shift Factor", "x")
 {
@@ -62,19 +62,19 @@ void MainComponent::resized()
     auto bounds = getLocalBounds();
     bounds.reduce(20, 20);
     
-    auto const sliderWidth = bounds.getWidth() * 0.4;
+    auto const sliderWidth = static_cast<int>(bounds.getWidth() * 0.4);
     mStretchFactorSlider.setBounds(bounds.removeFromLeft(sliderWidth));
-    bounds.removeFromLeft(bounds.getWidth() * 0.2);
+    bounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.2));
     mPitchShiftSlider.setBounds(bounds.removeFromLeft(sliderWidth));
 }
 
 void MainComponent::stretchValueChanged()
 {
     // TODO: Not thread safe...
-    mStretchProcessor.setStretchFactor(mStretchFactorSlider.getValue());
+    mStretchProcessor.setStretchFactor(static_cast<float>(mStretchFactorSlider.getValue()));
 }
 
 void MainComponent::pitchShiftValueChanged()
 {
-    mStretchProcessor.setPitchShift(mPitchShiftSlider.getValue());
+    mStretchProcessor.setPitchShift(static_cast<float>(mPitchShiftSlider.getValue()));
 }
