@@ -31,6 +31,7 @@ private:
     };
 
     void openButtonClicked();
+    void saveButtonClicked();
     void playButtonClicked();
     void stopButtonClicked();
     
@@ -44,13 +45,14 @@ private:
 
     //==============================================================================
     juce::TextButton mOpenButton;
-    juce::TextButton mPlayButton;
-    juce::TextButton mStopButton;
+    juce::TextButton mSaveButton;
 
     RotarySliderWithLabels mStretchFactorSlider;
     RotarySliderWithLabels mPitchShiftSlider;
     
     juce::TextButton mStretchButton;
+    juce::TextButton mPlayButton;
+    juce::TextButton mStopButton;
 
     std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource;
     

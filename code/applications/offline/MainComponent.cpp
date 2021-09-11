@@ -6,8 +6,12 @@ MainComponent::MainComponent()
 , mPitchShiftSlider("Pitch Shift", "x")
 {
     addAndMakeVisible (&mOpenButton);
-    mOpenButton.setButtonText ("Open...");
+    mOpenButton.setButtonText ("Open");
     mOpenButton.onClick = [this] { openButtonClicked(); };
+    
+    addAndMakeVisible(&mSaveButton);
+    mSaveButton.setButtonText("Save");
+    mSaveButton.onClick = [this] { saveButtonClicked(); };
 
     addAndMakeVisible (&mPlayButton);
     mPlayButton.setButtonText ("Play");
@@ -70,7 +74,10 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 
 void MainComponent::releaseResources()
 {
-    mReaderSource->releaseResources();
+    if(mReaderSource != nullptr)
+    {
+        mReaderSource->releaseResources();
+    }
     mTransportSource.releaseResources();
 }
 
@@ -85,23 +92,24 @@ void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
     bounds.reduce(20, 20);
-    auto buttonBounds = bounds.removeFromTop(20);
-    auto const buttonWidth = static_cast<int>(bounds.getWidth() * 0.25);
-    auto const spacing = (bounds.getWidth() - 3*buttonWidth) / 2;
+    auto topButtonBounds = bounds.removeFromTop(20);
+    auto const twoColumnCompWidth = static_cast<int>(bounds.getWidth() * 0.46);
+    auto const twoColumnCompSpacing = bounds.getWidth() - 2 * twoColumnCompWidth;
     
-    mOpenButton.setBounds (buttonBounds.removeFromLeft(buttonWidth));
-    buttonBounds.removeFromLeft(spacing);
-    mPlayButton.setBounds (buttonBounds.removeFromLeft(buttonWidth));
-    buttonBounds.removeFromLeft(spacing);
-    mStopButton.setBounds (buttonBounds.removeFromLeft(buttonWidth));
+    mOpenButton.setBounds (topButtonBounds.removeFromLeft(twoColumnCompWidth));
+    topButtonBounds.removeFromLeft(twoColumnCompSpacing);
+    mSaveButton.setBounds(topButtonBounds.removeFromLeft(twoColumnCompWidth));
     
     bounds.removeFromTop(20);
-    
     auto sliderBounds = bounds.removeFromTop(200);
-    auto const sliderWidth = static_cast<int>(sliderBounds.getWidth() * 0.4);
-    mStretchFactorSlider.setBounds(sliderBounds.removeFromLeft(sliderWidth));
-    sliderBounds.removeFromLeft(static_cast<int>(sliderBounds.getWidth() * 0.2));
-    mPitchShiftSlider.setBounds(sliderBounds.removeFromLeft(sliderWidth));
+    mStretchFactorSlider.setBounds(sliderBounds.removeFromLeft(twoColumnCompWidth));
+    sliderBounds.removeFromLeft(twoColumnCompSpacing);
+    mPitchShiftSlider.setBounds(sliderBounds.removeFromLeft(twoColumnCompWidth));
+    
+    auto bottomButtonBounds = bounds.removeFromTop(30);
+    mPlayButton.setBounds (bottomButtonBounds.removeFromLeft(twoColumnCompWidth));
+    bottomButtonBounds.removeFromLeft(twoColumnCompSpacing);
+    mStopButton.setBounds (bottomButtonBounds.removeFromLeft(twoColumnCompWidth));
     
     bounds.removeFromTop(20);
     mStretchButton.setBounds(bounds);
@@ -128,6 +136,19 @@ void MainComponent::openButtonClicked()
             reader->read(&mFileBuffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, true);
             
             performOfflineStretch();
+        }
+    }
+}
+
+void MainComponent::saveButtonClicked()
+{
+    juce::FileChooser chooser("Please choose a destination for the file...", {}, "*.wav");
+    if(chooser.browseForFileToSave(true))
+    {
+        auto file = chooser.getResult();
+        if(!mStretchedFile.getFile().copyFileTo(file))
+        {
+            std::cerr << "Saving file to " << file.getFullPathName() << " failed!\n";
         }
     }
 }
