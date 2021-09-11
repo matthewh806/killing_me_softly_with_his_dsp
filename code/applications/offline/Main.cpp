@@ -18,7 +18,7 @@ public:
     {
         juce::ignoreUnused (commandLine);
         juce::ignoreUnused (commandLine);
-        mainWindow.reset (new MainWindow (getApplicationName(), new MainComponent(mDefaultDeviceManager), mDefaultDeviceManager));
+        mainWindow.reset (new MainWindow (getApplicationName(), new MainComponent(), mDefaultDeviceManager));
         
         mainWindow->setLookAndFeel(&customLookAndFeel);
     }

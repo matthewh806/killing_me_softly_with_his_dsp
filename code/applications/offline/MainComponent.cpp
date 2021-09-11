@@ -2,7 +2,7 @@
 #include "../../dependencies/rubberband/rubberband/RubberBandStretcher.h"
 
 //==============================================================================
-MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
+MainComponent::MainComponent()
 : mStretchFactorSlider("Stretch Factor", "x")
 , mPitchShiftSlider("Pitch Shift", "x")
 {
@@ -78,7 +78,6 @@ void MainComponent::releaseResources()
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
 
