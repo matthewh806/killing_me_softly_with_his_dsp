@@ -19,7 +19,7 @@ brew install cmake
 Dependencies will vary between different targets within the subproject. [JUCE](https://juce.com/) is likely to be the foundation of each application so it is added as a submodule.
 
 [Rubberband](https://breakfastquay.com/rubberband/) is a dependency of the timestretch applications is similarly included as a depdency and
-compiled / linked as part of the cmake build system. 
+compiled / linked as part of the cmake build system.
 
 CMake build system
 
@@ -50,7 +50,10 @@ Interesting...
 #### Offline Timestretch
 This is quite simple to implement. All we need to do is load in an audio file and apply the timestretch transformation & save it to a new file.
 
-At some point this seemed to work, now I'm not so sure.
+##### Possible improvements
+- [ ] Currently there is only support for stretching + saving wav files, it might be nicer to allow for other formats
+- [ ] I'm just using the time stretch factor + pitch shift amt sliders as parameters exposed to the user, but RubberBand has many more to play with.
+- [ ] Put the pitch shift in more meaningful units perhaps? It's just a multiplication factor for now.
 
 ## Experiments
 

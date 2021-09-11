@@ -9,6 +9,8 @@
 - [ ] Refactor Breakbeat maker
 
 - [ ] Fix stretch projects
+  - [x] Offline
+  - [ ] Real Time (can it be done?)
 
 - [ ] Don't start new things before you've finished another...
 
