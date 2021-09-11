@@ -8,6 +8,7 @@ juce_generate_juce_header(OfflineTimeStretch)
 target_sources(OfflineTimeStretch
     PRIVATE
         ${CoreSources}
+        ${DspSources}
         ${UISources}
         ${CMAKE_SOURCE_DIR}/applications/offline/Main.cpp
         ${CMAKE_SOURCE_DIR}/applications/offline/MainComponent.h
@@ -21,7 +22,7 @@ target_compile_definitions(OfflineTimeStretch
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:OfflineTimeStretch,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:OfflineTimeStretch,JUCE_VERSION>")
 
-target_include_directories(OfflineTimeStretch PRIVATE dependencies/rubberband/rubberband)
+target_include_directories(RealTimeStretch PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/rubberband/rubberband)
 
 target_link_libraries(OfflineTimeStretch
     PRIVATE

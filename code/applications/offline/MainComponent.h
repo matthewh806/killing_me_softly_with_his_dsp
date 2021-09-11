@@ -1,7 +1,7 @@
 #pragma once
 
 #include "JuceHeader.h"
-#include "../../dsp/processors/RealTimeStretchProcessor.h"
+#include "../../dsp/OfflineStretcher.h"
 #include "../../core/RingBuffer.h"
 #include "../../ui/CustomLookAndFeel.h"
 
@@ -33,9 +33,8 @@ private:
     void openButtonClicked();
     void playButtonClicked();
     void stopButtonClicked();
-
-    void stretchValueChanged();
-    void pitchShiftValueChanged();
+    
+    void stretchButtonClicked();
 
     void performOfflineStretch();
 
@@ -50,16 +49,17 @@ private:
 
     RotarySliderWithLabels mStretchFactorSlider;
     RotarySliderWithLabels mPitchShiftSlider;
+    
+    juce::TextButton mStretchButton;
 
+    std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource;
+    
     juce::AudioFormatManager mFormatManager;
     juce::AudioTransportSource mTransportSource;
     juce::AudioSampleBuffer mFileBuffer;
-    juce::AudioSampleBuffer mStretchedBuffer;
-
-    std::unique_ptr<juce::MemoryAudioSource> mStretchedSrc;
-    std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource;
-    std::unique_ptr<RubberBand::RubberBandStretcher> mRubberBandStretcher;
-
+    
+    juce::TemporaryFile mStretchedFile {".wav"};
+    
     TransportState mState;
 
     int mBlockSize;
