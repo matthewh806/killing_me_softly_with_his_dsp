@@ -32,6 +32,8 @@ set(UISources
 source_group("Source/UISources" FILES ${UISources})
 
 set(DspSources
+    ${CMAKE_SOURCE_DIR}/dsp/OfflineStretcher.h
+    ${CMAKE_SOURCE_DIR}/dsp/OfflineStretcher.cpp
     ${CMAKE_SOURCE_DIR}/dsp/processors/SimpleDelayProcessor.h
     ${CMAKE_SOURCE_DIR}/dsp/processors/SimpleDelayProcessor.cpp
     ${CMAKE_SOURCE_DIR}/dsp/processors/RealTimeStretchProcessor.h
