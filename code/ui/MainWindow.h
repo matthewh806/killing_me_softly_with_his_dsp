@@ -74,7 +74,13 @@ public:
         
         auto audioSettingsXml = loadDeviceSettings();
         mAudioDeviceComponent.deviceManager.addChangeListener(this);
-        mAudioDeviceComponent.deviceManager.initialise(2, 2, audioSettingsXml.get(), true);
+        
+        // TODO: Is this a good idea? Maybe rethink this initialization approach
+        if(auto audioComp = dynamic_cast<juce::AudioAppComponent*>(mainComponent))
+        {
+            audioComp->setAudioChannels(2, 2, audioSettingsXml.get());
+        }
+        
         mAudioDeviceComponent.setSize(300, 300);
         setVisible (true);
     }
