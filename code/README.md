@@ -90,6 +90,41 @@ This is quite simple to implement. All we need to do is load in an audio file an
 - [ ] I'm just using the time stretch factor + pitch shift amt sliders as parameters exposed to the user, but RubberBand has many more to play with.
 - [ ] Put the pitch shift in more meaningful units perhaps? It's just a multiplication factor for now.
 
-#### Experiments
+###### Audio Decay
+This is a simple plugin with just a couple of knobs. The theory is a bit more complex though.
+At the moment there are two separate effects going on: **Decimation** & **Bitcrushing**
+
+In general there are aliasing effects in both of these proceedures which require some
+slightly involved filtering to remove. Since I want some artefacts to remain & I don't fully understand the filtering theory I'm ignoring all that for now.  
+
+**Bitcrushing**
+
+This is the process of requantising a discrete waveform. I.e. changing the number of bits which is used to encode the analog waveform - changing the number of quantisation levels used to represent a signal between the `[-1, 1]` bounds. A 16-bit signal has `2^16 = 65,536` quantisation levels.
+
+In order to achieve this effect I'm applying this simple equation:
+
+```
+quantisation_level: qL = 2 / (2^(bit_depth) - 1)
+
+for input signal x(n), generate new output y(n):
+y(n) = qL * (int ( x(n) / qL ))
+```
+
+[source: designing audio effect plugins in c++, pirkle, second ed]
+
+**Decimation**
+
+This is the more complex of the two approaches. My ultimate aim is just to try to degrade the quality of the sound further. I read from quite a few sources of varying degrees of complexity. I think for a first attempt [this](https://forum.juce.com/t/seeking-help-with-free-ratio-downsampler-plugin-dsp/18344/7)
+ approach is that I will try:
+
+> What you really want I think is downsampling then upsampling without removing the resampling artefacts / aliasing.
+
+>To downsample with an integer ratio N, you can return one sample every (N-1) samples. This way you get your downsampled “aliased” signal, because for it to be less aliased, you have to filter it before the operation with a cutoff frequency at your sampling rate / (N-1) / 2 and a very stiff curve. Since you have not done it, it’s aliased.
+
+> Then, you don’t want your signal to be at a lower sample rate, but at the current one. So, you need to upsample it after that operation. To do so, you can add N-1 zeroes between your samples at the lower sample rate. You obtain your signal upsampled, back at the original sample rate, with “imaging artefacts”.
+
+>There, you need to filter the signal to remove some of the upsampling artefacts. But you can also return directly these samples with zeroes. Or, if you want something a little cleaner, but still harsh, you can do linear interpolation, or “drop sample” interpolation for the upsampling part. Linear interpolation is just going linearly from sample k to sample k+1 in the intermediate values, and “drop sample” is repeating N-1 times the sample k.
+
+## Experiments
 
 This directory is just for quick and useful python scripts for testing out dsp ideas or looking at how certain transformations affect a signal graphically.
