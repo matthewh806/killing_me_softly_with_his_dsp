@@ -12,6 +12,7 @@ public:
     //==============================================================================
     
     void setQuantisationLevel(int bitDepth);
+    void setDownsampleFactor(int downsampleFactor);
     void setWetDryMix(float mix);
 
     //==============================================================================
@@ -46,6 +47,7 @@ private:
     int mSampleRate;
     
     std::atomic<float> mQuantisationLevel {1.0};
+    std::atomic<int> mDownsampleFactor {1};
     std::atomic<float> mWetDryMix {1.0};
 
     //==============================================================================
