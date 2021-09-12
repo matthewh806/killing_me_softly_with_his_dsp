@@ -3,7 +3,8 @@
 //==============================================================================
 MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
 : juce::AudioAppComponent(audioDeviceManager)
-, mBitDepthSlider("Bit-Depth", "")
+, mBitDepthSlider("Bit-Depth", "bit")
+, mDownsamplingSlider("Downsampling", "x")
 , mWetDrySlider("Mix", "")
 {
     addAndMakeVisible(&mBitDepthSlider);
@@ -14,6 +15,16 @@ MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
     mBitDepthSlider.onValueChange = [this]
     {
         mDecayProcessor.setQuantisationLevel(static_cast<int>(mBitDepthSlider.getValue()));
+    };
+    
+    addAndMakeVisible(&mDownsamplingSlider);
+    mDownsamplingSlider.mLabels.add({0.0f, "1"});
+    mDownsamplingSlider.mLabels.add({1.0f, "10"});
+    mDownsamplingSlider.setRange(1.0, 10.0, 1.0);
+    mDownsamplingSlider.setValue(1);
+    mDownsamplingSlider.onValueChange = [this]
+    {
+        mDecayProcessor.setDownsampleFactor(static_cast<int>(mDownsamplingSlider.getValue()));
     };
     
     addAndMakeVisible(&mWetDrySlider);
@@ -67,9 +78,14 @@ void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
     bounds.reduced(20, 20);
-    auto const rotaryWidth = static_cast<int>(bounds.getWidth() * 0.40);
-    auto const spacing = (bounds.getWidth() - (rotaryWidth * 2));
+    
+    auto constexpr numUIElements = 3;
+    auto const rotaryWidth = static_cast<int>(bounds.getWidth() * 1 / numUIElements);
+    auto const spacing = (bounds.getWidth() - rotaryWidth * numUIElements) / (numUIElements - 1);
+    
     mBitDepthSlider.setBounds(bounds.removeFromLeft(rotaryWidth));
+    bounds.removeFromLeft(spacing);
+    mDownsamplingSlider.setBounds(bounds.removeFromLeft(rotaryWidth));
     bounds.removeFromLeft(spacing);
     mWetDrySlider.setBounds(bounds.removeFromLeft(rotaryWidth));
 }

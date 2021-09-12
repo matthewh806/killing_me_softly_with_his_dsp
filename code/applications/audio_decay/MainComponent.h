@@ -26,6 +26,7 @@ private:
     AudioDecayProcessor mDecayProcessor;
     
     RotarySliderWithLabels mBitDepthSlider;
+    RotarySliderWithLabels mDownsamplingSlider;
     RotarySliderWithLabels mWetDrySlider;
     
     float mQuantisationLevel = 1.0;
