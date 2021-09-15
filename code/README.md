@@ -23,6 +23,7 @@ compiled / linked as part of the cmake build system.
 
 CMake build system
 
+#### MacOS
 ```
 cd code
 mkdir build; cd build
@@ -30,7 +31,25 @@ cmake .. -GXcode
 ```
 
 This will generate a single monolithic xcode project with individual targets for each executable.
-So far this has only been tested on macOS
+
+#### Linux
+This has only been tested on Ubuntu 21.04 64-bit
+
+In order to compile install the [JUCE dependencies](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md).
+For rubberband to compile its also necessary to have `kissfft` & `libsamplerate` installed
+
+```
+sudo apt-get install kissfft-tools
+sudo apt-get install libsamplerate-dev
+```
+These can both be removed as dependencies in `dependencies/rubberband/CMakeLists.txt` but I haven't tried this out
+
+Then to compile:
+```
+cd code
+mkdir build; cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+```
 
 ### Contents
 #### Applications
