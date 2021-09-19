@@ -42,3 +42,14 @@ It would be nice to also provide meters, scopes, spectral representations all im
 For future reference:
 - https://docs.juce.com/master/classAudioProcessorGraph.html I think this class can really tie the room together
 - https://docs.juce.com/master/tutorial_audio_processor_graph.html juce already has a tutorial for creating this kind of application
+
+## CI
+This is about as basic as can be for now...
+
+- [ ] Add a windows target
+- [ ] Add a debian target
+- [ ] Add tests (hmm...)
+- [ ] Deployment script (or just upload binaries to some place)
+  - [ ] macos - dmg? zip?
+  - [ ] linux - zip? tar?
+  - [ ] windows

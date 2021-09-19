@@ -18,8 +18,14 @@ brew install cmake
 
 Dependencies will vary between different targets within the subproject. [JUCE](https://juce.com/) is likely to be the foundation of each application so it is added as a submodule.
 
-[Rubberband](https://breakfastquay.com/rubberband/) is a dependency of the timestretch applications is similarly included as a depdency and
+[Rubberband](https://breakfastquay.com/rubberband/) is a dependency of the timestretch applications is similarly included as a dependency and
 compiled / linked as part of the cmake build system.
+
+There is one prerequesite necessary for the Rubberband library `libsamplerate`
+
+```
+brew install libsamplerate
+```
 
 CMake build system
 
@@ -36,10 +42,9 @@ This will generate a single monolithic xcode project with individual targets for
 This has only been tested on Ubuntu 21.04 64-bit
 
 In order to compile install the [JUCE dependencies](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md).
-For rubberband to compile its also necessary to have `kissfft` & `libsamplerate` installed
+For rubberband to compile its also necessary to have `libsamplerate` installed
 
 ```
-sudo apt-get install kissfft-tools
 sudo apt-get install libsamplerate-dev
 ```
 These can both be removed as dependencies in `dependencies/rubberband/CMakeLists.txt` but I haven't tried this out
