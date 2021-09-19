@@ -29,7 +29,9 @@ public:
 
     void shutdown() override
     {
+#if JUCE_MAC && (!defined(JUCE_IOS))
         juce::MenuBarModel::setMacMainMenu(nullptr);
+#endif
         mainWindow->setLookAndFeel(nullptr);
         mainWindow = nullptr; // (deletes our window)
     }
