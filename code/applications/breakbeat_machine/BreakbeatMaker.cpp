@@ -115,69 +115,26 @@ void MainContentComponent::WaveformComponent::handleAsyncUpdate()
 MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")
+, mSliceDivsorSlider("Slice Div", "")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
 , mRecentFiles(recentFiles)
 {
-    addAndMakeVisible (mClearButton);
-    mClearButton.setButtonText ("Clear");
-    mClearButton.onClick = [this] { clearButtonClicked(); };
-    
-    addAndMakeVisible (mRandomSlicesToggle);
-    mRandomSlicesToggle.setButtonText("Random Slices");
-    mRandomSlicesToggle.onClick = [this] { mAudioSource.toggleRandomPosition(); };
-    
-    addAndMakeVisible(mmSampleBPMLabel);
-    mmSampleBPMLabel.setText("Sample BPM: ", dontSendNotification);
-    mmSampleBPMLabel.attachToComponent(&mmSampleBPMField, true);
-    mmSampleBPMLabel.setEditable(false);
-    mmSampleBPMLabel.setJustificationType(Justification::right);
-    mmSampleBPMLabel.setColour(Label::textColourId, Colours::white);
-    
-    addAndMakeVisible(mmSampleBPMField);
-    mmSampleBPMField.setText("120", dontSendNotification);
-    mmSampleBPMField.setColour(Label::textColourId, Colours::white);
-    mmSampleBPMField.setEditable(true);
-    mmSampleBPMField.onTextChange = [this]
+    addAndMakeVisible(mSampleBpmField);
+    mSampleBpmField.onValueChanged = [this](double value)
     {
-        mSampleBPM = mmSampleBPMField.getText().getIntValue();
-        mAudioSource.setSampleBpm(static_cast<double>(mSampleBPM));
-    };
-    mmSampleBPMField.onEditorShow = [this]
-    {
-        auto* ed = mmSampleBPMField.getCurrentTextEditor();
-        ed->setInputRestrictions(3, "1234567890");
+        mAudioSource.setSampleBpm(value);
     };
     
-    addAndMakeVisible(mSliceSizeLabel);
-    mSliceSizeLabel.setText("Slice size: ", dontSendNotification);
-    mSliceSizeLabel.setColour(Label::textColourId, Colours::white);
-    mSliceSizeLabel.setEditable(false);
-    mSliceSizeLabel.attachToComponent(&mSliceSizeDropDown, true);
-    mSliceSizeLabel.setJustificationType(Justification::right);
-    
-    addAndMakeVisible(mSliceSizeDropDown);
-    mSliceSizeDropDown.addItemList({"1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/64", "1/128"}, 1);
-    mSliceSizeDropDown.setSelectedId(3);
-    mSliceSizeDropDown.onChange = [this]
+    addAndMakeVisible(mSliceDivsorSlider);
+    mSliceDivsorSlider.mLabels.add({0.0, "0"});
+    mSliceDivsorSlider.mLabels.add({1.0, "256"});
+    mSliceDivsorSlider.setRange(0.0, 8.0, 1.0);
+    mSliceDivsorSlider.setValue(1.0, dontSendNotification);
+    mSliceDivsorSlider.onValueChange = [this]()
     {
-        auto selectionId = mSliceSizeDropDown.getSelectedId();
-        
-        switch(selectionId)
-        {
-            case 1:
-                mBlockDivisionPower = 4;
-                break;
-            case 2:
-                mBlockDivisionPower = 2;
-                break;
-            default:
-                mBlockDivisionPower = 1.0 / std::pow(2, selectionId - 3);
-                break;
-        }
-        
-        mAudioSource.setBlockDivisionFactor(mBlockDivisionPower);
-        mAudioSource.calculateAudioBlocks();
+        auto const divisor = static_cast<int>(std::pow(2, static_cast<int>(mSliceDivsorSlider.getValue())));
+        mAudioSource.setBlockDivisionFactor(divisor);
     };
     
     addAndMakeVisible(mChangeSampleProbabilitySlider);
@@ -241,7 +198,7 @@ MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDevice
     addAndMakeVisible(mFileSampleRateLabel);
     mFileSampleRateLabel.setEditable(false);
     
-    setSize (500, 520);
+    setSize (500, 540);
 
     mFormatManager.registerBasicFormats();
     
@@ -269,18 +226,10 @@ void MainContentComponent::resized()
     auto const threeFieldRowElementWidth = bounds.getWidth() / 4;
     auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
     
-    auto topRowBounds = bounds.removeFromTop(20);
-    mClearButton.setBounds (topRowBounds.removeFromLeft(twoFieldRowElementWidth));
-    topRowBounds.removeFromLeft(twoFieldRowSpacing);
-    mRandomSlicesToggle.setBounds(topRowBounds.removeFromLeft(twoFieldRowElementWidth));
-    topRowBounds.removeFromLeft(twoFieldRowSpacing);
-    
-    bounds.removeFromTop(10);
-    
-    auto secondRowBounds = bounds.removeFromTop(20);
-    mmSampleBPMField.setBounds(secondRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    auto secondRowBounds = bounds.removeFromTop(100);
+    mSampleBpmField.setBounds(secondRowBounds.removeFromLeft(twoFieldRowElementWidth).removeFromTop(20));
     secondRowBounds.removeFromLeft(twoFieldRowSpacing);
-    mSliceSizeDropDown.setBounds(secondRowBounds.removeFromLeft(twoFieldRowSpacing));
+    mSliceDivsorSlider.setBounds(secondRowBounds.removeFromLeft(twoFieldRowSpacing));
     
     bounds.removeFromTop(20);
     
@@ -427,17 +376,6 @@ void MainContentComponent::exportAudioSlices()
     {
         juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Failed to export slices", e.what());
     }
-}
-
-void MainContentComponent::clearButtonClicked()
-{
-    mAudioSource.clear();
-    mWaveformComponent.getThumbnail().clear();
-    
-    mFileName = "";
-    mFileSampleRate = 0.0;
-    
-    triggerAsyncUpdate();
 }
 
 void MainContentComponent::changeState(TransportState state)

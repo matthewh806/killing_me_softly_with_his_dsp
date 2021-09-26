@@ -37,7 +37,7 @@ public:
     void setSampleChangeThreshold(float threshold);
     void setReverseSampleThreshold(float threshold);
     
-    void setBlockDivisionFactor(double factor);
+    void setBlockDivisionFactor(int factor);
     
     void setSampleBpm(double bpm);
     
@@ -82,9 +82,9 @@ private:
     std::atomic<int> mSliceSampleSize {1}; // in samples
     std::atomic<int> mBlockIdx {0};
     std::atomic<int> mBpm {120};
-    std::atomic<double> mBlockDivisionPower {1.0}; // This should be stored as powers of 2 (whole = 1, half = 2, quarter = 4 etc)
+    std::atomic<int> mBlockDivisionFactor {1}; // This should be stored as powers of 2 (whole = 1, half = 2, quarter = 4 etc)
     
-    double mDuration = 44100;
+    double mDuration = 44100.0;
     
     juce::ReferenceCountedArray<ReferenceCountedForwardAndReverseBuffer> mBuffers;
     ReferenceCountedForwardAndReverseBuffer::Ptr mCurrentBuffer;
