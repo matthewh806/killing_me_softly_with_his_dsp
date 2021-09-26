@@ -73,9 +73,10 @@ void BreakbeatAudioSource::setReverseSampleThreshold(float threshold)
     mReverseSampleThreshold.exchange(threshold);
 }
 
-void BreakbeatAudioSource::setBlockDivisionFactor(double factor)
+void BreakbeatAudioSource::setBlockDivisionFactor(int factor)
 {
-    mBlockDivisionPower.exchange(factor);
+    mBlockDivisionFactor.exchange(factor);
+    calculateAudioBlocks();
 }
 
 void BreakbeatAudioSource::setSampleBpm(double bpm)
@@ -88,12 +89,6 @@ void BreakbeatAudioSource::toggleRandomDirection()
 {
     auto const status = mRandomDirection.load();
     mRandomDirection.exchange(!status);
-}
-
-void BreakbeatAudioSource::toggleRandomPosition()
-{
-    auto const status = mRandomDirection.load();
-    mRandomPosition.exchange(!status);
 }
 
 void BreakbeatAudioSource::prepareToPlay (int, double)
@@ -237,8 +232,8 @@ void BreakbeatAudioSource::clear()
 void BreakbeatAudioSource::calculateAudioBlocks()
 {
     auto const bps = mBpm / 60.0;
-    mNumSlices = static_cast<int>(std::max(bps * mDuration / static_cast<double>(mBlockDivisionPower), 1.0));
-    mSliceSampleSize = roundToInt(getNumSamples() / mNumSlices);
+//    mNumSlices = static_cast<int>(std::max(bps * mDuration / mBlockDivisionFactor, 1.0));
+    mSliceSampleSize = roundToInt(getNumSamples() / mBlockDivisionFactor);
     
     jassert(mNumSlices > 0);
     

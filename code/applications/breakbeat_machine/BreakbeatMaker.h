@@ -10,6 +10,17 @@
 
 #define MAX_FILE_LENGTH 15.0 // seconds
 
+class SliceRotarySlider : public RotarySliderWithLabels
+{
+public:
+    using RotarySliderWithLabels::RotarySliderWithLabels;
+    
+    juce::String getDisplayString() const override
+    {
+        return juce::String(std::pow(2.0, getValue()), 0);
+    }
+};
+
 class MainContentComponent
 : public juce::AudioAppComponent
 , private juce::Thread
@@ -97,19 +108,14 @@ private:
         double mSampleRate = 44100.0;
     };
     
-    void clearButtonClicked();
-    
     void checkForBuffersToFree();
     void checkForPathToOpen();
     
     void changeState(TransportState state);
     //==========================================================================
-    juce::TextButton mClearButton;
-    juce::ToggleButton mRandomSlicesToggle;
-    juce::Label mmSampleBPMLabel;
-    juce::Label mmSampleBPMField;
-    juce::Label mSliceSizeLabel;
-    juce::ComboBox mSliceSizeDropDown;
+    NumberFieldWithLabel mSampleBpmField {"BPM", "", true};
+    
+    SliceRotarySlider mSliceDivsorSlider;
     RotarySliderWithLabels mChangeSampleProbabilitySlider;
     RotarySliderWithLabels mReverseSampleProbabilitySlider;
     
