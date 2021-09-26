@@ -121,9 +121,10 @@ MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDevice
 , mRecentFiles(recentFiles)
 {
     addAndMakeVisible(mSampleBpmField);
-    mSampleBpmField.onValueChanged = [this](double value)
+    mSampleBpmField.onValueChanged = [](double value)
     {
-        mAudioSource.setSampleBpm(value);
+        // TODO: This should do something again...
+        juce::ignoreUnused(value);
     };
     
     addAndMakeVisible(mSliceDivsorSlider);
@@ -294,7 +295,9 @@ void MainContentComponent::getNextAudioBlock (const AudioSourceChannelInfo& buff
     juce::AudioBuffer<float> localBuffer(mTemporaryChannels.data(), numChannels, numSamples);
     mRecorder.processBlock(localBuffer);
     
-    mWaveformComponent.setSampleStartEnd(mAudioSource.getStartReadPosition(), mAudioSource.getEndReadPosition());
+    auto const start = mAudioSource.getStartReadPosition();
+    auto const end = start + mAudioSource.getSliceSize();
+    mWaveformComponent.setSampleStartEnd(start, end);
 }
 
 void MainContentComponent::releaseResources()

@@ -49,7 +49,7 @@ int64_t BreakbeatAudioSource::getSliceSize() const
 
 int64_t BreakbeatAudioSource::getStartReadPosition() const
 {
-    return mStartReadPosition.load();
+    return mSliceStartPosition.load();
 }
 
 juce::AudioSampleBuffer* BreakbeatAudioSource::getCurrentBuffer()
@@ -76,13 +76,7 @@ void BreakbeatAudioSource::setReverseSampleThreshold(float threshold)
 void BreakbeatAudioSource::setBlockDivisionFactor(int factor)
 {
     mBlockDivisionFactor.exchange(factor);
-    calculateAudioBlocks();
-}
-
-void BreakbeatAudioSource::setSampleBpm(double bpm)
-{
-    mBpm.exchange(static_cast<int>(bpm));
-    calculateAudioBlocks();
+    updateSliceSizes();
 }
 
 void BreakbeatAudioSource::toggleRandomDirection()
@@ -111,9 +105,9 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     auto const numSamples = bufferToFill.numSamples;
     auto const outputStart = bufferToFill.startSample;
     
-    auto sliceStartPosition = mStartReadPosition.load();
-    auto sliceEndPosition = mEndReadPosition.load();
+    auto sliceStartPosition = mSliceStartPosition.load();
     auto const sliceSampleSize = mSliceSampleSize.load();
+    auto sliceEndPosition = sliceStartPosition + sliceSampleSize;
     auto const numSlices = mNumSlices.load();
     auto const sliceChangeThreshold = mSampleChangeThreshold.load();
     auto const sliceReverseThreshold = mReverseSampleThreshold.load();
@@ -121,41 +115,39 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     jassert(sliceSampleSize > 0);
 
     auto samplesRemaining = numSamples;
-    auto const currentPosition = mNextReadPosition.load();
-    
-    auto readBufferStart = currentPosition;
+    auto currentPosition = mNextReadPosition.load();
     while(samplesRemaining > 0)
     {
         auto const changePerc = Random::getSystemRandom().nextFloat();
-        bool const atSliceEnd = readBufferStart == sliceEndPosition;
+        
+        jassert(currentPosition <= sliceEndPosition);
+        bool const atSliceEnd = currentPosition == sliceEndPosition;
         bool const willChange = atSliceEnd && changePerc > sliceChangeThreshold;
         
-        sliceStartPosition = willChange ? (numSlices > 1 ? Random::getSystemRandom().nextInt(numSlices) * sliceSampleSize : 0) : sliceStartPosition;
-        sliceEndPosition = willChange ? sliceStartPosition + sliceSampleSize : sliceEndPosition;
         if(willChange)
         {
+            sliceStartPosition = numSlices > 1 ? Random::getSystemRandom().nextInt(numSlices) * sliceSampleSize : sliceStartPosition;
+            sliceEndPosition = sliceStartPosition + sliceSampleSize;
+            jassert(sliceEndPosition >= sliceStartPosition);
             retainedBuffer->updateCurrentSampleBuffer(sliceReverseThreshold);
         };
         
-        jassert(sliceEndPosition >= sliceStartPosition);
+        currentPosition = atSliceEnd ? sliceStartPosition : currentPosition;
+        auto const readBufferEnd = std::min(sliceEndPosition, currentPosition + static_cast<int64_t>(samplesRemaining));
+        jassert(currentPosition >= 0 && readBufferEnd >= currentPosition);
         
-        readBufferStart = atSliceEnd ? sliceStartPosition : readBufferStart;
-        auto const readBufferEnd = std::min(sliceEndPosition, readBufferStart + static_cast<int64_t>(samplesRemaining));
-        jassert(readBufferStart >= 0 && readBufferEnd >= readBufferStart);
-        
-        auto const numThisTime = std::min(static_cast<int>(readBufferEnd - readBufferStart), samplesRemaining);
+        auto const numThisTime = std::min(static_cast<int>(readBufferEnd - currentPosition), samplesRemaining);
         for(auto ch = 0; ch < numChannels; ++ch)
         {
-            bufferToFill.buffer->copyFrom(ch, outputStart, *retainedBuffer->getCurrentAudioSampleBuffer(), ch, static_cast<int>(readBufferStart), static_cast<int>(numThisTime));
+            bufferToFill.buffer->copyFrom(ch, outputStart, *retainedBuffer->getCurrentAudioSampleBuffer(), ch, static_cast<int>(currentPosition), static_cast<int>(numThisTime));
         }
         
         samplesRemaining -= numThisTime;
-        readBufferStart += numThisTime;
+        currentPosition += numThisTime;
     }
     
-    mNextReadPosition.exchange(readBufferStart);
-    mStartReadPosition.exchange(sliceStartPosition);
-    mEndReadPosition.exchange(sliceEndPosition);
+    mNextReadPosition.exchange(currentPosition);
+    mSliceStartPosition.exchange(sliceStartPosition);
 }
 
 void BreakbeatAudioSource::releaseResources()
@@ -166,7 +158,7 @@ void BreakbeatAudioSource::releaseResources()
 void BreakbeatAudioSource::setNextReadPosition (int64 newPosition)
 {
     mNextReadPosition = newPosition;
-    mStartReadPosition = newPosition;
+    mSliceStartPosition = newPosition;
 }
 
 int64 BreakbeatAudioSource::getNextReadPosition() const
@@ -184,17 +176,6 @@ bool BreakbeatAudioSource::isLooping() const
     return true;
 }
 
-// PositionableRegionAudioSource
-void BreakbeatAudioSource::setEndReadPosition (int64 newPosition)
-{
-    mEndReadPosition = newPosition;
-}
-
-int64 BreakbeatAudioSource::getEndReadPosition() const
-{
-    return mEndReadPosition.load();
-}
-
 void BreakbeatAudioSource::setReader(juce::AudioFormatReader* reader)
 {
     ReferenceCountedForwardAndReverseBuffer::Ptr newBuffer = new ReferenceCountedForwardAndReverseBuffer("", reader);
@@ -204,11 +185,9 @@ void BreakbeatAudioSource::setReader(juce::AudioFormatReader* reader)
     mBuffers.add(mCurrentBuffer);
 
     mNextReadPosition = 0;
-    mEndReadPosition = static_cast<int>(reader->lengthInSamples);
-    
     mDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
     
-    calculateAudioBlocks();
+    updateSliceSizes();
 }
 
 void BreakbeatAudioSource::clearFreeBuffers()
@@ -229,14 +208,12 @@ void BreakbeatAudioSource::clear()
     mCurrentBuffer = nullptr;
 }
 
-void BreakbeatAudioSource::calculateAudioBlocks()
+void BreakbeatAudioSource::updateSliceSizes()
 {
-    auto const bps = mBpm / 60.0;
-//    mNumSlices = static_cast<int>(std::max(bps * mDuration / mBlockDivisionFactor, 1.0));
+    mNumSlices = mBlockDivisionFactor.load();
     mSliceSampleSize = roundToInt(getNumSamples() / mBlockDivisionFactor);
     
     jassert(mNumSlices > 0);
     
     setNextReadPosition(0);
-    setEndReadPosition(mSliceSampleSize);
 }
