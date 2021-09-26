@@ -112,17 +112,13 @@ void MainContentComponent::WaveformComponent::handleAsyncUpdate()
     repaint();
 }
 
-MainContentComponent::MainContentComponent(juce::RecentlyOpenedFilesList& recentFiles)
-: juce::Thread("Background Thread")
+MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
+: juce::AudioAppComponent(audioDeviceManager)
+, juce::Thread("Background Thread")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
 , mRecentFiles(recentFiles)
 {
-    getLookAndFeel().setColour (MainContentComponent::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
-    getLookAndFeel().setColour (MainContentComponent::ColourIds::playingButtonColourId, juce::Colours::green);
-    getLookAndFeel().setColour(MainContentComponent::ColourIds::defaultButtonColourId, findColour(juce::TextButton::ColourIds::buttonColourId));
-    getLookAndFeel().setColour(MainContentComponent::ColourIds::recordingButtonColourId, juce::Colours::red);
-    
     addAndMakeVisible (mClearButton);
     mClearButton.setButtonText ("Clear");
     mClearButton.onClick = [this] { clearButtonClicked(); };
@@ -314,6 +310,14 @@ void MainContentComponent::resized()
 void MainContentComponent::paint(juce::Graphics& g)
 {
     juce::ignoreUnused(g);
+}
+
+void MainContentComponent::lookAndFeelChanged()
+{
+    getLookAndFeel().setColour (MainContentComponent::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
+    getLookAndFeel().setColour (MainContentComponent::ColourIds::playingButtonColourId, juce::Colours::green);
+    getLookAndFeel().setColour(MainContentComponent::ColourIds::defaultButtonColourId, findColour(juce::TextButton::ColourIds::buttonColourId));
+    getLookAndFeel().setColour(MainContentComponent::ColourIds::recordingButtonColourId, juce::Colours::red);
 }
 
 void MainContentComponent::prepareToPlay (int samplerPerBlockExpected, double sampleRate)
