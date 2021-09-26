@@ -25,12 +25,13 @@ public:
         defaultButtonColourId   = 0x3004002
     };
     
-    MainContentComponent(juce::RecentlyOpenedFilesList& recentFiles);
+    MainContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles);
     ~MainContentComponent() override;
     
     // juce::Component
     void resized() override;
     void paint(juce::Graphics& g) override;
+    void lookAndFeelChanged() override;
     
     // juce::AudioAppComponent
     void prepareToPlay (int, double) override;
