@@ -49,3 +49,20 @@ private:
     juce::String mParamName;
     juce::String mSuffix;
 };
+
+class NumberFieldWithLabel : public juce::Component
+{
+public:
+    NumberFieldWithLabel(juce::String const& paramName, juce::String const& unitSuffix, bool editable = true, double defaultValue = 0.0f);
+    NumberFieldWithLabel() = default;
+    
+    void setValue(const double value, const juce::NotificationType notification);
+    void resized() override;
+    
+    std::function<void(double)> onValueChanged = nullptr;
+    
+private:
+    juce::Label mParamLabel;
+    juce::Label mNumberField;
+};
+

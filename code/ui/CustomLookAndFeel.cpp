@@ -142,3 +142,41 @@ juce::String RotarySliderWithLabels::getParameterName() const
     return mParamName;
 }
 
+NumberFieldWithLabel::NumberFieldWithLabel(juce::String const& paramName, juce::String const& unitSuffix, bool editable, double defaultValue)
+{
+    mParamLabel.setEditable(false);
+    mParamLabel.setText(paramName, juce::NotificationType::dontSendNotification);
+    addAndMakeVisible(mParamLabel);
+    
+    mNumberField.setEditable(editable);
+    addAndMakeVisible(mNumberField);
+    mNumberField.setText(juce::String(defaultValue), juce::NotificationType::dontSendNotification);
+    
+    mNumberField.onEditorShow = [this]()
+    {
+        auto* ed = mNumberField.getCurrentTextEditor();
+        ed->setInputRestrictions(3, "1234567890");
+    };
+    
+    mNumberField.onTextChange = [this]
+    {
+        if(onValueChanged != nullptr)
+        {
+            onValueChanged(mNumberField.getText().getDoubleValue());
+        }
+    };
+}
+
+void NumberFieldWithLabel::setValue(const double value, const juce::NotificationType notification)
+{
+    mNumberField.setText(juce::String(value), notification);
+}
+
+void NumberFieldWithLabel::resized()
+{
+    auto bounds = getLocalBounds();
+    
+    mParamLabel.setBounds(bounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.45)));
+    bounds.removeFromLeft(static_cast<int>(2));
+    mNumberField.setBounds(bounds);
+}
