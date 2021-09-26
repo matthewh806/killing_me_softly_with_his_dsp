@@ -13,15 +13,8 @@
 #include <JuceHeader.h>
 #include "../../core/ReferenceCountedForwardAndReverseBuffer.h"
 
-class PositionableRegionAudioSource
-: public juce::PositionableAudioSource
-{
-    virtual void setEndReadPosition (int64 newPosition) = 0;
-    virtual int64 getEndReadPosition() const = 0;
-};
-
 class BreakbeatAudioSource
-: public PositionableRegionAudioSource
+: public PositionableAudioSource
 {
 public:
     BreakbeatAudioSource();
@@ -36,10 +29,7 @@ public:
     
     void setSampleChangeThreshold(float threshold);
     void setReverseSampleThreshold(float threshold);
-    
     void setBlockDivisionFactor(int factor);
-    
-    void setSampleBpm(double bpm);
     
     void toggleRandomPosition();
     void toggleRandomDirection();
@@ -55,22 +45,17 @@ public:
     int64 getTotalLength() const override;
     bool isLooping() const override;
     
-    // PositionableRegionAudioSource
-    void setEndReadPosition (int64 newPosition) override;
-    int64 getEndReadPosition() const override;
-    
     void setReader(juce::AudioFormatReader* reader);
     
     void clearFreeBuffers();
     void clear();
     
-    void calculateAudioBlocks();
-    
 private:
     
+    void updateSliceSizes();
+    
     std::atomic<int64_t> mNextReadPosition {0};
-    std::atomic<int64_t> mStartReadPosition {0};
-    std::atomic<int64_t> mEndReadPosition {0};
+    std::atomic<int64_t> mSliceStartPosition {0};
     
     std::atomic<float> mSampleChangeThreshold {0.7f};
     std::atomic<float> mReverseSampleThreshold {0.7f};
@@ -80,9 +65,7 @@ private:
     
     std::atomic<int> mNumSlices {1};
     std::atomic<int> mSliceSampleSize {1}; // in samples
-    std::atomic<int> mBlockIdx {0};
-    std::atomic<int> mBpm {120};
-    std::atomic<int> mBlockDivisionFactor {1}; // This should be stored as powers of 2 (whole = 1, half = 2, quarter = 4 etc)
+    std::atomic<int> mBlockDivisionFactor {1};
     
     double mDuration = 44100.0;
     
