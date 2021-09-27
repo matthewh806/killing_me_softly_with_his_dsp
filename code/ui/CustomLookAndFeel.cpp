@@ -142,11 +142,14 @@ juce::String RotarySliderWithLabels::getParameterName() const
     return mParamName;
 }
 
-NumberFieldWithLabel::NumberFieldWithLabel(juce::String const& paramName, juce::String const& unitSuffix, bool editable, double defaultValue)
+NumberFieldWithLabel::NumberFieldWithLabel(juce::String const& paramName, juce::String const& unitSuffix, size_t const numberOfDecimals, bool editable, double defaultValue)
 {
     mParamLabel.setEditable(false);
     mParamLabel.setText(paramName, juce::NotificationType::dontSendNotification);
     addAndMakeVisible(mParamLabel);
+    
+    mSuffix = unitSuffix;
+    mNumberOfDecimals = numberOfDecimals;
     
     mNumberField.setEditable(editable);
     addAndMakeVisible(mNumberField);
@@ -155,21 +158,57 @@ NumberFieldWithLabel::NumberFieldWithLabel(juce::String const& paramName, juce::
     mNumberField.onEditorShow = [this]()
     {
         auto* ed = mNumberField.getCurrentTextEditor();
-        ed->setInputRestrictions(3, "1234567890");
+        ed->setInputRestrictions(10, "1234567890.");
     };
     
     mNumberField.onTextChange = [this]
     {
-        if(onValueChanged != nullptr)
-        {
-            onValueChanged(mNumberField.getText().getDoubleValue());
-        }
+        setValue(getValue(), juce::NotificationType::sendNotification);
     };
+}
+
+double NumberFieldWithLabel::getValue() const
+{
+    return mNumberField.getText().getDoubleValue();
 }
 
 void NumberFieldWithLabel::setValue(const double value, const juce::NotificationType notification)
 {
-    mNumberField.setText(juce::String(value), notification);
+    auto const cappedValue = std::max(std::min(value, mRange.getEnd()), mRange.getStart());
+    mNumberField.setText(juce::String(cappedValue, std::numeric_limits<double>::max_digits10), notification);
+    if(onValueChanged != nullptr && notification == juce::sendNotification)
+    {
+        onValueChanged(mNumberField.getText().getDoubleValue());
+    }
+}
+
+void NumberFieldWithLabel::setRange(juce::Range<double> const& range, juce::NotificationType notification)
+{
+    if(std::abs(range.getStart() - mRange.getStart()) >= std::numeric_limits<double>::epsilon()
+       || std::abs(range.getEnd() - mRange.getEnd()) >= std::numeric_limits<double>::epsilon())
+    {
+        mRange = range;
+        setValue(getValue(), notification);
+    }
+}
+
+void NumberFieldWithLabel::setNumberOfDecimals(size_t numberOfDecimals)
+{
+    if(numberOfDecimals != mNumberOfDecimals)
+    {
+        mNumberOfDecimals = numberOfDecimals;
+        
+        if(mNumberOfDecimals == 0)
+        {
+            mNumberField.setKeyboardType(TextInputTarget::numericKeyboard);
+        }
+        else
+        {
+            mNumberField.setKeyboardType(TextInputTarget::decimalKeyboard);
+        }
+        
+        repaint();
+    }
 }
 
 void NumberFieldWithLabel::resized()

@@ -53,10 +53,15 @@ private:
 class NumberFieldWithLabel : public juce::Component
 {
 public:
-    NumberFieldWithLabel(juce::String const& paramName, juce::String const& unitSuffix, bool editable = true, double defaultValue = 0.0f);
+    NumberFieldWithLabel(juce::String const& paramName, juce::String const& unitSuffix = "", size_t const numberOfDecimals = 0, bool editable = true, double defaultValue = 0.0);
     NumberFieldWithLabel() = default;
     
+    double getValue() const;
     void setValue(const double value, const juce::NotificationType notification);
+    
+    void setRange(juce::Range<double> const& range, juce::NotificationType notification);
+    void setNumberOfDecimals(size_t numberOfDecimals);
+    
     void resized() override;
     
     std::function<void(double)> onValueChanged = nullptr;
@@ -64,5 +69,9 @@ public:
 private:
     juce::Label mParamLabel;
     juce::Label mNumberField;
+    
+    size_t mNumberOfDecimals = 0;
+    juce::Range<double> mRange = {std::numeric_limits<double>::min(), std::numeric_limits<double>::max()};
+    juce::String mSuffix = juce::String();
 };
 
