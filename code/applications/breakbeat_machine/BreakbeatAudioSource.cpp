@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    BreakbeatAudioSource.cpp
-    Created: 5 Jul 2020 9:54:10pm
-    Author:  Matthew
-
-  ==============================================================================
-*/
-
 #include "BreakbeatAudioSource.h"
 
 BreakbeatAudioSource::BreakbeatAudioSource()
@@ -55,6 +45,17 @@ int64_t BreakbeatAudioSource::getStartReadPosition() const
 juce::AudioSampleBuffer* BreakbeatAudioSource::getCurrentBuffer()
 {
     ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mCurrentBuffer);
+    if(retainedBuffer == nullptr)
+    {
+        return nullptr;
+    }
+    
+    return retainedBuffer->getForwardAudioSampleBuffer();
+}
+
+juce::AudioSampleBuffer* BreakbeatAudioSource::getOriginalAudioSampleBuffer()
+{
+    ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mCurrentFileBuffer);
     if(retainedBuffer == nullptr)
     {
         return nullptr;
@@ -176,7 +177,21 @@ bool BreakbeatAudioSource::isLooping() const
     return true;
 }
 
-void BreakbeatAudioSource::setReader(juce::AudioFormatReader* reader)
+void BreakbeatAudioSource::setOriginalReader(juce::AudioFormatReader* reader)
+{
+    ReferenceCountedForwardAndReverseBuffer::Ptr newBuffer = new ReferenceCountedForwardAndReverseBuffer("", reader);
+    jassert(newBuffer != nullptr);
+            
+    mCurrentFileBuffer = newBuffer;
+    mFileBuffers.add(mCurrentBuffer);
+
+    mNextReadPosition = 0;
+    mDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
+    
+    updateSliceSizes();
+}
+
+void BreakbeatAudioSource::setCurrentReader(juce::AudioFormatReader* reader)
 {
     ReferenceCountedForwardAndReverseBuffer::Ptr newBuffer = new ReferenceCountedForwardAndReverseBuffer("", reader);
     jassert(newBuffer != nullptr);
@@ -201,11 +216,27 @@ void BreakbeatAudioSource::clearFreeBuffers()
             mBuffers.remove(i);
         }
     }
+    
+    for(auto i = mFileBuffers.size(); --i >= 0;)
+    {
+        ReferenceCountedForwardAndReverseBuffer::Ptr buffer(mFileBuffers.getUnchecked(i));
+        
+        if(!buffer)
+        {
+            continue;
+        }
+        
+        if(buffer->getReferenceCount() == 2)
+        {
+            mFileBuffers.remove(i);
+        }
+    }
 }
 
 void BreakbeatAudioSource::clear()
 {
     mCurrentBuffer = nullptr;
+    mCurrentFileBuffer = nullptr;
 }
 
 void BreakbeatAudioSource::updateSliceSizes()
