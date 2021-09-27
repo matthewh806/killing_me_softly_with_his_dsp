@@ -20,7 +20,7 @@ public:
     }
 };
 
-class MainContentComponent
+class BreakbeatContentComponent
 : public juce::AudioAppComponent
 , private juce::Thread
 , private juce::ChangeListener
@@ -35,8 +35,8 @@ public:
         defaultButtonColourId   = 0x3004002
     };
     
-    MainContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles);
-    ~MainContentComponent() override;
+    BreakbeatContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles);
+    ~BreakbeatContentComponent() override;
     
     // juce::Component
     void resized() override;
@@ -76,7 +76,7 @@ private:
     , private juce::AsyncUpdater
     {
     public:
-        WaveformComponent(MainContentComponent& parent, juce::AudioFormatManager& formatManager);
+        WaveformComponent(BreakbeatContentComponent& parent, juce::AudioFormatManager& formatManager);
         ~WaveformComponent() override;
         
         juce::AudioThumbnail& getThumbnail();
@@ -97,7 +97,7 @@ private:
         void handleAsyncUpdate() override;
         
     private:
-        MainContentComponent& mParentComponent;
+        BreakbeatContentComponent& mParentComponent;
         
         juce::AudioFormatManager& mAudioFormatManager;
         juce::AudioThumbnailCache mThumbnailCache;
@@ -156,5 +156,5 @@ private:
     
     juce::File mRecordedFile {juce::File::getSpecialLocation(juce::File::SpecialLocationType::tempDirectory).getChildFile("toous").getChildFile("temp_recording.wav")};
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BreakbeatContentComponent)
 };

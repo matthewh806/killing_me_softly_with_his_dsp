@@ -24,10 +24,10 @@ public:
     {
         juce::ignoreUnused(commandLine);
         
-        mMainContentComponent = new MainContentComponent(mDefaultDeviceManager, mRecentFiles);
+        mBreakbeatContentComponent = new BreakbeatContentComponent(mDefaultDeviceManager, mRecentFiles);
         
         loadProperties();
-        mMainWindow.reset (new MainWindow (getApplicationName(), mMainContentComponent, mDefaultDeviceManager));
+        mMainWindow.reset (new MainWindow (getApplicationName(), mBreakbeatContentComponent, mDefaultDeviceManager));
         mMainWindow->setLookAndFeel(&mCustomLookAndFeel);
         
         juce::MessageManager::callAsync([this]()
@@ -35,7 +35,7 @@ public:
             if(mRecentFiles.getNumFiles() && mRecentFiles.getFile(0).existsAsFile())
             {
                 auto path = mRecentFiles.getFile(0).getFullPathName();
-                mMainContentComponent->newFileOpened(path);
+                mBreakbeatContentComponent->newFileOpened(path);
             }
         });
     }
@@ -88,7 +88,7 @@ public:
     CustomLookAndFeel mCustomLookAndFeel;
     juce::AudioDeviceManager mDefaultDeviceManager;
     
-    MainContentComponent* mMainContentComponent;
+    BreakbeatContentComponent* mBreakbeatContentComponent;
 };
 
 //==============================================================================
