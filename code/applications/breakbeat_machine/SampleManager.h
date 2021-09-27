@@ -37,6 +37,9 @@ public:
     double getBufferLength() const;
     size_t getBufferNumSamples() const;
     
+    void setForwardBufferActive();
+    void setReverseBufferActive();
+    
     juce::AudioSampleBuffer* getActiveBuffer();
     void clearFreeBuffers();
     

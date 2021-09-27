@@ -91,7 +91,16 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
             sliceStartPosition = numSlices > 1 ? Random::getSystemRandom().nextInt(numSlices) * sliceSampleSize : sliceStartPosition;
             sliceEndPosition = sliceStartPosition + sliceSampleSize;
             jassert(sliceEndPosition >= sliceStartPosition);
-//            retainedBuffer->updateCurrentSampleBuffer(sliceReverseThreshold);
+        
+            auto reversePerc = Random::getSystemRandom().nextFloat();
+            if(reversePerc > sliceReverseThreshold)
+            {
+                mSampleManager.setReverseBufferActive();
+            }
+            else
+            {
+                mSampleManager.setForwardBufferActive();
+            }
         };
         
         currentPosition = atSliceEnd ? sliceStartPosition : currentPosition;
