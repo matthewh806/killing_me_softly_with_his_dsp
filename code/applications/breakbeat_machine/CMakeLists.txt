@@ -6,6 +6,7 @@ juce_generate_juce_header(BreakbeatMachine)
 target_sources(BreakbeatMachine
     PRIVATE
         ${CoreSources}
+        ${DspSources}
         ${UISources}
         ${UtilsSources}
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatAudioSource.h
@@ -23,6 +24,8 @@ target_compile_definitions(BreakbeatMachine
         JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_gui_app` call
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:BreakbeatMachine,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:BreakbeatMachine,JUCE_VERSION>")
+        
+target_include_directories(RealTimeStretch PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/rubberband/rubberband)
 
 target_link_libraries(BreakbeatMachine
     PRIVATE
@@ -31,4 +34,5 @@ target_link_libraries(BreakbeatMachine
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
-        juce::juce_recommended_warning_flags)
+        juce::juce_recommended_warning_flags
+        rubberband)
