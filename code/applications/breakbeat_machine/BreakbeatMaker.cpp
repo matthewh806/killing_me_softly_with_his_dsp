@@ -220,7 +220,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     addAndMakeVisible(mFileSampleRateLabel);
     mFileSampleRateLabel.setEditable(false);
     
-    setSize (500, 540);
+    setSize (500, 580);
 
     mFormatManager.registerBasicFormats();
     
