@@ -121,6 +121,7 @@ void MainContentComponent::WaveformComponent::handleAsyncUpdate()
 MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")
+, mAudioSource(mSampleManager)
 , mSliceDivsorSlider("Slice Div", "")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
@@ -169,6 +170,7 @@ MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDevice
     };
     
     addAndMakeVisible(mSampleLengthSeconds);
+    mSampleDesiredLengthSeconds.setNumberOfDecimals(3);
     
     addAndMakeVisible(mSampleDesiredLengthSeconds);
     mSampleDesiredLengthSeconds.setNumberOfDecimals(3);
@@ -176,7 +178,16 @@ MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDevice
     mSampleDesiredLengthSeconds.onValueChanged = [this](double value)
     {
         juce::ignoreUnused(value);
-        performStretch();
+        
+        changeState(TransportState::Stopping);
+        mPlayButton.setEnabled(false);
+        
+        auto const stretchFactor = static_cast<float>(value / mSampleManager.getFileLength());
+        mSampleManager.performTimestretch(stretchFactor, 1.0f, [this]()
+        {
+            mPlayButton.setEnabled(true);
+            mAudioSource.updateSliceSizes();
+        });
     };
     
     addAndMakeVisible(mStopButton);
@@ -353,26 +364,23 @@ void MainContentComponent::changeListenerCallback(juce::ChangeBroadcaster* sourc
 
 void MainContentComponent::handleAsyncUpdate()
 {
-    mFileNameLabel.setText(mFileName, juce::NotificationType::dontSendNotification);
-    mFileSampleRateLabel.setText(juce::String(mFileSampleRate), juce::NotificationType::dontSendNotification);
+    mFileNameLabel.setText(mSampleManager.getSampleFileName(), juce::NotificationType::dontSendNotification);
+    mFileSampleRateLabel.setText(juce::String(mSampleManager.getFileLength()), juce::NotificationType::dontSendNotification);
     
     mSampleLengthSeconds.setValue(mSampleDuration, juce::NotificationType::sendNotification);
     
-    performStretch();
+    mSampleManager.performTimestretch(1.0f, 1.0f, [this]()
+    {
+        mSampleDesiredLengthSeconds.setValue(mSampleManager.getBufferLength(), juce::NotificationType::dontSendNotification);
+        mPlayButton.setEnabled(true);
+        mAudioSource.updateSliceSizes();
+    });
     
     changeState(TransportState::Stopped);
     
-    if(mFileSource != nullptr)
-    {
-        mWaveformComponent.clear();
-        bool success = mWaveformComponent.getThumbnail().setSource(mFileSource.get());
-        if(!success)
-        {
-            std::cerr << "Failed to generate thumbnail\n";
-        }
-        
-        mFileSource.release();
-    }
+    mWaveformComponent.clear();
+    mWaveformComponent.getThumbnail().reset(2, mSampleManager.getSampleSampleRate());
+    mWaveformComponent.getThumbnail().addBlock(0, *mSampleManager.getActiveBuffer(), 0, mSampleManager.getBufferNumSamples());
 }
 
 void MainContentComponent::newFileOpened(juce::String& filePath)
@@ -403,10 +411,10 @@ void MainContentComponent::exportAudioSlices()
     auto file = fileChooser.getResult();
     try
     {
-        auto* readBuffer = mAudioSource.getCurrentBuffer();
-        auto fileName = file.getFileNameWithoutExtension();
-        auto path = file.getParentDirectory().getFullPathName();
-        mSliceExporter.startExport(readBuffer, fileName, path, mAudioSource.getSliceSize(), mAudioSource.getNumSlices(), 2, 44100.0, 32);
+//        auto* readBuffer = mAudioSource.getCurrentBuffer();
+//        auto fileName = file.getFileNameWithoutExtension();
+//        auto path = file.getParentDirectory().getFullPathName();
+//        mSliceExporter.startExport(readBuffer, fileName, path, mAudioSource.getSliceSize(), mAudioSource.getNumSlices(), 2, 44100.0, 32);
     }
     catch (std::exception e)
     {
@@ -466,93 +474,22 @@ void MainContentComponent::checkForPathToOpen()
         return;
     }
     
-    juce::File file(pathToOpen);
-    std::unique_ptr<AudioFormatReader> reader { mFormatManager.createReaderFor(file) };
-    
-    if(reader != nullptr)
+    juce::String error;
+    if(mSampleManager.loadNewSample(pathToOpen, error))
     {
-        // get length
-        mSampleDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
-        if(mSampleDuration < MAX_FILE_LENGTH)
-        {
-            mTransportSource.setSource(&mAudioSource, 0, nullptr, reader->sampleRate);
-            mAudioSource.setOriginalReader(reader.get());
-            mFileSource = std::make_unique<juce::FileInputSource>(file);
-            
-            mFileName = file.getFileName();
-            mFileSampleRate = reader->sampleRate;
-            mRecentFiles.addFile(file);
-            
-            triggerAsyncUpdate();
-        }
-        else
-        {
-             juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
-                                          juce::translate("Audio file too long!"),
-                                               juce::translate("The file is ") + juce::String(mSampleDuration) + juce::translate("seconds long. ") + juce::String(MAX_FILE_LENGTH) + "Second limit!");
-        }
-        
+        mTransportSource.setSource(&mAudioSource, 0, nullptr, mSampleManager.getSampleSampleRate());
     }
+    else
+    {
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
+                                          juce::translate("Load sample failed!"), error);
+        return;
+    }
+    
+    triggerAsyncUpdate();
 }
 
 void MainContentComponent::checkForBuffersToFree()
 {
-    mAudioSource.clearFreeBuffers();
-}
-
-void MainContentComponent::performStretch()
-{
-    auto* originalSampleBuffer = mAudioSource.getOriginalAudioSampleBuffer();
-    if(!originalSampleBuffer)
-    {
-        std::cout << "No samples currently in buffer\n";
-        return;
-    }
-    
-    auto* currentSampleBuffer = mAudioSource.getCurrentBuffer();
-    auto const desiredLength = mSampleDesiredLengthSeconds.getValue() > 0 ? mSampleDesiredLengthSeconds.getValue() : mSampleDuration;
-    auto const currentlength = currentSampleBuffer ? currentSampleBuffer->getNumSamples() / mFileSampleRate : mSampleDuration;
-    
-    if(std::abs(currentlength - desiredLength) <= 0.0001)
-    {
-        std::cout << "No stretch necessary\n";
-        mSampleDesiredLengthSeconds.setValue(currentlength, juce::NotificationType::dontSendNotification);
-        
-        return;
-    }
-    
-    auto stretchFactor = static_cast<float>(mSampleDesiredLengthSeconds.getValue() / mSampleDuration);
-    
-    std::cout << "Stretch factor: " << stretchFactor << "\n";
-    OfflineStretchProcessor stretchTask(mTempStretchedFile, *originalSampleBuffer, stretchFactor, 1.0, mFileSampleRate);
-    
-    changeState(TransportState::Stopping);
-    mPlayButton.setEnabled(false);
-    
-    if(stretchTask.runThread())
-    {
-        std::cout << "Stretch complete. Temp file: " <<  mTempStretchedFile.getFile().getFullPathName() << "\n";
-        std::unique_ptr<AudioFormatReader> reader { mFormatManager.createReaderFor(mTempStretchedFile.getFile()) };
-
-        if(reader != nullptr)
-        {
-            // get length
-            auto const stretchedDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
-            std::cout << "New duration: " << stretchedDuration << "\n";
-            if(stretchedDuration < MAX_FILE_LENGTH)
-            {
-                mTransportSource.setSource(&mAudioSource, 0, nullptr, reader->sampleRate);
-                mAudioSource.setCurrentReader(reader.get());
-                mFileSource = std::make_unique<juce::FileInputSource>(mTempStretchedFile.getFile());
-                
-                triggerAsyncUpdate();
-            }
-            else
-            {
-                 juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
-                                              juce::translate("Audio file too long!"),
-                                                   juce::translate("The file is ") + juce::String(mSampleDuration) + juce::translate("seconds long. ") + juce::String(MAX_FILE_LENGTH) + "Second limit!");
-            }
-        }
-    }
+    mSampleManager.clearFreeBuffers();
 }
