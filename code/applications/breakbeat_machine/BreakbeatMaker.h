@@ -118,6 +118,7 @@ private:
     //==========================================================================
     
     RotarySliderWithLabels mPitchShiftSlider;
+    RotarySliderWithLabels mCrossFadeSlider;
     SliceRotarySlider mSliceDivsorSlider;
     RotarySliderWithLabels mChangeSampleProbabilitySlider;
     RotarySliderWithLabels mReverseSampleProbabilitySlider;

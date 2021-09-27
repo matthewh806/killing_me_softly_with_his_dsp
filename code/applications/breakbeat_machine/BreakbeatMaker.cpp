@@ -122,6 +122,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")
 , mPitchShiftSlider("Pitch shift", "")
+, mCrossFadeSlider("Cross fade", "ms")
 , mSliceDivsorSlider("Slice Div", "")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
@@ -143,6 +144,16 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
             mAudioSource.updateSliceSizes();
             updateWaveform();
         });
+    };
+    
+    addAndMakeVisible(mCrossFadeSlider);
+    mCrossFadeSlider.mLabels.add({0.0, "0"});
+    mCrossFadeSlider.mLabels.add({1.0, "200"});
+    mCrossFadeSlider.setRange(0.0, 400.0, 10.0);
+    mCrossFadeSlider.setValue(100, juce::NotificationType::dontSendNotification);
+    mCrossFadeSlider.onValueChange = [this]()
+    {
+        mAudioSource.setCrossFade(static_cast<float>(mCrossFadeSlider.getValue()));
     };
     
     addAndMakeVisible(mSliceDivsorSlider);
@@ -269,9 +280,11 @@ void BreakbeatContentComponent::resized()
     auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
     
     auto secondRowBounds = bounds.removeFromTop(100);
-    mPitchShiftSlider.setBounds(secondRowBounds.removeFromLeft(twoFieldRowElementWidth));
-    secondRowBounds.removeFromLeft(twoFieldRowSpacing);
-    mSliceDivsorSlider.setBounds(secondRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    mPitchShiftSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    secondRowBounds.removeFromLeft(threeFieldRowSpacing);
+    mCrossFadeSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    secondRowBounds.removeFromLeft(threeFieldRowSpacing);
+    mSliceDivsorSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
     
     bounds.removeFromTop(20);
     
