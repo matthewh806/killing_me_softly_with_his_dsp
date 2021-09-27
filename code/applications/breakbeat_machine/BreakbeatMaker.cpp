@@ -10,7 +10,7 @@
 
 #include "BreakbeatMaker.h"
 
-MainContentComponent::WaveformComponent::WaveformComponent(MainContentComponent& parent, juce::AudioFormatManager& formatManager)
+BreakbeatContentComponent::WaveformComponent::WaveformComponent(BreakbeatContentComponent& parent, juce::AudioFormatManager& formatManager)
 : mParentComponent(parent)
 , mAudioFormatManager(formatManager)
 , mThumbnailCache(1)
@@ -18,24 +18,24 @@ MainContentComponent::WaveformComponent::WaveformComponent(MainContentComponent&
 {
 }
 
-MainContentComponent::WaveformComponent::~WaveformComponent()
+BreakbeatContentComponent::WaveformComponent::~WaveformComponent()
 {
     
 }
 
 
-juce::AudioThumbnail& MainContentComponent::WaveformComponent::getThumbnail()
+juce::AudioThumbnail& BreakbeatContentComponent::WaveformComponent::getThumbnail()
 {
     return mThumbnail;
 }
 
-void MainContentComponent::WaveformComponent::clear()
+void BreakbeatContentComponent::WaveformComponent::clear()
 {
     mThumbnailCache.clear();
     mThumbnail.clear();
 }
 
-void MainContentComponent::WaveformComponent::setSampleStartEnd(int64_t start, int64_t end)
+void BreakbeatContentComponent::WaveformComponent::setSampleStartEnd(int64_t start, int64_t end)
 {
     mStartSample = std::max(start, static_cast<int64_t>(0));
     mEndSample = std::min(end, static_cast<int64_t>(mThumbnail.getTotalLength() * mSampleRate));
@@ -43,12 +43,12 @@ void MainContentComponent::WaveformComponent::setSampleStartEnd(int64_t start, i
     triggerAsyncUpdate();
 }
 
-void MainContentComponent::WaveformComponent::resized()
+void BreakbeatContentComponent::WaveformComponent::resized()
 {
     
 }
 
-void MainContentComponent::WaveformComponent::paint(juce::Graphics& g)
+void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
 {
     juce::Rectangle<int> thumbnailBounds (10, 10, getWidth()-20, getHeight()-20);
     
@@ -87,7 +87,7 @@ void MainContentComponent::WaveformComponent::paint(juce::Graphics& g)
     g.fillRect(clipBounds);
 }
 
-bool MainContentComponent::WaveformComponent::isInterestedInFileDrag (const StringArray& files)
+bool BreakbeatContentComponent::WaveformComponent::isInterestedInFileDrag (const StringArray& files)
 {
     for(auto fileName : files)
     {
@@ -98,7 +98,7 @@ bool MainContentComponent::WaveformComponent::isInterestedInFileDrag (const Stri
     return true;
 }
 
-void MainContentComponent::WaveformComponent::filesDropped (const StringArray& files, int x, int y)
+void BreakbeatContentComponent::WaveformComponent::filesDropped (const StringArray& files, int x, int y)
 {
     // only deal with one file for now.
     juce::ignoreUnused(x, y);
@@ -113,12 +113,12 @@ void MainContentComponent::WaveformComponent::filesDropped (const StringArray& f
     }
 }
 
-void MainContentComponent::WaveformComponent::handleAsyncUpdate()
+void BreakbeatContentComponent::WaveformComponent::handleAsyncUpdate()
 {
     repaint();
 }
 
-MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
+BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")
 , mSliceDivsorSlider("Slice Div", "")
@@ -205,12 +205,12 @@ MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDevice
         if(mRecording)
         {
             mRecorder.startRecording(mRecordedFile, 2, 44100.0, 32);
-            mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(MainContentComponent::ColourIds::recordingButtonColourId));
+            mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::recordingButtonColourId));
         }
         else
         {
             mRecorder.stopRecording();
-            mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(MainContentComponent::ColourIds::defaultButtonColourId));
+            mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::defaultButtonColourId));
         }
     };
     
@@ -231,13 +231,13 @@ MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDevice
     startThread();
 }
 
-MainContentComponent::~MainContentComponent()
+BreakbeatContentComponent::~BreakbeatContentComponent()
 {
     stopThread (4000);
     shutdownAudio();
 }
 
-void MainContentComponent::resized()
+void BreakbeatContentComponent::resized()
 {
     auto bounds = getLocalBounds();
     bounds.reduce(20, 20);
@@ -284,20 +284,20 @@ void MainContentComponent::resized()
     mStopButton.setBounds(sixthRowBounds.removeFromLeft(threeFieldRowElementWidth));
 }
 
-void MainContentComponent::paint(juce::Graphics& g)
+void BreakbeatContentComponent::paint(juce::Graphics& g)
 {
     juce::ignoreUnused(g);
 }
 
-void MainContentComponent::lookAndFeelChanged()
+void BreakbeatContentComponent::lookAndFeelChanged()
 {
-    getLookAndFeel().setColour (MainContentComponent::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
-    getLookAndFeel().setColour (MainContentComponent::ColourIds::playingButtonColourId, juce::Colours::green);
-    getLookAndFeel().setColour(MainContentComponent::ColourIds::defaultButtonColourId, findColour(juce::TextButton::ColourIds::buttonColourId));
-    getLookAndFeel().setColour(MainContentComponent::ColourIds::recordingButtonColourId, juce::Colours::red);
+    getLookAndFeel().setColour (BreakbeatContentComponent::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
+    getLookAndFeel().setColour (BreakbeatContentComponent::ColourIds::playingButtonColourId, juce::Colours::green);
+    getLookAndFeel().setColour(BreakbeatContentComponent::ColourIds::defaultButtonColourId, findColour(juce::TextButton::ColourIds::buttonColourId));
+    getLookAndFeel().setColour(BreakbeatContentComponent::ColourIds::recordingButtonColourId, juce::Colours::red);
 }
 
-void MainContentComponent::prepareToPlay (int samplerPerBlockExpected, double sampleRate)
+void BreakbeatContentComponent::prepareToPlay (int samplerPerBlockExpected, double sampleRate)
 {
     mAudioSource.prepareToPlay(samplerPerBlockExpected, sampleRate);
     mTransportSource.prepareToPlay(samplerPerBlockExpected, sampleRate);
@@ -305,7 +305,7 @@ void MainContentComponent::prepareToPlay (int samplerPerBlockExpected, double sa
     mTemporaryChannels.resize(2, nullptr);
 }
 
-void MainContentComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+void BreakbeatContentComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
     bufferToFill.clearActiveBufferRegion();
     mTransportSource.getNextAudioBlock(bufferToFill);
@@ -327,13 +327,13 @@ void MainContentComponent::getNextAudioBlock (const AudioSourceChannelInfo& buff
     mWaveformComponent.setSampleStartEnd(start, end);
 }
 
-void MainContentComponent::releaseResources()
+void BreakbeatContentComponent::releaseResources()
 {
     mTransportSource.releaseResources();
     mAudioSource.releaseResources();
 }
 
-void MainContentComponent::run()
+void BreakbeatContentComponent::run()
 {
     while(!threadShouldExit())
     {
@@ -343,7 +343,7 @@ void MainContentComponent::run()
     }
 }
 
-void MainContentComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+void BreakbeatContentComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
     if(source == &mWaveformComponent.getThumbnail())
     {
@@ -355,7 +355,7 @@ void MainContentComponent::changeListenerCallback(juce::ChangeBroadcaster* sourc
     }
 }
 
-void MainContentComponent::handleAsyncUpdate()
+void BreakbeatContentComponent::handleAsyncUpdate()
 {
     mFileNameLabel.setText(mSampleManager.getSampleFileName(), juce::NotificationType::dontSendNotification);
     mFileSampleRateLabel.setText(juce::String(mSampleManager.getSampleSampleRate()), juce::NotificationType::dontSendNotification);
@@ -374,13 +374,13 @@ void MainContentComponent::handleAsyncUpdate()
     changeState(TransportState::Stopped);
 }
 
-void MainContentComponent::newFileOpened(juce::String& filePath)
+void BreakbeatContentComponent::newFileOpened(juce::String& filePath)
 {
     mChosenPath.swapWith(filePath);
     notify();
 }
 
-void MainContentComponent::setFileOutputPath()
+void BreakbeatContentComponent::setFileOutputPath()
 {
     juce::FileChooser fileChooser ("Please select the location you'd like to record to...", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.wav");
     
@@ -390,7 +390,7 @@ void MainContentComponent::setFileOutputPath()
     }
 }
 
-void MainContentComponent::exportAudioSlices()
+void BreakbeatContentComponent::exportAudioSlices()
 {
     // TODO: Check its not already exporting; cleanup
     juce::FileChooser fileChooser("Export slices to file(s)...", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.wav");
@@ -413,7 +413,7 @@ void MainContentComponent::exportAudioSlices()
     }
 }
 
-void MainContentComponent::changeState(TransportState state)
+void BreakbeatContentComponent::changeState(TransportState state)
 {
     if(mState != state)
     {
@@ -425,15 +425,15 @@ void MainContentComponent::changeState(TransportState state)
             {
                 mStopButton.setEnabled(false);
                 mPlayButton.setEnabled(true);
-                mPlayButton.setColour(juce::TextButton::ColourIds::buttonOnColourId, getLookAndFeel().findColour(MainContentComponent::ColourIds::defaultButtonColourId));
-                mPlayButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(MainContentComponent::ColourIds::defaultButtonColourId));
+                mPlayButton.setColour(juce::TextButton::ColourIds::buttonOnColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::defaultButtonColourId));
+                mPlayButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::defaultButtonColourId));
                 mTransportSource.setPosition(0.0);
                 mAudioSource.setNextReadPosition(0.0);
                 
                 if(mRecording)
                 {
                     mRecorder.stopRecording();
-                    mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(MainContentComponent::ColourIds::defaultButtonColourId));
+                    mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::defaultButtonColourId));
                 }
             }
                 break;
@@ -444,8 +444,8 @@ void MainContentComponent::changeState(TransportState state)
                 break;
                 
             case TransportState::Playing:
-                mPlayButton.setColour(juce::TextButton::ColourIds::buttonOnColourId, getLookAndFeel().findColour(MainContentComponent::ColourIds::playingButtonColourId));
-                mPlayButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(MainContentComponent::ColourIds::playingButtonColourId));
+                mPlayButton.setColour(juce::TextButton::ColourIds::buttonOnColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::playingButtonColourId));
+                mPlayButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::playingButtonColourId));
                 mStopButton.setEnabled(true);
                 break;
                 
@@ -455,7 +455,7 @@ void MainContentComponent::changeState(TransportState state)
     }
 }
 
-void MainContentComponent::checkForPathToOpen()
+void BreakbeatContentComponent::checkForPathToOpen()
 {
     juce::String pathToOpen;
     pathToOpen.swapWith(mChosenPath);
@@ -480,12 +480,12 @@ void MainContentComponent::checkForPathToOpen()
     triggerAsyncUpdate();
 }
 
-void MainContentComponent::checkForBuffersToFree()
+void BreakbeatContentComponent::checkForBuffersToFree()
 {
     mSampleManager.clearFreeBuffers();
 }
 
-void MainContentComponent::updateWaveform()
+void BreakbeatContentComponent::updateWaveform()
 {
     mWaveformComponent.clear();
     mWaveformComponent.getThumbnail().reset(2, mSampleManager.getSampleSampleRate());
