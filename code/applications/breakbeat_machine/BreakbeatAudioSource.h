@@ -18,6 +18,8 @@ public:
     void setReverseSampleThreshold(float threshold);
     void setBlockDivisionFactor(int factor);
     
+    void setCrossFade(float xfade);
+    
     void toggleRandomPosition();
     void toggleRandomDirection();
     
@@ -52,4 +54,6 @@ private:
     std::atomic<int> mNumSlices {1};
     std::atomic<int> mSliceSampleSize {1}; // in samples
     std::atomic<int> mBlockDivisionFactor {1};
+    
+    std::atomic<float> mCrossFade {100.0f};  //ms
 };
