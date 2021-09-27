@@ -26,6 +26,7 @@ public:
     int64_t getStartReadPosition() const;
     
     juce::AudioSampleBuffer* getCurrentBuffer();
+    juce::AudioSampleBuffer* getOriginalAudioSampleBuffer();
     
     void setSampleChangeThreshold(float threshold);
     void setReverseSampleThreshold(float threshold);
@@ -45,7 +46,8 @@ public:
     int64 getTotalLength() const override;
     bool isLooping() const override;
     
-    void setReader(juce::AudioFormatReader* reader);
+    void setOriginalReader(juce::AudioFormatReader* reader);
+    void setCurrentReader(juce::AudioFormatReader* reader);
     
     void clearFreeBuffers();
     void clear();
@@ -71,4 +73,7 @@ private:
     
     juce::ReferenceCountedArray<ReferenceCountedForwardAndReverseBuffer> mBuffers;
     ReferenceCountedForwardAndReverseBuffer::Ptr mCurrentBuffer;
+    
+    juce::ReferenceCountedArray<ReferenceCountedForwardAndReverseBuffer> mFileBuffers;
+    ReferenceCountedForwardAndReverseBuffer::Ptr mCurrentFileBuffer;
 };

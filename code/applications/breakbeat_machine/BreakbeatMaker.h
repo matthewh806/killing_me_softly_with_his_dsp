@@ -6,9 +6,11 @@
 #include "BreakbeatAudioSource.h"
 #include "../../utils/FileRecorder.h"
 #include "SliceExporter.h"
+#include "../../dsp/OfflineStretcher.h"
+
 //==============================================================================
 
-#define MAX_FILE_LENGTH 15.0 // seconds
+#define MAX_FILE_LENGTH 60.0 // seconds
 
 class SliceRotarySlider : public RotarySliderWithLabels
 {
@@ -84,6 +86,8 @@ private:
         
         void setSampleStartEnd(int64_t start, int64_t end);
         
+        void clear();
+        
         // juce::Component
         void resized() override;
         void paint(juce::Graphics& g) override;
@@ -112,8 +116,9 @@ private:
     void checkForPathToOpen();
     
     void changeState(TransportState state);
+    
+    void performStretch();
     //==========================================================================
-    NumberFieldWithLabel mSampleBpmField {"BPM", "", true};
     
     SliceRotarySlider mSliceDivsorSlider;
     RotarySliderWithLabels mChangeSampleProbabilitySlider;
@@ -121,6 +126,10 @@ private:
     
     juce::Label mFileNameLabel;
     juce::Label mFileSampleRateLabel;
+    
+    NumberFieldWithLabel mSampleBpmField {"BPM", "", true};
+    NumberFieldWithLabel mSampleLengthSeconds {"Original Length", "s", false};
+    NumberFieldWithLabel mSampleDesiredLengthSeconds {"New Length", "s", true};
     
     juce::TextButton mStopButton;
     juce::TextButton mPlayButton;
@@ -138,6 +147,8 @@ private:
     BreakbeatAudioSource mAudioSource;
     juce::AudioTransportSource mTransportSource;
     
+    juce::TemporaryFile mTempStretchedFile {".wav"};
+    
     std::vector<float*> mTemporaryChannels;
     
     FileRecorder mRecorder {mFormatManager};
@@ -149,8 +160,8 @@ private:
     
     juce::String mChosenPath;
     
-    bool mRandomPosition;
     int mSampleBPM = 120;
+    double mSampleDuration = 0.0f;
     
     float mSampleChangeThreshold = 0.7f;
     float mReverseSampleThreshold = 0.7f;
