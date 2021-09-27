@@ -117,6 +117,7 @@ private:
     void updateWaveform();
     //==========================================================================
     
+    RotarySliderWithLabels mPitchShiftSlider;
     SliceRotarySlider mSliceDivsorSlider;
     RotarySliderWithLabels mChangeSampleProbabilitySlider;
     RotarySliderWithLabels mReverseSampleProbabilitySlider;

@@ -121,11 +121,30 @@ void BreakbeatContentComponent::WaveformComponent::handleAsyncUpdate()
 BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")
+, mPitchShiftSlider("Pitch shift", "")
 , mSliceDivsorSlider("Slice Div", "")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
 , mRecentFiles(recentFiles)
 {
+    addAndMakeVisible(mPitchShiftSlider);
+    mPitchShiftSlider.mLabels.add({0.0, "-24"});
+    mPitchShiftSlider.mLabels.add({1.0, "24"});
+    mPitchShiftSlider.setRange(-24.0, 24.0, 0.1);
+    mPitchShiftSlider.setValue(0.0, juce::NotificationType::dontSendNotification);
+    mPitchShiftSlider.onValueChange = [this]()
+    {
+        auto const stretchFactor = static_cast<float>(mSampleManager.getBufferLength() / mSampleManager.getFileLength());
+        auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
+        
+        mSampleManager.performTimestretch(stretchFactor, pitchFactor, [this]()
+        {
+            mPlayButton.setEnabled(true);
+            mAudioSource.updateSliceSizes();
+            updateWaveform();
+        });
+    };
+    
     addAndMakeVisible(mSliceDivsorSlider);
     mSliceDivsorSlider.mLabels.add({0.0, "0"});
     mSliceDivsorSlider.mLabels.add({1.0, "256"});
@@ -141,7 +160,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mChangeSampleProbabilitySlider.mLabels.add({0.0, "0%"});
     mChangeSampleProbabilitySlider.mLabels.add({1.0, "100%"});
     mChangeSampleProbabilitySlider.setRange(0.0, 1.0, 0.1);
-    mChangeSampleProbabilitySlider.setValue(0.3, dontSendNotification);
+    mChangeSampleProbabilitySlider.setValue(0.3, juce::NotificationType::dontSendNotification);
     mChangeSampleProbabilitySlider.onValueChange = [this]()
     {
         mSampleChangeThreshold = 1.0f - static_cast<float>(mChangeSampleProbabilitySlider.getValue());
@@ -152,7 +171,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mReverseSampleProbabilitySlider.mLabels.add({0.0, "0%"});
     mReverseSampleProbabilitySlider.mLabels.add({1.0, "100%"});
     mReverseSampleProbabilitySlider.setRange(0.0, 1.0, 0.1);
-    mReverseSampleProbabilitySlider.setValue(0.3, dontSendNotification);
+    mReverseSampleProbabilitySlider.setValue(0.3, juce::NotificationType::dontSendNotification);
     mReverseSampleProbabilitySlider.onValueChange = [this]()
     {
         mReverseSampleThreshold = 1.0f - static_cast<float>(mReverseSampleProbabilitySlider.getValue());
@@ -175,7 +194,8 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         mPlayButton.setEnabled(false);
         
         auto const stretchFactor = static_cast<float>(value / mSampleManager.getFileLength());
-        mSampleManager.performTimestretch(stretchFactor, 1.0f, [this]()
+        auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
+        mSampleManager.performTimestretch(stretchFactor, pitchFactor, [this]()
         {
             mPlayButton.setEnabled(true);
             mAudioSource.updateSliceSizes();
@@ -249,8 +269,9 @@ void BreakbeatContentComponent::resized()
     auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
     
     auto secondRowBounds = bounds.removeFromTop(100);
+    mPitchShiftSlider.setBounds(secondRowBounds.removeFromLeft(twoFieldRowElementWidth));
     secondRowBounds.removeFromLeft(twoFieldRowSpacing);
-    mSliceDivsorSlider.setBounds(secondRowBounds.removeFromLeft(twoFieldRowSpacing));
+    mSliceDivsorSlider.setBounds(secondRowBounds.removeFromLeft(twoFieldRowElementWidth));
     
     bounds.removeFromTop(20);
     
@@ -362,7 +383,8 @@ void BreakbeatContentComponent::handleAsyncUpdate()
     
     mSampleLengthSeconds.setValue(mSampleManager.getFileLength(), juce::NotificationType::sendNotification);
     
-    mSampleManager.performTimestretch(1.0f, 1.0f, [this]()
+    auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
+    mSampleManager.performTimestretch(1.0f, pitchFactor, [this]()
     {
         mSampleDesiredLengthSeconds.setValue(mSampleManager.getBufferLength(), juce::NotificationType::dontSendNotification);
         mPlayButton.setEnabled(true);
