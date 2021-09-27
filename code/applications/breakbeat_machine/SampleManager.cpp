@@ -68,6 +68,28 @@ size_t SampleManager::getBufferNumSamples() const
     return mBufferNumSamples;
 }
 
+void SampleManager::setForwardBufferActive()
+{
+    ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mActiveBuffer);
+    if(mActiveBuffer == nullptr)
+    {
+        return;
+    }
+    
+    retainedBuffer->updateCurrentSampleBuffer(false);
+}
+
+void SampleManager::setReverseBufferActive()
+{
+    ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mActiveBuffer);
+    if(mActiveBuffer == nullptr)
+    {
+        return;
+    }
+    
+    retainedBuffer->updateCurrentSampleBuffer(true);
+}
+
 juce::AudioSampleBuffer* SampleManager::getActiveBuffer()
 {
     ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mActiveBuffer);

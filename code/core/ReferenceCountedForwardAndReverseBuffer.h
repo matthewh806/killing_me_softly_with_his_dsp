@@ -24,7 +24,7 @@ public:
     int getPosition() const;
     void setPosition(int pos);
     
-    void updateCurrentSampleBuffer(float reverseThreshold);
+    void updateCurrentSampleBuffer(bool reverse);
     
     juce::AudioSampleBuffer* getCurrentAudioSampleBuffer();
     juce::AudioSampleBuffer* getForwardAudioSampleBuffer();

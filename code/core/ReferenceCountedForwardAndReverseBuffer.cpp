@@ -42,10 +42,9 @@ void ReferenceCountedForwardAndReverseBuffer::setPosition(int pos)
     mPosition.exchange(pos);
 }
 
-void ReferenceCountedForwardAndReverseBuffer::updateCurrentSampleBuffer(float reverseThreshold)
+void ReferenceCountedForwardAndReverseBuffer::updateCurrentSampleBuffer(bool reverse)
 {
-    auto reversePerc = Random::getSystemRandom().nextFloat();
-    mActiveBuffer = reversePerc > reverseThreshold ? &mReverseBuffer : &mForwardBuffer;
+    mActiveBuffer = reverse ? &mReverseBuffer : &mForwardBuffer;
 }
 
 juce::AudioSampleBuffer* ReferenceCountedForwardAndReverseBuffer::getCurrentAudioSampleBuffer()
