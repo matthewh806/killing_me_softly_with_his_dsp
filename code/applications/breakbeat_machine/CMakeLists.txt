@@ -9,6 +9,8 @@ target_sources(BreakbeatMachine
         ${DspSources}
         ${UISources}
         ${UtilsSources}
+        ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SampleManager.h
+        ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SampleManager.cpp
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatAudioSource.h
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatAudioSource.cpp
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatMaker.h

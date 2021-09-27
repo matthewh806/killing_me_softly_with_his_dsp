@@ -121,7 +121,6 @@ void MainContentComponent::WaveformComponent::handleAsyncUpdate()
 MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")
-, mAudioSource(mSampleManager)
 , mSliceDivsorSlider("Slice Div", "")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
@@ -162,13 +161,6 @@ MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDevice
     
     addAndMakeVisible(mWaveformComponent);
     
-    addAndMakeVisible(mSampleBpmField);
-    mSampleBpmField.onValueChanged = [](double value)
-    {
-        // TODO: This should do something again...
-        juce::ignoreUnused(value);
-    };
-    
     addAndMakeVisible(mSampleLengthSeconds);
     mSampleDesiredLengthSeconds.setNumberOfDecimals(3);
     
@@ -187,6 +179,7 @@ MainContentComponent::MainContentComponent(juce::AudioDeviceManager& audioDevice
         {
             mPlayButton.setEnabled(true);
             mAudioSource.updateSliceSizes();
+            updateWaveform();
         });
     };
     
@@ -365,22 +358,20 @@ void MainContentComponent::changeListenerCallback(juce::ChangeBroadcaster* sourc
 void MainContentComponent::handleAsyncUpdate()
 {
     mFileNameLabel.setText(mSampleManager.getSampleFileName(), juce::NotificationType::dontSendNotification);
-    mFileSampleRateLabel.setText(juce::String(mSampleManager.getFileLength()), juce::NotificationType::dontSendNotification);
+    mFileSampleRateLabel.setText(juce::String(mSampleManager.getSampleSampleRate()), juce::NotificationType::dontSendNotification);
     
-    mSampleLengthSeconds.setValue(mSampleDuration, juce::NotificationType::sendNotification);
+    mSampleLengthSeconds.setValue(mSampleManager.getFileLength(), juce::NotificationType::sendNotification);
     
     mSampleManager.performTimestretch(1.0f, 1.0f, [this]()
     {
         mSampleDesiredLengthSeconds.setValue(mSampleManager.getBufferLength(), juce::NotificationType::dontSendNotification);
         mPlayButton.setEnabled(true);
         mAudioSource.updateSliceSizes();
+        
+        updateWaveform();
     });
     
     changeState(TransportState::Stopped);
-    
-    mWaveformComponent.clear();
-    mWaveformComponent.getThumbnail().reset(2, mSampleManager.getSampleSampleRate());
-    mWaveformComponent.getThumbnail().addBlock(0, *mSampleManager.getActiveBuffer(), 0, mSampleManager.getBufferNumSamples());
 }
 
 void MainContentComponent::newFileOpened(juce::String& filePath)
@@ -492,4 +483,11 @@ void MainContentComponent::checkForPathToOpen()
 void MainContentComponent::checkForBuffersToFree()
 {
     mSampleManager.clearFreeBuffers();
+}
+
+void MainContentComponent::updateWaveform()
+{
+    mWaveformComponent.clear();
+    mWaveformComponent.getThumbnail().reset(2, mSampleManager.getSampleSampleRate());
+    mWaveformComponent.getThumbnail().addBlock(0, *mSampleManager.getActiveBuffer(), 0, static_cast<int>(mSampleManager.getBufferNumSamples()));
 }

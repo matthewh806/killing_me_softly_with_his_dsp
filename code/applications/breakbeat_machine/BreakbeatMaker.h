@@ -114,7 +114,7 @@ private:
     
     void changeState(TransportState state);
     
-    void performStretch();
+    void updateWaveform();
     //==========================================================================
     
     SliceRotarySlider mSliceDivsorSlider;
@@ -124,27 +124,20 @@ private:
     juce::Label mFileNameLabel;
     juce::Label mFileSampleRateLabel;
     
-    NumberFieldWithLabel mSampleBpmField {"BPM", "", true};
     NumberFieldWithLabel mSampleLengthSeconds {"Original Length", "s", 3, false};
     NumberFieldWithLabel mSampleDesiredLengthSeconds {"New Length", "s", 3, true};
     
     juce::TextButton mStopButton;
     juce::TextButton mPlayButton;
     juce::TextButton mRecordButton;
-        
-    juce::String mFileName;
-    double mFileSampleRate;
     
     TransportState mState;
     
     juce::RecentlyOpenedFilesList& mRecentFiles;
     juce::AudioFormatManager mFormatManager;
     
-    std::unique_ptr<juce::FileInputSource> mFileSource;
-    BreakbeatAudioSource mAudioSource;
+    BreakbeatAudioSource mAudioSource {mSampleManager};
     juce::AudioTransportSource mTransportSource;
-    
-    juce::TemporaryFile mTempStretchedFile {".wav"};
     
     std::vector<float*> mTemporaryChannels;
     
@@ -158,13 +151,8 @@ private:
     
     juce::String mChosenPath;
     
-    int mSampleBPM = 120;
-    double mSampleDuration = 0.0f;
-    
     float mSampleChangeThreshold = 0.7f;
     float mReverseSampleThreshold = 0.7f;
-    
-    double mBlockDivisionPower = 1.0; // This should be stored as powers of 2 (whole = 1, half = 2, quarter = 4 etc)
     
     juce::File mRecordedFile {juce::File::getSpecialLocation(juce::File::SpecialLocationType::tempDirectory).getChildFile("toous").getChildFile("temp_recording.wav")};
 
