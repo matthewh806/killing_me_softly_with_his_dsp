@@ -1,6 +1,7 @@
 #include "BreakbeatAudioSource.h"
 
-BreakbeatAudioSource::BreakbeatAudioSource()
+BreakbeatAudioSource::BreakbeatAudioSource(SampleManager& sampleManager)
+: mSampleManager(sampleManager)
 {
     
 }
@@ -8,23 +9,6 @@ BreakbeatAudioSource::BreakbeatAudioSource()
 BreakbeatAudioSource::~BreakbeatAudioSource()
 {
     
-}
-
-int64_t BreakbeatAudioSource::getNumSamples() const
-{
-    ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mCurrentBuffer);
-    if(retainedBuffer == nullptr)
-    {
-        return 0;
-    }
-    
-    auto* currentAudioBuffer = retainedBuffer->getCurrentAudioSampleBuffer();
-    if(currentAudioBuffer == nullptr)
-    {
-        return 0;
-    }
-    
-    return currentAudioBuffer->getNumSamples();
 }
 
 int BreakbeatAudioSource::getNumSlices() const
@@ -40,28 +24,6 @@ int64_t BreakbeatAudioSource::getSliceSize() const
 int64_t BreakbeatAudioSource::getStartReadPosition() const
 {
     return mSliceStartPosition.load();
-}
-
-juce::AudioSampleBuffer* BreakbeatAudioSource::getCurrentBuffer()
-{
-    ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mCurrentBuffer);
-    if(retainedBuffer == nullptr)
-    {
-        return nullptr;
-    }
-    
-    return retainedBuffer->getForwardAudioSampleBuffer();
-}
-
-juce::AudioSampleBuffer* BreakbeatAudioSource::getOriginalAudioSampleBuffer()
-{
-    ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mCurrentFileBuffer);
-    if(retainedBuffer == nullptr)
-    {
-        return nullptr;
-    }
-    
-    return retainedBuffer->getForwardAudioSampleBuffer();
 }
 
 void BreakbeatAudioSource::setSampleChangeThreshold(float threshold)
@@ -95,8 +57,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
 {
     bufferToFill.clearActiveBufferRegion();
     
-    ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mCurrentBuffer);
-    
+    juce::AudioSampleBuffer* retainedBuffer = mSampleManager.getActiveBuffer();
     if(retainedBuffer == nullptr)
     {
         return;
@@ -130,7 +91,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
             sliceStartPosition = numSlices > 1 ? Random::getSystemRandom().nextInt(numSlices) * sliceSampleSize : sliceStartPosition;
             sliceEndPosition = sliceStartPosition + sliceSampleSize;
             jassert(sliceEndPosition >= sliceStartPosition);
-            retainedBuffer->updateCurrentSampleBuffer(sliceReverseThreshold);
+//            retainedBuffer->updateCurrentSampleBuffer(sliceReverseThreshold);
         };
         
         currentPosition = atSliceEnd ? sliceStartPosition : currentPosition;
@@ -140,7 +101,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         auto const numThisTime = std::min(static_cast<int>(readBufferEnd - currentPosition), samplesRemaining);
         for(auto ch = 0; ch < numChannels; ++ch)
         {
-            bufferToFill.buffer->copyFrom(ch, outputStart, *retainedBuffer->getCurrentAudioSampleBuffer(), ch, static_cast<int>(currentPosition), static_cast<int>(numThisTime));
+            bufferToFill.buffer->copyFrom(ch, outputStart, *retainedBuffer, ch, static_cast<int>(currentPosition), static_cast<int>(numThisTime));
         }
         
         samplesRemaining -= numThisTime;
@@ -153,7 +114,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
 
 void BreakbeatAudioSource::releaseResources()
 {
-    mCurrentBuffer = nullptr;
+    
 }
 
 void BreakbeatAudioSource::setNextReadPosition (int64 newPosition)
@@ -169,7 +130,7 @@ int64 BreakbeatAudioSource::getNextReadPosition() const
 
 int64 BreakbeatAudioSource::getTotalLength() const
 {
-    return 0.0;
+    return static_cast<int64>(mSampleManager.getBufferNumSamples());
 }
 
 bool BreakbeatAudioSource::isLooping() const
@@ -177,74 +138,15 @@ bool BreakbeatAudioSource::isLooping() const
     return true;
 }
 
-void BreakbeatAudioSource::setOriginalReader(juce::AudioFormatReader* reader)
-{
-    ReferenceCountedForwardAndReverseBuffer::Ptr newBuffer = new ReferenceCountedForwardAndReverseBuffer("", reader);
-    jassert(newBuffer != nullptr);
-            
-    mCurrentFileBuffer = newBuffer;
-    mFileBuffers.add(mCurrentBuffer);
-
-    mNextReadPosition = 0;
-    mDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
-    
-    updateSliceSizes();
-}
-
-void BreakbeatAudioSource::setCurrentReader(juce::AudioFormatReader* reader)
-{
-    ReferenceCountedForwardAndReverseBuffer::Ptr newBuffer = new ReferenceCountedForwardAndReverseBuffer("", reader);
-    jassert(newBuffer != nullptr);
-            
-    mCurrentBuffer = newBuffer;
-    mBuffers.add(mCurrentBuffer);
-
-    mNextReadPosition = 0;
-    mDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
-    
-    updateSliceSizes();
-}
-
-void BreakbeatAudioSource::clearFreeBuffers()
-{
-    for(auto i = mBuffers.size(); --i >= 0;)
-    {
-        ReferenceCountedForwardAndReverseBuffer::Ptr buffer(mBuffers.getUnchecked(i));
-        
-        if(buffer->getReferenceCount() == 2)
-        {
-            mBuffers.remove(i);
-        }
-    }
-    
-    for(auto i = mFileBuffers.size(); --i >= 0;)
-    {
-        ReferenceCountedForwardAndReverseBuffer::Ptr buffer(mFileBuffers.getUnchecked(i));
-        
-        if(!buffer)
-        {
-            continue;
-        }
-        
-        if(buffer->getReferenceCount() == 2)
-        {
-            mFileBuffers.remove(i);
-        }
-    }
-}
-
 void BreakbeatAudioSource::clear()
 {
-    mCurrentBuffer = nullptr;
-    mCurrentFileBuffer = nullptr;
 }
 
 void BreakbeatAudioSource::updateSliceSizes()
 {
     mNumSlices = mBlockDivisionFactor.load();
-    mSliceSampleSize = roundToInt(getNumSamples() / mBlockDivisionFactor);
+    mSliceSampleSize = static_cast<int>(static_cast<double>(mSampleManager.getBufferNumSamples()) / mBlockDivisionFactor);
     
     jassert(mNumSlices > 0);
-    
     setNextReadPosition(0);
 }

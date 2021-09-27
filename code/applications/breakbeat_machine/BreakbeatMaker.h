@@ -6,11 +6,8 @@
 #include "BreakbeatAudioSource.h"
 #include "../../utils/FileRecorder.h"
 #include "SliceExporter.h"
-#include "../../dsp/OfflineStretcher.h"
 
 //==============================================================================
-
-#define MAX_FILE_LENGTH 60.0 // seconds
 
 class SliceRotarySlider : public RotarySliderWithLabels
 {
@@ -128,8 +125,8 @@ private:
     juce::Label mFileSampleRateLabel;
     
     NumberFieldWithLabel mSampleBpmField {"BPM", "", true};
-    NumberFieldWithLabel mSampleLengthSeconds {"Original Length", "s", false};
-    NumberFieldWithLabel mSampleDesiredLengthSeconds {"New Length", "s", true};
+    NumberFieldWithLabel mSampleLengthSeconds {"Original Length", "s", 3, false};
+    NumberFieldWithLabel mSampleDesiredLengthSeconds {"New Length", "s", 3, true};
     
     juce::TextButton mStopButton;
     juce::TextButton mPlayButton;
@@ -154,6 +151,7 @@ private:
     FileRecorder mRecorder {mFormatManager};
     bool mRecording = false;
     
+    SampleManager mSampleManager {mFormatManager};
     SliceExporter mSliceExporter {mFormatManager};
     
     WaveformComponent mWaveformComponent { *this, mFormatManager };
