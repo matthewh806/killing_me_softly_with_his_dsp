@@ -135,6 +135,9 @@ void OfflineStretchProcessor::run()
     while(mRubberBandStretcher->available() >= 0)
     {
         auto const availableSamples = mRubberBandStretcher->available();
+        
+        jassert(availableSamples >= 0);
+        
         std::cout << "Completing: number remaining: " << availableSamples << "\n";
         auto stretchedBuffer = juce::AudioBuffer<float>(static_cast<int>(srcChannels), availableSamples);
         mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), static_cast<size_t>(availableSamples));
