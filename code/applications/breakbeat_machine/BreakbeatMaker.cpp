@@ -126,6 +126,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 , mSliceDivsorSlider("Slice Div", "")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
+, mRetriggerSampleProbabilitySlider("Retrigger slice", "%")
 , mRecentFiles(recentFiles)
 {
     addAndMakeVisible(mPitchShiftSlider);
@@ -187,6 +188,17 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     {
         mReverseSampleThreshold = 1.0f - static_cast<float>(mReverseSampleProbabilitySlider.getValue());
         mAudioSource.setReverseSampleThreshold(mReverseSampleThreshold) ;
+    };
+    
+    addAndMakeVisible(mRetriggerSampleProbabilitySlider);
+    mRetriggerSampleProbabilitySlider.mLabels.add({0.0, "0%"});
+    mRetriggerSampleProbabilitySlider.mLabels.add({1.0, "100%"});
+    mRetriggerSampleProbabilitySlider.setRange(0.0, 1.0, 0.1);
+    mRetriggerSampleProbabilitySlider.setValue(0.3, juce::NotificationType::dontSendNotification);
+    mRetriggerSampleProbabilitySlider.onValueChange = [this]()
+    {
+        mRetriggerSampleThreshold = 1.0f - static_cast<float>(mRetriggerSampleProbabilitySlider.getValue());
+        mAudioSource.setRetriggerSampleThreshold(mRetriggerSampleThreshold);
     };
     
     addAndMakeVisible(mWaveformComponent);
@@ -289,9 +301,11 @@ void BreakbeatContentComponent::resized()
     bounds.removeFromTop(20);
     
     auto thirdRowBounds = bounds.removeFromTop(100);
-    mChangeSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(twoFieldRowElementWidth));
-    thirdRowBounds.removeFromLeft(twoFieldRowSpacing);
-    mReverseSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(twoFieldRowElementWidth));
+    mChangeSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    thirdRowBounds.removeFromLeft(threeFieldRowSpacing);
+    mRetriggerSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    thirdRowBounds.removeFromLeft(threeFieldRowSpacing);
+    mReverseSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(threeFieldRowElementWidth));
     
     bounds.removeFromTop(20);
     

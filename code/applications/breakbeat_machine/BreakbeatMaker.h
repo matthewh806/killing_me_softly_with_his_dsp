@@ -122,6 +122,7 @@ private:
     SliceRotarySlider mSliceDivsorSlider;
     RotarySliderWithLabels mChangeSampleProbabilitySlider;
     RotarySliderWithLabels mReverseSampleProbabilitySlider;
+    RotarySliderWithLabels mRetriggerSampleProbabilitySlider;
     
     juce::Label mFileNameLabel;
     juce::Label mFileSampleRateLabel;
@@ -155,6 +156,7 @@ private:
     
     float mSampleChangeThreshold = 0.7f;
     float mReverseSampleThreshold = 0.7f;
+    float mRetriggerSampleThreshold = 0.7f;
     
     juce::File mRecordedFile {juce::File::getSpecialLocation(juce::File::SpecialLocationType::tempDirectory).getChildFile("toous").getChildFile("temp_recording.wav")};
 
