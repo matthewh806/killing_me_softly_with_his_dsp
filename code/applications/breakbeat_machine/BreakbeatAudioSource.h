@@ -16,6 +16,7 @@ public:
     
     void setSampleChangeThreshold(float threshold);
     void setReverseSampleThreshold(float threshold);
+    void setRetriggerSampleThreshold(float threshold);
     void setBlockDivisionFactor(int factor);
     
     void setCrossFade(float xfade);
@@ -47,6 +48,7 @@ private:
     
     std::atomic<float> mSampleChangeThreshold {0.7f};
     std::atomic<float> mReverseSampleThreshold {0.7f};
+    std::atomic<float> mRetriggerSampleThreshold {0.7f};
     
     std::atomic<bool> mRandomPosition {false};
     std::atomic<bool> mRandomDirection {false};

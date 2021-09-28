@@ -36,6 +36,11 @@ void BreakbeatAudioSource::setReverseSampleThreshold(float threshold)
     mReverseSampleThreshold.exchange(threshold);
 }
 
+void BreakbeatAudioSource::setRetriggerSampleThreshold(float threshold)
+{
+    mRetriggerSampleThreshold.exchange(threshold);
+}
+
 void BreakbeatAudioSource::setBlockDivisionFactor(int factor)
 {
     mBlockDivisionFactor.exchange(factor);
@@ -78,6 +83,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     auto const numSlices = mNumSlices.load();
     auto const sliceChangeThreshold = mSampleChangeThreshold.load();
     auto const sliceReverseThreshold = mReverseSampleThreshold.load();
+    auto const sliceRetriggerThreshold = mRetriggerSampleThreshold.load();
     
     // check apply gain ramp
     auto const crossFadeTime = mCrossFade.load();
@@ -98,7 +104,15 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         if(willChange)
         {
             sliceStartPosition = numSlices > 1 ? Random::getSystemRandom().nextInt(numSlices) * sliceSampleSize : sliceStartPosition;
-            sliceEndPosition = sliceStartPosition + sliceSampleSize;
+            
+            auto retriggerPerc = Random::getSystemRandom().nextFloat();
+            auto sliceSize = sliceSampleSize;
+            if(retriggerPerc > 1.0 - sliceRetriggerThreshold)
+            {
+                sliceSize /= 4;
+            }
+            
+            sliceEndPosition = sliceStartPosition + sliceSize;
             jassert(sliceEndPosition >= sliceStartPosition);
         
             auto reversePerc = Random::getSystemRandom().nextFloat();
