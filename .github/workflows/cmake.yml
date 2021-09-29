@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - CI
   pull_request:
     branches: [ main ]
 
@@ -18,37 +17,43 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Checkout submodules
       run: git submodule update --init --recursive
-    
+
     - name: Install dependencies
       run: |
         brew update
         brew install libsamplerate
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/code/build -S ${{github.workspace}}/code -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B code/build -S code -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/code/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build code/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
       working-directory: ${{github.workspace}}/code/build
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C ${{env.BUILD_TYPE}}
-      
+
+    - name: Prepare Archive
+      working-directory: ${{github.workspace}}
+      run: ./code/scripts/package_macos_artifacts.sh
+
+    - name: Archive all applications
+      uses: actions/upload-artifact@v2
+      with:
+        path: code/build/artifacts/
+
   build-ubuntu:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Checkout submodules
       run: git submodule update --init --recursive
-    
+
     - name: Install dependencies
       run: |
          sudo apt update
@@ -61,17 +66,22 @@ jobs:
          libglu1-mesa-dev mesa-common-dev
          sudo apt-get update
          sudo apt-get install libsamplerate-dev
-        
+
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/code/build -S ${{github.workspace}}/code -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B code/build -S code -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/code/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build code/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
       working-directory: ${{github.workspace}}/code/build
-      # Execute tests defined by the CMake configuration.  
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C ${{env.BUILD_TYPE}}
-      
+
+    - name: Prepare Archive
+      working-directory: ${{github.workspace}}
+      run: ./code/scripts/package_ubuntu_artifacts.sh
+
+    - name: Archive all applications
+      uses: actions/upload-artifact@v2
+      with:
+        path: code/build/artifacts/
