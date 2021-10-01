@@ -6,6 +6,7 @@
 
 class SliceManager
 : public SampleManager
+, public juce::ChangeBroadcaster
 {
 public:
         
@@ -57,6 +58,11 @@ public:
         }
     }
     
+    size_t getCurrentSliceIndex() const
+    {
+        return mCurrentSliceIndex;
+    }
+    
     Slice getCurrentSlice() const
     {
         return mCurrentSlice;
@@ -74,11 +80,14 @@ public:
         jassert(sliceStart < sliceEnd);
         
         mCurrentSlice = {sliceStart, sliceEnd};
+        mCurrentSliceIndex = sliceIndex;
+        
+        sendChangeMessage();
         
         return mCurrentSlice;
     }
     
-    std::vector<size_t>& getSlices()
+    std::vector<size_t> const& getSlices() const
     {
         return mSlicePositions;
     }
@@ -116,17 +125,20 @@ public:
             auto const sliceEnd = mSlicePositions.size() == 1 ? getBufferNumSamples() : mSlicePositions[1];
             jassert(sliceStart < sliceEnd);
             
+            mCurrentSliceIndex = 0;
             mCurrentSlice = {sliceStart, sliceEnd};
         }
         else
         {
             // do nothing for now :(
         }
+        
+        sendChangeMessage();
     }
     
 private:
     
-    //SampleManager mSampleManager;
+    size_t mCurrentSliceIndex {0};
     Slice mCurrentSlice;
     
     Method mSliceMethod;

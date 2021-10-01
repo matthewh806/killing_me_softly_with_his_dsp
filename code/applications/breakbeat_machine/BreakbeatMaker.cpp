@@ -35,12 +35,25 @@ void BreakbeatContentComponent::WaveformComponent::clear()
     mThumbnail.clear();
 }
 
-void BreakbeatContentComponent::WaveformComponent::setSampleStartEnd(int64_t start, int64_t end)
+void BreakbeatContentComponent::WaveformComponent::setSlicePositions(std::vector<size_t> const& slicePositions, size_t activeSliceIndex)
 {
-    mStartSample = std::max(start, static_cast<int64_t>(0));
-    mEndSample = std::min(end, static_cast<int64_t>(mThumbnail.getTotalLength() * mSampleRate));
+    mSlicePositions.clear();
+    mSlicePositions.resize(slicePositions.size());
     
-    triggerAsyncUpdate();
+    for(size_t i = 0; i < mSlicePositions.size(); ++i)
+    {
+        mSlicePositions[i] = slicePositions[i];
+    }
+    
+    mActiveSliceIndex = activeSliceIndex;
+    
+    repaint();
+}
+
+void BreakbeatContentComponent::WaveformComponent::setActiveSlice(size_t sliceIndex)
+{
+    mActiveSliceIndex = sliceIndex;
+    repaint();
 }
 
 void BreakbeatContentComponent::WaveformComponent::resized()
@@ -67,7 +80,24 @@ void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
         mThumbnail.drawChannels(g, thumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
     }
     
-    juce::Range<int64_t> sampleRange { mStartSample, mEndSample };
+    if(mSlicePositions.size() == 0)
+    {
+        return;
+    }
+    
+    // paint all of the slices
+    g.setColour(juce::Colours::black);
+    for(size_t i = 0; i < mSlicePositions.size(); ++i)
+    {
+        auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / mThumbnail.getTotalLength();
+        g.drawVerticalLine(thumbnailBounds.getX() + static_cast<int>(thumbnailBounds.getWidth() * startRatio), thumbnailBounds.getY(), thumbnailBounds.getBottom());
+    }
+    
+    // paint active slice range;
+    auto const activeSliceStart = mSlicePositions[mActiveSliceIndex];
+    auto const activeSliceEnd = mActiveSliceIndex >= mSlicePositions.size() ? static_cast<size_t>(mThumbnail.getTotalLength() * mSampleRate) : mSlicePositions[mActiveSliceIndex + 1];
+    
+    juce::Range<size_t> sampleRange { activeSliceStart, activeSliceEnd };
     if(sampleRange.getLength() == 0)
     {
         return;
@@ -167,6 +197,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     {
         auto const divisor = static_cast<int>(std::pow(2, static_cast<int>(mSliceDivsorSlider.getValue())));
         mAudioSource.setBlockDivisionFactor(divisor);
+        mWaveformComponent.setSlicePositions(mAudioSource.getSliceManager().getSlices(), 0);
     };
     
     addAndMakeVisible(mChangeSampleProbabilitySlider);
@@ -270,7 +301,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mFormatManager.registerBasicFormats();
     
     mTransportSource.addChangeListener(this);
-    
+    mAudioSource.getSliceManager().addChangeListener(this);
     mWaveformComponent.getThumbnail().addChangeListener(this);
     
     startThread();
@@ -371,17 +402,6 @@ void BreakbeatContentComponent::getNextAudioBlock (const AudioSourceChannelInfo&
     
     juce::AudioBuffer<float> localBuffer(mTemporaryChannels.data(), numChannels, numSamples);
     mRecorder.processBlock(localBuffer);
-    
-    auto const currentSlice = mAudioSource.getSliceManager().getCurrentSlice();
-    auto const start = std::get<0>(currentSlice);
-    auto const end = std::get<1>(currentSlice);
-    
-    if(start > end || end - start == 0)
-    {
-        return;
-    }
-    
-    mWaveformComponent.setSampleStartEnd(static_cast<int64_t>(start), static_cast<int64_t>(end));
 }
 
 void BreakbeatContentComponent::releaseResources()
@@ -409,6 +429,13 @@ void BreakbeatContentComponent::changeListenerCallback(juce::ChangeBroadcaster* 
     else if(source == &mTransportSource)
     {
         changeState(mTransportSource.isPlaying() ? TransportState::Playing : TransportState::Stopped);
+    }
+    else if(source == &mAudioSource.getSliceManager())
+    {
+        // update the waveform
+        auto const& slices = mAudioSource.getSliceManager().getSlices();
+        auto const activeSlice = mAudioSource.getSliceManager().getCurrentSliceIndex();
+        mWaveformComponent.setSlicePositions(slices, activeSlice);
     }
 }
 
