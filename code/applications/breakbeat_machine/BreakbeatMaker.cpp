@@ -381,7 +381,7 @@ void BreakbeatContentComponent::getNextAudioBlock (const AudioSourceChannelInfo&
         return;
     }
     
-    mWaveformComponent.setSampleStartEnd(start, end);
+    mWaveformComponent.setSampleStartEnd(static_cast<int64_t>(start), static_cast<int64_t>(end));
 }
 
 void BreakbeatContentComponent::releaseResources()

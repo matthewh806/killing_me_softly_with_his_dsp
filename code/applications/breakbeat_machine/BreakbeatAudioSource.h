@@ -65,7 +65,8 @@ public:
     // Sets the current slice to a random one and returns it
     Slice setRandomSlice()
     {
-        auto const sliceIndex = static_cast<size_t>(Random::getSystemRandom().nextInt(mSlicePositions.size()));
+        // TODO: better random approach
+        auto const sliceIndex = static_cast<size_t>(Random::getSystemRandom().nextInt(static_cast<int>(mSlicePositions.size())));
         auto const sliceStart = mSlicePositions[sliceIndex];
         auto const isFinalSlice = sliceIndex == mSlicePositions.size() - 1;
         auto const sliceEnd = isFinalSlice ? getBufferNumSamples() : mSlicePositions[sliceIndex + 1];
@@ -100,13 +101,13 @@ public:
         if(mSliceMethod == divisions)
         {
             // divide up
-            auto const sliceSampleSize = static_cast<int>(static_cast<double>(bufferLength) / mDivisions);
+            auto const sliceSampleSize = static_cast<size_t>(static_cast<double>(bufferLength) / mDivisions);
             auto const numSlices = bufferLength / sliceSampleSize;
             
             jassert(numSlices > 0);
             
             mSlicePositions.resize(numSlices);
-            for(auto i = 0; i < numSlices; ++i)
+            for(size_t i = 0; i < numSlices; ++i)
             {
                 mSlicePositions[i] = i * sliceSampleSize;
             }

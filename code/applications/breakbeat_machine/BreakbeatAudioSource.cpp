@@ -85,16 +85,16 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     auto sliceEndPosition = std::get<1>(slice);
     auto const sliceChangeThreshold = mSampleChangeThreshold.load();
     auto const sliceReverseThreshold = mReverseSampleThreshold.load();
-    auto const sliceRetriggerThreshold = mRetriggerSampleThreshold.load();
+//    auto const sliceRetriggerThreshold = mRetriggerSampleThreshold.load();
     
     // check apply gain ramp
     auto const crossFadeTime = mCrossFade.load();
-    auto const crossFadeSamples = static_cast<int>((crossFadeTime / 1000.0f) * mSliceManager.getSampleSampleRate());
+    auto const crossFadeSamples = static_cast<size_t>((crossFadeTime / 1000.0f) * mSliceManager.getSampleSampleRate());
     
     jassert(sliceSampleSize > 0);
 
     auto samplesRemaining = numSamples;
-    auto currentPosition = mNextReadPosition.load();
+    auto currentPosition = static_cast<size_t>(mNextReadPosition.load());
     while(samplesRemaining > 0)
     {
         auto const changePerc = Random::getSystemRandom().nextFloat();
@@ -105,11 +105,11 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         
         if(willChange)
         {
-            auto const slice = mSliceManager.setRandomSlice();
+            slice = mSliceManager.setRandomSlice();
             sliceStartPosition = std::get<0>(slice);
             sliceEndPosition = std::get<1>(slice);
             
-            auto retriggerPerc = Random::getSystemRandom().nextFloat();
+//            auto retriggerPerc = Random::getSystemRandom().nextFloat();
 //            auto sliceSize = sliceSampleSize;
 //            if(retriggerPerc > 1.0 - sliceRetriggerThreshold)
 //            {
@@ -131,10 +131,10 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         };
         
         currentPosition = atSliceEnd ? sliceStartPosition : currentPosition;
-        auto const readBufferEnd = std::min(sliceEndPosition, static_cast<size_t>(currentPosition + samplesRemaining));
+        auto const readBufferEnd = std::min(sliceEndPosition, currentPosition + static_cast<size_t>(samplesRemaining));
         jassert(currentPosition >= 0 && readBufferEnd >= currentPosition);
         
-        auto const numThisTime = std::min(static_cast<int>(readBufferEnd - currentPosition), samplesRemaining);
+        auto const numThisTime = static_cast<size_t>(std::min(static_cast<int>(readBufferEnd - currentPosition), samplesRemaining));
         for(auto ch = 0; ch < numChannels; ++ch)
         {
             bufferToFill.buffer->copyFrom(ch, outputStart, *retainedBuffer, ch, static_cast<int>(currentPosition), static_cast<int>(numThisTime));
@@ -145,7 +145,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         {
             // crossfade end region!
             auto const samplesToEnd = sliceEndPosition - currentPosition;
-            auto const numToApplyGainTo = std::min(static_cast<int>(samplesToEnd), numThisTime);
+            auto const numToApplyGainTo = std::min(static_cast<size_t>(samplesToEnd), numThisTime);
             
             // linearly interpolate the value
             auto const xfadeBegin = sliceEndPosition - crossFadeSamples;
@@ -161,13 +161,13 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
 //            std::cout << "Fade out s: " << startGain << "e: " << endGain << "\n";
             
             jassert(startGain >= endGain);
-            bufferToFill.buffer->applyGainRamp(0, numToApplyGainTo, startGain, endGain);
+            bufferToFill.buffer->applyGainRamp(0, static_cast<int>(numToApplyGainTo), startGain, endGain);
         }
         else if(currentPosition < crossFadeSamples)
         {
             // crossfade start!
             auto const samplesToEnd = crossFadeSamples - currentPosition;
-            auto const numToApplyGainTo = std::min(static_cast<int>(samplesToEnd), numThisTime);
+            auto const numToApplyGainTo = std::min(static_cast<size_t>(samplesToEnd), numThisTime);
             
             auto const relPos = static_cast<double>(currentPosition);
             auto const curRatioAlong = relPos / crossFadeSamples;
@@ -179,7 +179,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
             auto const endGain = static_cast<float>(std::min(std::max(0.0, endRatioAlong), 1.0));
             
             jassert(startGain <= endGain);
-            bufferToFill.buffer->applyGainRamp(0, numToApplyGainTo, startGain, endGain);
+            bufferToFill.buffer->applyGainRamp(0, static_cast<int>(numToApplyGainTo), startGain, endGain);
             
 //            std::cout << "Fade in s: " << startGain << "e: " << endGain << "\n";
         }
@@ -188,8 +188,8 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         currentPosition += numThisTime;
     }
     
-    mNextReadPosition.exchange(currentPosition);
-    mSliceStartPosition.exchange(sliceStartPosition);
+    mNextReadPosition.exchange(static_cast<int64_t>(currentPosition));
+    mSliceStartPosition.exchange(static_cast<int64_t>(sliceStartPosition));
 }
 
 void BreakbeatAudioSource::releaseResources()
