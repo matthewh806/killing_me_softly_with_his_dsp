@@ -160,12 +160,12 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 , mRecentFiles(recentFiles)
 {
     addAndMakeVisible(mSliceTypeCombobox);
-    mSliceTypeCombobox.addItem("Div", 1);
-    mSliceTypeCombobox.addItem("transient", 2);
-    mSliceTypeCombobox.setSelectedId(1);
-    mSliceTypeCombobox.onChange = [this]()
+    mSliceTypeCombobox.comboBox.addItem("Div", 1);
+    mSliceTypeCombobox.comboBox.addItem("transient", 2);
+    mSliceTypeCombobox.comboBox.setSelectedId(1);
+    mSliceTypeCombobox.comboBox.onChange = [this]()
     {
-        auto const idx = mSliceTypeCombobox.getSelectedItemIndex();
+        auto const idx = mSliceTypeCombobox.comboBox.getSelectedItemIndex();
         mAudioSource.getSliceManager().setSliceMethod(static_cast<SliceManager::Method>(idx));
     };
     
@@ -335,7 +335,7 @@ void BreakbeatContentComponent::resized()
     auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
     
     auto firstRowBounds = bounds.removeFromTop(20);
-    mSliceTypeCombobox.setBounds(firstRowBounds.removeFromRight(threeFieldRowElementWidth));
+    mSliceTypeCombobox.setBounds(firstRowBounds.removeFromRight(threeFieldRowElementWidth * 1.5));
     
     bounds.removeFromTop(20);
     
