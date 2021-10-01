@@ -219,3 +219,21 @@ void NumberFieldWithLabel::resized()
     bounds.removeFromLeft(static_cast<int>(2));
     mNumberField.setBounds(bounds);
 }
+
+ComboBoxWithLabel::ComboBoxWithLabel(juce::String const& paramName)
+{
+    mParamLabel.setEditable(false);
+    mParamLabel.setText(paramName, juce::NotificationType::dontSendNotification);
+    addAndMakeVisible(mParamLabel);
+    
+    addAndMakeVisible(comboBox);
+}
+
+void ComboBoxWithLabel::resized()
+{
+    auto bounds = getLocalBounds();
+    
+    mParamLabel.setBounds(bounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.45)));
+    bounds.removeFromLeft(static_cast<int>(2));
+    comboBox.setBounds(bounds);
+}

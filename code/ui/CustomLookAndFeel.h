@@ -75,3 +75,17 @@ private:
     juce::String mSuffix = juce::String();
 };
 
+class ComboBoxWithLabel : public juce::Component
+{
+public:
+    ComboBoxWithLabel(juce::String const& paramName);
+    ComboBoxWithLabel() = default;
+    
+    void resized() override;
+    
+    juce::ComboBox comboBox;
+private:
+    juce::Label mParamLabel;
+    
+};
+
