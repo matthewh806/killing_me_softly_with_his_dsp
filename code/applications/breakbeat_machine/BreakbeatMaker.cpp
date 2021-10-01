@@ -142,7 +142,8 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         mSampleManager.performTimestretch(stretchFactor, pitchFactor, [this]()
         {
             mPlayButton.setEnabled(true);
-            mAudioSource.updateSliceSizes();
+            mAudioSource.getSliceManager().performSlice();
+            mAudioSource.setNextReadPosition(0);
             updateWaveform();
         });
     };
@@ -221,7 +222,8 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         mSampleManager.performTimestretch(stretchFactor, pitchFactor, [this]()
         {
             mPlayButton.setEnabled(true);
-            mAudioSource.updateSliceSizes();
+            mAudioSource.getSliceManager().performSlice();
+            mAudioSource.setNextReadPosition(0);
             updateWaveform();
         });
     };
@@ -370,8 +372,15 @@ void BreakbeatContentComponent::getNextAudioBlock (const AudioSourceChannelInfo&
     juce::AudioBuffer<float> localBuffer(mTemporaryChannels.data(), numChannels, numSamples);
     mRecorder.processBlock(localBuffer);
     
-    auto const start = mAudioSource.getStartReadPosition();
-    auto const end = start + mAudioSource.getSliceSize();
+    auto const currentSlice = mAudioSource.getSliceManager().getCurrentSlice();
+    auto const start = std::get<0>(currentSlice);
+    auto const end = std::get<1>(currentSlice);
+    
+    if(start > end || end - start == 0)
+    {
+        return;
+    }
+    
     mWaveformComponent.setSampleStartEnd(start, end);
 }
 
@@ -415,7 +424,8 @@ void BreakbeatContentComponent::handleAsyncUpdate()
     {
         mSampleDesiredLengthSeconds.setValue(mSampleManager.getBufferLength(), juce::NotificationType::dontSendNotification);
         mPlayButton.setEnabled(true);
-        mAudioSource.updateSliceSizes();
+        mAudioSource.getSliceManager().performSlice();
+        mAudioSource.setNextReadPosition(0);
         
         updateWaveform();
     });

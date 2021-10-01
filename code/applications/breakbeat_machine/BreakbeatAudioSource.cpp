@@ -11,14 +11,14 @@ BreakbeatAudioSource::~BreakbeatAudioSource()
     
 }
 
-int BreakbeatAudioSource::getNumSlices() const
+size_t BreakbeatAudioSource::getNumSlices() const
 {
-    return mNumSlices.load();
+    return mSliceManager.getNumberOfSlices();
 }
 
-int64_t BreakbeatAudioSource::getSliceSize() const
+SliceManager& BreakbeatAudioSource::getSliceManager()
 {
-    return mSliceSampleSize.load();
+    return mSliceManager;
 }
 
 int64_t BreakbeatAudioSource::getStartReadPosition() const
@@ -44,7 +44,9 @@ void BreakbeatAudioSource::setRetriggerSampleThreshold(float threshold)
 void BreakbeatAudioSource::setBlockDivisionFactor(int factor)
 {
     mBlockDivisionFactor.exchange(factor);
-    updateSliceSizes();
+    mSliceManager.setDivisions(factor);
+    
+    setNextReadPosition(0);
 }
 
 void BreakbeatAudioSource::setCrossFade(float xfade)
@@ -77,10 +79,10 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     auto const numSamples = bufferToFill.numSamples;
     auto const outputStart = bufferToFill.startSample;
     
-    auto sliceStartPosition = mSliceStartPosition.load();
+    auto slice = mSliceManager.getCurrentSlice();
+    auto sliceStartPosition = std::get<0>(slice);
     auto const sliceSampleSize = mSliceSampleSize.load();
-    auto sliceEndPosition = sliceStartPosition + sliceSampleSize;
-    auto const numSlices = mNumSlices.load();
+    auto sliceEndPosition = std::get<1>(slice);
     auto const sliceChangeThreshold = mSampleChangeThreshold.load();
     auto const sliceReverseThreshold = mReverseSampleThreshold.load();
     auto const sliceRetriggerThreshold = mRetriggerSampleThreshold.load();
@@ -103,16 +105,18 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         
         if(willChange)
         {
-            sliceStartPosition = numSlices > 1 ? Random::getSystemRandom().nextInt(numSlices) * sliceSampleSize : sliceStartPosition;
+            auto const slice = mSliceManager.setRandomSlice();
+            sliceStartPosition = std::get<0>(slice);
+            sliceEndPosition = std::get<1>(slice);
             
             auto retriggerPerc = Random::getSystemRandom().nextFloat();
-            auto sliceSize = sliceSampleSize;
-            if(retriggerPerc > 1.0 - sliceRetriggerThreshold)
-            {
-                sliceSize /= 4;
-            }
-            
-            sliceEndPosition = sliceStartPosition + sliceSize;
+//            auto sliceSize = sliceSampleSize;
+//            if(retriggerPerc > 1.0 - sliceRetriggerThreshold)
+//            {
+//                sliceSize /= 4;
+//            }
+//
+//            sliceEndPosition = sliceStartPosition + sliceSize;
             jassert(sliceEndPosition >= sliceStartPosition);
         
             auto reversePerc = Random::getSystemRandom().nextFloat();
@@ -127,7 +131,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         };
         
         currentPosition = atSliceEnd ? sliceStartPosition : currentPosition;
-        auto const readBufferEnd = std::min(sliceEndPosition, currentPosition + static_cast<int64_t>(samplesRemaining));
+        auto const readBufferEnd = std::min(sliceEndPosition, static_cast<size_t>(currentPosition + samplesRemaining));
         jassert(currentPosition >= 0 && readBufferEnd >= currentPosition);
         
         auto const numThisTime = std::min(static_cast<int>(readBufferEnd - currentPosition), samplesRemaining);
@@ -216,13 +220,4 @@ bool BreakbeatAudioSource::isLooping() const
 
 void BreakbeatAudioSource::clear()
 {
-}
-
-void BreakbeatAudioSource::updateSliceSizes()
-{
-    mNumSlices = mBlockDivisionFactor.load();
-    mSliceSampleSize = static_cast<int>(static_cast<double>(mSampleManager.getBufferNumSamples()) / mBlockDivisionFactor);
-    
-    jassert(mNumSlices > 0);
-    setNextReadPosition(0);
 }
