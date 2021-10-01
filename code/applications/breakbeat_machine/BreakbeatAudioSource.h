@@ -5,6 +5,7 @@
 #include "SampleManager.h"
 
 class SliceManager
+: public SampleManager
 {
 public:
         
@@ -18,8 +19,8 @@ public:
         transients
     };
     
-    SliceManager(SampleManager& sampleManager, Method sliceMethod = Method::divisions)
-    : mSampleManager(sampleManager)
+    SliceManager(juce::AudioFormatManager& formatManager, Method sliceMethod = Method::divisions)
+    : SampleManager(formatManager)
     , mSliceMethod(sliceMethod)
     {
         performSlice();
@@ -67,7 +68,7 @@ public:
         auto const sliceIndex = static_cast<size_t>(Random::getSystemRandom().nextInt(mSlicePositions.size()));
         auto const sliceStart = mSlicePositions[sliceIndex];
         auto const isFinalSlice = sliceIndex == mSlicePositions.size() - 1;
-        auto const sliceEnd = isFinalSlice ? mSampleManager.getBufferNumSamples() : mSlicePositions[sliceIndex + 1];
+        auto const sliceEnd = isFinalSlice ? getBufferNumSamples() : mSlicePositions[sliceIndex + 1];
         
         jassert(sliceStart < sliceEnd);
         
@@ -88,7 +89,7 @@ public:
     
     void performSlice()
     {
-        auto const bufferLength = mSampleManager.getBufferNumSamples();
+        auto const bufferLength = getBufferNumSamples();
         if(bufferLength <= 0)
         {
             // no file loaded
@@ -111,7 +112,7 @@ public:
             }
             
             auto const sliceStart = mSlicePositions[0];
-            auto const sliceEnd = mSlicePositions.size() == 1 ? mSampleManager.getBufferNumSamples() : mSlicePositions[1];
+            auto const sliceEnd = mSlicePositions.size() == 1 ? getBufferNumSamples() : mSlicePositions[1];
             jassert(sliceStart < sliceEnd);
             
             mCurrentSlice = {sliceStart, sliceEnd};
@@ -124,9 +125,9 @@ public:
     
 private:
     
+    //SampleManager mSampleManager;
     Slice mCurrentSlice;
     
-    SampleManager& mSampleManager;
     Method mSliceMethod;
     
     float mThreshold;
@@ -140,7 +141,7 @@ class BreakbeatAudioSource
 : public PositionableAudioSource
 {
 public:
-    BreakbeatAudioSource(SampleManager& sampleManager);
+    BreakbeatAudioSource(juce::AudioFormatManager& formatManager);
     ~BreakbeatAudioSource() override;
     
     size_t getNumSlices() const;
@@ -173,8 +174,7 @@ public:
     
 private:
     
-    SampleManager& mSampleManager;
-    SliceManager mSliceManager {mSampleManager};
+    SliceManager mSliceManager;
     
     std::atomic<int64_t> mNextReadPosition {0};
     

@@ -1,7 +1,7 @@
 #include "BreakbeatAudioSource.h"
 
-BreakbeatAudioSource::BreakbeatAudioSource(SampleManager& sampleManager)
-: mSampleManager(sampleManager)
+BreakbeatAudioSource::BreakbeatAudioSource(juce::AudioFormatManager& formatManager)
+: mSliceManager(formatManager)
 {
     
 }
@@ -69,7 +69,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
 {
     bufferToFill.clearActiveBufferRegion();
     
-    juce::AudioSampleBuffer* retainedBuffer = mSampleManager.getActiveBuffer();
+    juce::AudioSampleBuffer* retainedBuffer = mSliceManager.getActiveBuffer();
     if(retainedBuffer == nullptr)
     {
         return;
@@ -89,7 +89,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     
     // check apply gain ramp
     auto const crossFadeTime = mCrossFade.load();
-    auto const crossFadeSamples = static_cast<int>((crossFadeTime / 1000.0f) * mSampleManager.getSampleSampleRate());
+    auto const crossFadeSamples = static_cast<int>((crossFadeTime / 1000.0f) * mSliceManager.getSampleSampleRate());
     
     jassert(sliceSampleSize > 0);
 
@@ -122,11 +122,11 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
             auto reversePerc = Random::getSystemRandom().nextFloat();
             if(reversePerc > sliceReverseThreshold)
             {
-                mSampleManager.setReverseBufferActive();
+                mSliceManager.setReverseBufferActive();
             }
             else
             {
-                mSampleManager.setForwardBufferActive();
+                mSliceManager.setForwardBufferActive();
             }
         };
         
@@ -210,7 +210,7 @@ int64 BreakbeatAudioSource::getNextReadPosition() const
 
 int64 BreakbeatAudioSource::getTotalLength() const
 {
-    return static_cast<int64>(mSampleManager.getBufferNumSamples());
+    return static_cast<int64>(mSliceManager.getBufferNumSamples());
 }
 
 bool BreakbeatAudioSource::isLooping() const

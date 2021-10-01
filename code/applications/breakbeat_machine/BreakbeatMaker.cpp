@@ -136,10 +136,10 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mPitchShiftSlider.setValue(0.0, juce::NotificationType::dontSendNotification);
     mPitchShiftSlider.onValueChange = [this]()
     {
-        auto const stretchFactor = static_cast<float>(mSampleManager.getBufferLength() / mSampleManager.getFileLength());
+        auto const stretchFactor = static_cast<float>(mAudioSource.getSliceManager().getBufferLength() / mAudioSource.getSliceManager().getFileLength());
         auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
         
-        mSampleManager.performTimestretch(stretchFactor, pitchFactor, [this]()
+        mAudioSource.getSliceManager().performTimestretch(stretchFactor, pitchFactor, [this]()
         {
             mPlayButton.setEnabled(true);
             mAudioSource.getSliceManager().performSlice();
@@ -217,9 +217,9 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         changeState(TransportState::Stopping);
         mPlayButton.setEnabled(false);
         
-        auto const stretchFactor = static_cast<float>(value / mSampleManager.getFileLength());
+        auto const stretchFactor = static_cast<float>(value / mAudioSource.getSliceManager().getFileLength());
         auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
-        mSampleManager.performTimestretch(stretchFactor, pitchFactor, [this]()
+        mAudioSource.getSliceManager().performTimestretch(stretchFactor, pitchFactor, [this]()
         {
             mPlayButton.setEnabled(true);
             mAudioSource.getSliceManager().performSlice();
@@ -414,15 +414,15 @@ void BreakbeatContentComponent::changeListenerCallback(juce::ChangeBroadcaster* 
 
 void BreakbeatContentComponent::handleAsyncUpdate()
 {
-    mFileNameLabel.setText(mSampleManager.getSampleFileName(), juce::NotificationType::dontSendNotification);
-    mFileSampleRateLabel.setText(juce::String(mSampleManager.getSampleSampleRate()), juce::NotificationType::dontSendNotification);
+    mFileNameLabel.setText(mAudioSource.getSliceManager().getSampleFileName(), juce::NotificationType::dontSendNotification);
+    mFileSampleRateLabel.setText(juce::String(mAudioSource.getSliceManager().getSampleSampleRate()), juce::NotificationType::dontSendNotification);
     
-    mSampleLengthSeconds.setValue(mSampleManager.getFileLength(), juce::NotificationType::sendNotification);
+    mSampleLengthSeconds.setValue(mAudioSource.getSliceManager().getFileLength(), juce::NotificationType::sendNotification);
     
     auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
-    mSampleManager.performTimestretch(1.0f, pitchFactor, [this]()
+    mAudioSource.getSliceManager().performTimestretch(1.0f, pitchFactor, [this]()
     {
-        mSampleDesiredLengthSeconds.setValue(mSampleManager.getBufferLength(), juce::NotificationType::dontSendNotification);
+        mSampleDesiredLengthSeconds.setValue(mAudioSource.getSliceManager().getBufferLength(), juce::NotificationType::dontSendNotification);
         mPlayButton.setEnabled(true);
         mAudioSource.getSliceManager().performSlice();
         mAudioSource.setNextReadPosition(0);
@@ -525,9 +525,9 @@ void BreakbeatContentComponent::checkForPathToOpen()
     }
     
     juce::String error;
-    if(mSampleManager.loadNewSample(pathToOpen, error))
+    if(mAudioSource.getSliceManager().loadNewSample(pathToOpen, error))
     {
-        mTransportSource.setSource(&mAudioSource, 0, nullptr, mSampleManager.getSampleSampleRate());
+        mTransportSource.setSource(&mAudioSource, 0, nullptr, mAudioSource.getSliceManager().getSampleSampleRate());
     }
     else
     {
@@ -541,12 +541,12 @@ void BreakbeatContentComponent::checkForPathToOpen()
 
 void BreakbeatContentComponent::checkForBuffersToFree()
 {
-    mSampleManager.clearFreeBuffers();
+    mAudioSource.getSliceManager().clearFreeBuffers();
 }
 
 void BreakbeatContentComponent::updateWaveform()
 {
     mWaveformComponent.clear();
-    mWaveformComponent.getThumbnail().reset(2, mSampleManager.getSampleSampleRate());
-    mWaveformComponent.getThumbnail().addBlock(0, *mSampleManager.getActiveBuffer(), 0, static_cast<int>(mSampleManager.getBufferNumSamples()));
+    mWaveformComponent.getThumbnail().reset(2, mAudioSource.getSliceManager().getSampleSampleRate());
+    mWaveformComponent.getThumbnail().addBlock(0, *mAudioSource.getSliceManager().getActiveBuffer(), 0, static_cast<int>(mAudioSource.getSliceManager().getBufferNumSamples()));
 }

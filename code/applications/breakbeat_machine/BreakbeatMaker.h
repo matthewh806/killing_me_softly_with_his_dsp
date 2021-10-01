@@ -139,7 +139,7 @@ private:
     juce::RecentlyOpenedFilesList& mRecentFiles;
     juce::AudioFormatManager mFormatManager;
     
-    BreakbeatAudioSource mAudioSource {mSampleManager};
+    BreakbeatAudioSource mAudioSource {mFormatManager};
     juce::AudioTransportSource mTransportSource;
     
     std::vector<float*> mTemporaryChannels;
@@ -147,7 +147,6 @@ private:
     FileRecorder mRecorder {mFormatManager};
     bool mRecording = false;
     
-    SampleManager mSampleManager {mFormatManager};
     SliceExporter mSliceExporter {mFormatManager};
     
     WaveformComponent mWaveformComponent { *this, mFormatManager };
