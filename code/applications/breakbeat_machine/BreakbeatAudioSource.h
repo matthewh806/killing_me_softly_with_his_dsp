@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include <algorithm>
 #include "SampleManager.h"
+#include "../../analysis/AudioAnalyser.h"
 
 class SliceManager
 : public SampleManager
@@ -130,7 +131,23 @@ public:
         }
         else
         {
-            // do nothing for now :(
+            mSlicePositions = AudioAnalyser::getOnsetPositions(*getActiveBuffer(), {});
+            auto const numSlices = mSlicePositions.size();
+            jassert(numSlices > 0);
+            
+            std::cout << "Onset points found: " << numSlices << "\n";
+            for(auto const& onset : mSlicePositions)
+            {
+                std::cout << " o : " << onset << "\n";
+            }
+            
+            auto const sliceStart = mSlicePositions[0];
+            auto const sliceEnd = mSlicePositions.size() == 1 ? getBufferNumSamples() : mSlicePositions[1];
+            jassert(sliceStart < sliceEnd);
+            
+            mCurrentSliceIndex = 0;
+            mCurrentSlice = {sliceStart, sliceEnd};
+
         }
         
         sendChangeMessage();

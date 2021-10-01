@@ -118,6 +118,8 @@ private:
     void updateWaveform();
     //==========================================================================
     
+    juce::ComboBox mSliceTypeCombobox;
+    
     RotarySliderWithLabels mPitchShiftSlider;
     RotarySliderWithLabels mCrossFadeSlider;
     SliceRotarySlider mSliceDivsorSlider;

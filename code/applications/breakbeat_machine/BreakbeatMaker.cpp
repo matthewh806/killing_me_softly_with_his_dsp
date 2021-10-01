@@ -159,6 +159,16 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 , mRetriggerSampleProbabilitySlider("Retrigger slice", "%")
 , mRecentFiles(recentFiles)
 {
+    addAndMakeVisible(mSliceTypeCombobox);
+    mSliceTypeCombobox.addItem("Div", 1);
+    mSliceTypeCombobox.addItem("transient", 2);
+    mSliceTypeCombobox.setSelectedId(1);
+    mSliceTypeCombobox.onChange = [this]()
+    {
+        auto const idx = mSliceTypeCombobox.getSelectedItemIndex();
+        mAudioSource.getSliceManager().setSliceMethod(static_cast<SliceManager::Method>(idx));
+    };
+    
     addAndMakeVisible(mPitchShiftSlider);
     mPitchShiftSlider.mLabels.add({0.0, "-24"});
     mPitchShiftSlider.mLabels.add({1.0, "24"});
@@ -296,7 +306,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     addAndMakeVisible(mFileSampleRateLabel);
     mFileSampleRateLabel.setEditable(false);
     
-    setSize (500, 580);
+    setSize (500, 620);
 
     mFormatManager.registerBasicFormats();
     
@@ -323,6 +333,11 @@ void BreakbeatContentComponent::resized()
     
     auto const threeFieldRowElementWidth = bounds.getWidth() / 4;
     auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
+    
+    auto firstRowBounds = bounds.removeFromTop(20);
+    mSliceTypeCombobox.setBounds(firstRowBounds.removeFromRight(threeFieldRowElementWidth));
+    
+    bounds.removeFromTop(20);
     
     auto secondRowBounds = bounds.removeFromTop(100);
     mPitchShiftSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
