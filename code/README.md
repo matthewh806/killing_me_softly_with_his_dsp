@@ -63,6 +63,7 @@ This was a project I made a while ago for chopping up an audio sample into fract
 
 ###### Possible improvements
 - [ ] Slice by transient - investigate a good method for this. Is a simple amp threshold sufficient?
+   - [ ] https://github.com/adamstark/Gist or https://github.com/aubio/aubio to handle this perhaps
 - [ ] Slice manually by clicking on the waveform
 - [ ] Zoom on waveform?
 - [ ] Expand / Shrink signal to fit into a certain period
