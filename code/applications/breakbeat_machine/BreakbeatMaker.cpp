@@ -63,7 +63,7 @@ void BreakbeatContentComponent::WaveformComponent::resized()
 
 void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
 {
-    juce::Rectangle<int> thumbnailBounds (10, 10, getWidth()-20, getHeight()-20);
+    juce::Rectangle<int> thumbnailBounds (0, 0, getWidth(), getHeight());
     
     if(mThumbnail.getNumChannels() == 0)
     {
@@ -117,6 +117,14 @@ void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
     g.fillRect(clipBounds);
 }
 
+void BreakbeatContentComponent::WaveformComponent::mouseDoubleClick(juce::MouseEvent const& event)
+{
+    if(onWaveformDoubleClicked != nullptr)
+    {
+        onWaveformDoubleClicked(event.x);
+    }
+}
+
 bool BreakbeatContentComponent::WaveformComponent::isInterestedInFileDrag (const StringArray& files)
 {
     for(auto fileName : files)
@@ -162,7 +170,8 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 {
     addAndMakeVisible(mSliceTypeCombobox);
     mSliceTypeCombobox.comboBox.addItem("Div", 1);
-    mSliceTypeCombobox.comboBox.addItem("transient", 2);
+    mSliceTypeCombobox.comboBox.addItem("Transient", 2);
+    mSliceTypeCombobox.comboBox.addItem("Manual", 3);
     mSliceTypeCombobox.comboBox.setSelectedId(1);
     mSliceTypeCombobox.comboBox.onChange = [this]()
     {
@@ -180,6 +189,10 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         else if(sliceMethod == SliceManager::Method::transients)
         {
             mSliceTransientThresholdSlider.setVisible(true);
+        }
+        else if(sliceMethod == SliceManager::Method::manual)
+        {
+            // ?
         }
     };
     
@@ -270,6 +283,21 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     };
     
     addAndMakeVisible(mWaveformComponent);
+    mWaveformComponent.onWaveformDoubleClicked = [this](int xPos)
+    {
+        // convert to slice position and set
+        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
+        auto const waveformSize = mWaveformComponent.getWidth();
+        
+        // convert to sample pos
+        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * bufferLength);
+        mAudioSource.getSliceManager().addSlice(samplePosition);
+        
+        if(mAudioSource.getSliceManager().getSliceMethod() != SliceManager::Method::manual)
+        {
+            mSliceTypeCombobox.comboBox.setSelectedItemIndex(static_cast<int>(SliceManager::Method::manual));
+        }
+    };
     
     addAndMakeVisible(mSampleLengthSeconds);
     mSampleDesiredLengthSeconds.setNumberOfDecimals(3);

@@ -89,6 +89,7 @@ private:
         // juce::Component
         void resized() override;
         void paint(juce::Graphics& g) override;
+        void mouseDoubleClick(juce::MouseEvent const& event) override;
         
         // juce::FileDragAndDropTarget
         bool isInterestedInFileDrag (const StringArray& files) override;
@@ -96,6 +97,8 @@ private:
         
         // juce::AsyncUpdater
         void handleAsyncUpdate() override;
+        
+        std::function<void(int)> onWaveformDoubleClicked = nullptr;
         
     private:
         BreakbeatContentComponent& mParentComponent;
