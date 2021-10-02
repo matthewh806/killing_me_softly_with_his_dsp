@@ -154,6 +154,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 , mPitchShiftSlider("Pitch shift", "")
 , mCrossFadeSlider("Cross fade", "ms")
 , mSliceDivsorSlider("Slice Div", "")
+, mSliceTransientThresholdSlider("Detection Thresh.", "")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
 , mRetriggerSampleProbabilitySlider("Retrigger slice", "%")
@@ -167,6 +168,19 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     {
         auto const idx = mSliceTypeCombobox.comboBox.getSelectedItemIndex();
         mAudioSource.getSliceManager().setSliceMethod(static_cast<SliceManager::Method>(idx));
+        
+        mSliceDivsorSlider.setVisible(false);
+        mSliceTransientThresholdSlider.setVisible(false);
+        
+        auto const sliceMethod = mAudioSource.getSliceManager().getSliceMethod();
+        if(sliceMethod == SliceManager::Method::divisions)
+        {
+            mSliceDivsorSlider.setVisible(true);
+        }
+        else if(sliceMethod == SliceManager::Method::transients)
+        {
+            mSliceTransientThresholdSlider.setVisible(true);
+        }
     };
     
     addAndMakeVisible(mPitchShiftSlider);
@@ -207,6 +221,18 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     {
         auto const divisor = static_cast<int>(std::pow(2, static_cast<int>(mSliceDivsorSlider.getValue())));
         mAudioSource.setBlockDivisionFactor(divisor);
+        mWaveformComponent.setSlicePositions(mAudioSource.getSliceManager().getSlices(), 0);
+    };
+    
+    addChildComponent(mSliceTransientThresholdSlider);
+    mSliceTransientThresholdSlider.mLabels.add({0.0, "0"});
+    mSliceTransientThresholdSlider.mLabels.add({1.0, "1"});
+    mSliceTransientThresholdSlider.setRange(0.0, 1.0, 0.1);
+    mSliceTransientThresholdSlider.setValue(0.3, dontSendNotification);
+    mSliceTransientThresholdSlider.onValueChange = [this]()
+    {
+        auto const threshold = static_cast<float>(mSliceTransientThresholdSlider.getValue());
+        mAudioSource.setTransientDetectionThreshold(threshold);
         mWaveformComponent.setSlicePositions(mAudioSource.getSliceManager().getSlices(), 0);
     };
     
@@ -335,7 +361,7 @@ void BreakbeatContentComponent::resized()
     auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
     
     auto firstRowBounds = bounds.removeFromTop(20);
-    mSliceTypeCombobox.setBounds(firstRowBounds.removeFromRight(threeFieldRowElementWidth * 1.5));
+    mSliceTypeCombobox.setBounds(firstRowBounds.removeFromRight(static_cast<int>(threeFieldRowElementWidth * 1.5)));
     
     bounds.removeFromTop(20);
     
@@ -345,6 +371,7 @@ void BreakbeatContentComponent::resized()
     mCrossFadeSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
     secondRowBounds.removeFromLeft(threeFieldRowSpacing);
     mSliceDivsorSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    mSliceTransientThresholdSlider.setBounds(mSliceDivsorSlider.getBounds());
     
     bounds.removeFromTop(20);
     

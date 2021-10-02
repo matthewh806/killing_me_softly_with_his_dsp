@@ -30,6 +30,11 @@ public:
     
     ~SliceManager() = default;
     
+    Method getSliceMethod()
+    {
+        return mSliceMethod;
+    }
+    
     void setSliceMethod(Method method)
     {
         if(method != mSliceMethod)
@@ -131,7 +136,11 @@ public:
         }
         else
         {
-            mSlicePositions = AudioAnalyser::getOnsetPositions(*getActiveBuffer(), {});
+            AudioAnalyser::DetectionSettings detectionSettings;
+            detectionSettings.sampleRate = static_cast<int>(getSampleSampleRate());
+            detectionSettings.threshold = mThreshold;
+            
+            mSlicePositions = AudioAnalyser::getOnsetPositions(*getActiveBuffer(), detectionSettings);
             auto const numSlices = mSlicePositions.size();
             jassert(numSlices > 0);
             
@@ -183,6 +192,7 @@ public:
     void setReverseSampleThreshold(float threshold);
     void setRetriggerSampleThreshold(float threshold);
     void setBlockDivisionFactor(int factor);
+    void setTransientDetectionThreshold(float threshold);
     
     void setCrossFade(float xfade);
     
@@ -207,7 +217,6 @@ private:
     SliceManager mSliceManager;
     
     std::atomic<int64_t> mNextReadPosition {0};
-    
     std::atomic<int64_t> mSliceStartPosition {0};
     
     std::atomic<float> mSampleChangeThreshold {0.7f};
@@ -216,10 +225,6 @@ private:
     
     std::atomic<bool> mRandomPosition {false};
     std::atomic<bool> mRandomDirection {false};
-    
-    std::atomic<int> mNumSlices {1};
-    std::atomic<int> mSliceSampleSize {1}; // in samples
-    std::atomic<int> mBlockDivisionFactor {1};
     
     std::atomic<float> mCrossFade {100.0f};  //ms
 };

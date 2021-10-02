@@ -43,9 +43,14 @@ void BreakbeatAudioSource::setRetriggerSampleThreshold(float threshold)
 
 void BreakbeatAudioSource::setBlockDivisionFactor(int factor)
 {
-    mBlockDivisionFactor.exchange(factor);
     mSliceManager.setDivisions(factor);
     
+    setNextReadPosition(0);
+}
+
+void BreakbeatAudioSource::setTransientDetectionThreshold(float threshold)
+{
+    mSliceManager.setThreshold(threshold);
     setNextReadPosition(0);
 }
 
@@ -81,7 +86,6 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     
     auto slice = mSliceManager.getCurrentSlice();
     auto sliceStartPosition = std::get<0>(slice);
-    auto const sliceSampleSize = mSliceSampleSize.load();
     auto sliceEndPosition = std::get<1>(slice);
     auto const sliceChangeThreshold = mSampleChangeThreshold.load();
     auto const sliceReverseThreshold = mReverseSampleThreshold.load();
@@ -90,8 +94,6 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     // check apply gain ramp
     auto const crossFadeTime = mCrossFade.load();
     auto const crossFadeSamples = static_cast<size_t>((crossFadeTime / 1000.0f) * mSliceManager.getSampleSampleRate());
-    
-    jassert(sliceSampleSize > 0);
 
     auto samplesRemaining = numSamples;
     auto currentPosition = static_cast<size_t>(mNextReadPosition.load());

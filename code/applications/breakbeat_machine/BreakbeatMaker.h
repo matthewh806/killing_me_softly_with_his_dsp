@@ -123,6 +123,7 @@ private:
     RotarySliderWithLabels mPitchShiftSlider;
     RotarySliderWithLabels mCrossFadeSlider;
     SliceRotarySlider mSliceDivsorSlider;
+    RotarySliderWithLabels mSliceTransientThresholdSlider;
     RotarySliderWithLabels mChangeSampleProbabilitySlider;
     RotarySliderWithLabels mReverseSampleProbabilitySlider;
     RotarySliderWithLabels mRetriggerSampleProbabilitySlider;
