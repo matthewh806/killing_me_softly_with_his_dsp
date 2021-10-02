@@ -4,9 +4,11 @@ std::vector<size_t> AudioAnalyser::getOnsetPositions(juce::AudioBuffer<float> bu
 {
     juce::ignoreUnused(buffer, settings);
     
-    fvec_t* vecIn = new_fvec(static_cast<int>(settings.hopSize));
+    fvec_t* vecIn = new_fvec(static_cast<uint_t>(settings.hopSize));
     fvec_t* vecOut = new_fvec(2);
-    aubio_onset_t* onset = new_aubio_onset("default", settings.windowSize, settings.hopSize, settings.sampleRate);
+    aubio_onset_t* onset = new_aubio_onset("default", static_cast<uint_t>(settings.windowSize), static_cast<uint_t>(settings.hopSize), static_cast<uint_t>(settings.sampleRate));
+    
+    aubio_onset_set_threshold(onset, settings.threshold);
     
     auto const numSamples = buffer.getNumSamples();
     auto samplesRemaining = numSamples;
