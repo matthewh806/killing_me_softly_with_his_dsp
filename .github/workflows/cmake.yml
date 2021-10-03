@@ -4,12 +4,10 @@ on:
   push:
     branches:
       - main
+    tags:
+      - '*'
   pull_request:
     branches: [ main ]
-
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
 
 jobs:
   build-macos:
@@ -17,6 +15,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Set environment release variable
+      if: startsWith(github.ref, 'refs/tags/')
+      run: echo "BUILD_TYPE=Release" >> $GITHUB_ENV
+
+    - name: Set environment debug variable
+      if: false == startsWith(github.ref, 'refs/tags/')
+      run: echo "BUILD_TYPE=Debug" >> $GITHUB_ENV
 
     - name: Checkout submodules
       run: git submodule update --init --recursive
@@ -38,18 +44,32 @@ jobs:
 
     - name: Prepare Archive
       working-directory: ${{github.workspace}}
-      run: ./code/scripts/package_macos_artifacts.sh
+      run: ./code/scripts/package_macos_artifacts.sh ${{env.BUILD_TYPE}}
 
     - name: Archive all applications
       uses: actions/upload-artifact@v2
       with:
         path: code/build/artifacts/
 
+    - name: Create release
+      uses: softprops/action-gh-release@v0.1.13
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: code/build/artifacts/*
+
   build-ubuntu:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Set environment release variable
+      if: startsWith(github.ref, 'refs/tags/')
+      run: echo "BUILD_TYPE=Release" >> $GITHUB_ENV
+
+    - name: Set environment debug variable
+      if: false == startsWith(github.ref, 'refs/tags/')
+      run: echo "BUILD_TYPE=Debug" >> $GITHUB_ENV
 
     - name: Checkout submodules
       run: git submodule update --init --recursive
@@ -79,9 +99,15 @@ jobs:
 
     - name: Prepare Archive
       working-directory: ${{github.workspace}}
-      run: ./code/scripts/package_ubuntu_artifacts.sh
+      run: ./code/scripts/package_ubuntu_artifacts.sh ${{env.BUILD_TYPE}}
 
     - name: Archive all applications
       uses: actions/upload-artifact@v2
       with:
         path: code/build/artifacts/
+
+    - name: Create release
+      uses: softprops/action-gh-release@v0.1.13
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: code/build/artifacts/*
