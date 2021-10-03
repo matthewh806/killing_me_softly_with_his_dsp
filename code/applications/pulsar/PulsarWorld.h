@@ -75,7 +75,7 @@ namespace Physics
         {
             removeBalls();
             
-            mWorld.Step(0.02, 8, 3);
+            mWorld.Step(0.02f, 8, 3);
             mParent.repaint();
         }
         

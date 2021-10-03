@@ -14,7 +14,7 @@
 Physics::Polygon::Polygon(b2World& world, b2Vec2 pos, int32 nSides, double radius, float startAngle, b2Vec2 center)
 {
     mNumSides = nSides;
-    mRadius = radius;
+    mRadius = static_cast<float>(radius);
     
     for(int i = 0; i < 9; ++i)
     {
@@ -35,19 +35,19 @@ Physics::Polygon::Polygon(b2World& world, b2Vec2 pos, int32 nSides, double radiu
     jassert (nSides > 1);
     
     auto const angleBetweenPoints = MathConstants<float>::twoPi / static_cast<float>(nSides);
-    auto const sideLength = 2 * radius * std::sin(MathConstants<float>::pi / static_cast<float>(nSides));
+    auto const sideLength = 2 * mRadius * std::sin(MathConstants<float>::pi / static_cast<float>(nSides));
     
     for(int i = 0; i < nSides; ++i)
     {
         auto const angle = startAngle + i * angleBetweenPoints;
         auto const nextAngle = angle + angleBetweenPoints;
         
-        b2Vec2 const p(center.x + radius * std::sin(-angle), center.y + radius * std::cos(-angle));
-        b2Vec2 const p_next(center.x + radius * std::sin(-nextAngle), center.y + radius * std::cos(-nextAngle));
+        b2Vec2 const p(center.x + mRadius * std::sin(-angle), center.y + mRadius * std::cos(-angle));
+        b2Vec2 const p_next(center.x + mRadius * std::sin(-nextAngle), center.y + mRadius * std::cos(-nextAngle));
         b2Vec2 const boxCenter((p.x + p_next.x) * 0.5f, (p.y + p_next.y) * 0.5f);
         auto const boxAngle = std::atan2(p_next.y - p.y, p_next.x - p.x);
         
-        mVertices[i].Set(center.x + radius * std::sin(-angle), center.y + radius * std::cos(-angle));
+        mVertices[i].Set(center.x + mRadius * std::sin(-angle), center.y + mRadius * std::cos(-angle));
         polygonShape.SetAsBox(sideLength * 0.5f, Utils::pixelsToMeters(1.0f), boxCenter, boxAngle);
         mPolygonBody->CreateFixture(&polygonFixtureDef);
     }

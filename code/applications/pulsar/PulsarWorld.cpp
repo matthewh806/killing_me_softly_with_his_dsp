@@ -31,13 +31,13 @@ Physics::PulsarWorld::PulsarWorld(AudioProcessorEditor& parent, juce::Rectangle<
     borderFixtureDef.shape = &boundaryPolygonShape;
     borderFixtureDef.isSensor = true;
     
-    boundaryPolygonShape.SetAsBox(getRect().getWidth() * 0.5, Utils::pixelsToMeters(1), {static_cast<float32>((getRect().getWidth() * 0.5)), static_cast<float32>(getRect().getHeight())}, 0); // bottom
+    boundaryPolygonShape.SetAsBox(getRect().getWidth() * 0.5f, Utils::pixelsToMeters(1), {static_cast<float32>((getRect().getWidth() * 0.5f)), static_cast<float32>(getRect().getHeight())}, 0); // bottom
     mWorldBoundary->CreateFixture(&borderFixtureDef);
-    boundaryPolygonShape.SetAsBox(getRect().getWidth() * 0.5, Utils::pixelsToMeters(1), {static_cast<float32>((getRect().getWidth() * 0.5)), static_cast<float32>(getRect().getY())}, 0); // top
+    boundaryPolygonShape.SetAsBox(getRect().getWidth() * 0.5f, Utils::pixelsToMeters(1), {static_cast<float32>((getRect().getWidth() * 0.5f)), static_cast<float32>(getRect().getY())}, 0); // top
     mWorldBoundary->CreateFixture(&borderFixtureDef);
-    boundaryPolygonShape.SetAsBox(Utils::pixelsToMeters(1), getRect().getHeight() * 0.5, {static_cast<float32>((getRect().getX())), static_cast<float32>(getRect().getHeight() * 0.5)}, 0); // left
+    boundaryPolygonShape.SetAsBox(Utils::pixelsToMeters(1), getRect().getHeight() * 0.5f, {static_cast<float32>((getRect().getX())), static_cast<float32>(getRect().getHeight() * 0.5f)}, 0); // left
     mWorldBoundary->CreateFixture(&borderFixtureDef);
-    boundaryPolygonShape.SetAsBox(Utils::pixelsToMeters(1), getRect().getHeight() * 0.5, {static_cast<float32>((getRect().getRight())), static_cast<float32>(getRect().getHeight() * 0.5)}, 0); // right
+    boundaryPolygonShape.SetAsBox(Utils::pixelsToMeters(1), getRect().getHeight() * 0.5f, {static_cast<float32>((getRect().getRight())), static_cast<float32>(getRect().getHeight() * 0.5f)}, 0); // right
     mWorldBoundary->CreateFixture(&borderFixtureDef);
     
     createPolygon(3);
@@ -92,7 +92,7 @@ void Physics::PulsarWorld::createPolygon(int nSides)
 
 void Physics::PulsarWorld::setPolygonRotationSpeed(double speed)
 {
-    mPolygon->setAngularVelocity( std::fmod(speed * DEGTORAD, 360 * DEGTORAD ));
+    mPolygon->setAngularVelocity( std::fmod(static_cast<float>(speed) * DEGTORAD, 360 * DEGTORAD ));
 }
 
 void Physics::PulsarWorld::incrementPolygonRotationSpeed()
@@ -195,7 +195,7 @@ void Physics::PulsarWorld::BeginContact(b2Contact* contact)
 
 void Physics::PulsarWorld::EndContact(b2Contact* contact)
 {
-
+    juce::ignoreUnused(contact);
 }
 
 void Physics::PulsarWorld::removeBall(Ball* ball)

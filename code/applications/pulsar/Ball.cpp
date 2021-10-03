@@ -15,7 +15,7 @@ Physics::Ball::Ball(b2World& world, b2Vec2 pos, double radius, float density, fl
     
     b2CircleShape circleShape;
     circleShape.m_p.Set(0, 0);
-    circleShape.m_radius = radius;
+    circleShape.m_radius = static_cast<float>(radius);
     
     b2BodyDef circleBodyDef;
     circleBodyDef.type = b2_dynamicBody;

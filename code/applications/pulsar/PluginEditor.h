@@ -21,11 +21,16 @@
 
 //! @todo: Add a free play mode that adds balls in a certain key at random. With random changes to rotation, gravity etc
 //! @todo: Add ability to connect rotation, gravity etc with midi for things like lfos
-class PulsarAudioProcessorEditor  : public AudioProcessorEditor, public KeyListener, Timer, private MidiInputCallback, private AsyncUpdater
+class PulsarAudioProcessorEditor
+: public juce::AudioProcessorEditor
+, public juce::KeyListener
+, public juce::Timer
+, private juce::MidiInputCallback
+, private juce::AsyncUpdater
 {
 public:
     PulsarAudioProcessorEditor (PulsarAudioProcessor&);
-    ~PulsarAudioProcessorEditor();
+    ~PulsarAudioProcessorEditor() override;
 
     //==============================================================================
 
@@ -38,12 +43,13 @@ public:
     }
     
     // juce::keyPressed
+    bool keyPressed(juce::KeyPress const& key) override;
     bool keyPressed (const KeyPress &key, Component *originatingComponent) override;
     
     void mouseUp (const MouseEvent& event) override;
     
     // juce::MidiInputCallback
-    void handleIncomingMidiMessage (MidiInput *source, const MidiMessage &message) override;
+    void handleIncomingMidiMessage (juce::MidiInput *source, juce::MidiMessage const& message) override;
     
     // juce::AsyncUpdater
     void handleAsyncUpdate() override;
@@ -51,17 +57,13 @@ public:
     void sendNoteOnMessage(int noteNumber, float velocity);
 
 private:
-    void setMidiInput(const String& identifier);
-    void setMidiOutput(const String& identifier);
-    
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    PulsarAudioProcessor& processor;
+    void setMidiInput(juce::String const& identifier);
+    void setMidiOutput(juce::String const& identifier);
     
     Physics::PulsarWorld mWorld {*this, { 0.0f, 0.0f, 4.0f, 4.0f }, {0.0f, 10.0f}};
     
     CriticalSection mMidiMonitorLock;
-    Array<MidiMessage> mIncomingMessages;
+    Array<juce::MidiMessage> mIncomingMessages;
     
     AudioDeviceManager mDeviceManager;
     Label mMidiInputLabel    { "Midi Input Label",  "MIDI Input / Channel:" };
@@ -69,7 +71,7 @@ private:
     ComboBox mMidiInputList, mMidiOutputList;
     ComboBox mMidiInputChannelList, mMidiOutputChannelList;
     
-    std::unique_ptr<MidiOutput> mMidiOutput;
+    std::unique_ptr<juce::MidiOutput> mMidiOutput;
     int mMidiInputChannel;
     int mMidiOutputChannel;
     

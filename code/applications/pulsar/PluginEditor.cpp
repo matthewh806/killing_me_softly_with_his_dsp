@@ -16,7 +16,6 @@
 
 PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
 : AudioProcessorEditor (&p)
-, processor (p)
 {
     setSize (400, 400);
     
@@ -32,10 +31,11 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
     
     mMidiInputList.setTextWhenNoChoicesAvailable("No Midi Inputs Enabled");
     auto midiInputs = MidiInput::getAvailableDevices();
-    mMidiInputList.onChange = [this] {
+    mMidiInputList.onChange = [this]
+    {
         auto const index = mMidiInputList.getSelectedItemIndex();
-        auto const midiInputs = MidiInput::getAvailableDevices();
-        setMidiInput(midiInputs[index].identifier);
+        auto const inputs = MidiInput::getAvailableDevices();
+        setMidiInput(inputs[index].identifier);
     };
     
     for(int i = 0; i < midiInputs.size(); ++i)
@@ -66,8 +66,8 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
     auto midiOutputs = MidiOutput::getAvailableDevices();
     mMidiOutputList.onChange = [this] {
         auto const index = mMidiOutputList.getSelectedItemIndex();
-        auto const midiOutputs = MidiOutput::getAvailableDevices();
-        setMidiOutput(midiOutputs[index].identifier);
+        auto const outputs = MidiOutput::getAvailableDevices();
+        setMidiOutput(outputs[index].identifier);
     };
     
     for(int i = 0; i < midiOutputs.size(); ++i)
@@ -107,19 +107,19 @@ void PulsarAudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
     auto ioBounds = bounds.reduced(20, 20).removeFromTop(40);
-    auto midiInputBounds = ioBounds.removeFromLeft(ioBounds.getWidth() * 0.5);
+    auto midiInputBounds = ioBounds.removeFromLeft(static_cast<int>(ioBounds.getWidth() * 0.5));
     auto midiOutputBounds = ioBounds;
     
-    mMidiInputLabel.setBounds(midiInputBounds.removeFromTop(midiInputBounds.getHeight() * 0.5));
-    mMidiInputList.setBounds(midiInputBounds.removeFromLeft(midiInputBounds.getWidth() * 0.67));
+    mMidiInputLabel.setBounds(midiInputBounds.removeFromTop(static_cast<int>(midiInputBounds.getHeight() * 0.5)));
+    mMidiInputList.setBounds(midiInputBounds.removeFromLeft(static_cast<int>(midiInputBounds.getWidth() * 0.67)));
     mMidiInputChannelList.setBounds(midiInputBounds);
     
-    mMidiOutputLabel.setBounds(midiOutputBounds.removeFromTop(midiOutputBounds.getHeight() * 0.5));
-    mMidiOutputList.setBounds(midiOutputBounds.removeFromLeft(midiOutputBounds.getWidth() * 0.67));
+    mMidiOutputLabel.setBounds(midiOutputBounds.removeFromTop(static_cast<int>(midiOutputBounds.getHeight() * 0.5)));
+    mMidiOutputList.setBounds(midiOutputBounds.removeFromLeft(static_cast<int>(midiOutputBounds.getWidth() * 0.67)));
     mMidiOutputChannelList.setBounds(midiOutputBounds);
 }
 
-bool PulsarAudioProcessorEditor::keyPressed(const KeyPress &key, Component *originatingComponent)
+bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
 {
     if(key == 82) // r
     {
@@ -165,7 +165,13 @@ bool PulsarAudioProcessorEditor::keyPressed(const KeyPress &key, Component *orig
     return true;
 }
 
-void PulsarAudioProcessorEditor::mouseUp (const MouseEvent& event)
+bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key, juce::Component *originatingComponent)
+{
+    juce::ignoreUnused(originatingComponent);
+    return keyPressed(key);
+}
+
+void PulsarAudioProcessorEditor::mouseUp (juce::MouseEvent const& event)
 {
     b2Vec2 const worldPos {Physics::Utils::pixelsToMeters(event.position.x), Physics::Utils::pixelsToMeters(event.position.y)};
     if(mWorld.testPointInPolygon(worldPos))
@@ -174,8 +180,10 @@ void PulsarAudioProcessorEditor::mouseUp (const MouseEvent& event)
     }
 }
 
-void PulsarAudioProcessorEditor::handleIncomingMidiMessage (MidiInput *source, const MidiMessage &message)
+void PulsarAudioProcessorEditor::handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage &message)
 {
+    juce::ignoreUnused(source);
+    
     const ScopedLock s1 (mMidiMonitorLock);
     mIncomingMessages.add(message);
     triggerAsyncUpdate();
@@ -231,7 +239,7 @@ void PulsarAudioProcessorEditor::sendNoteOnMessage(int noteNumber, float velocit
 }
 
 //==============================================================================
-void PulsarAudioProcessorEditor::setMidiInput(const String& identifier)
+void PulsarAudioProcessorEditor::setMidiInput(String const& identifier)
 {
     auto list = MidiInput::getAvailableDevices();
     mDeviceManager.removeMidiInputDeviceCallback(identifier, this);
@@ -244,7 +252,7 @@ void PulsarAudioProcessorEditor::setMidiInput(const String& identifier)
     mDeviceManager.addMidiInputDeviceCallback(identifier, this);
 }
 
-void PulsarAudioProcessorEditor::setMidiOutput(const String& identifier)
+void PulsarAudioProcessorEditor::setMidiOutput(juce::String const& identifier)
 {
     auto list = MidiOutput::getAvailableDevices();
     mMidiOutput = MidiOutput::openDevice(identifier);

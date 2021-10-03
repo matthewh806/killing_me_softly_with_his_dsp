@@ -20,7 +20,7 @@ class PulsarAudioProcessor  : public AudioProcessor
 public:
     //==============================================================================
     PulsarAudioProcessor();
-    ~PulsarAudioProcessor();
+    ~PulsarAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
