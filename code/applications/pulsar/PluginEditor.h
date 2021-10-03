@@ -13,6 +13,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
 #include "PulsarWorld.h"
+#include "../../ui/CustomLookAndFeel.h"
 
 #include <memory>
 //==============================================================================
@@ -66,10 +67,11 @@ private:
     Array<juce::MidiMessage> mIncomingMessages;
     
     AudioDeviceManager mDeviceManager;
-    Label mMidiInputLabel    { "Midi Input Label",  "MIDI Input / Channel:" };
-    Label mMidiOutputLabel { "Midi Output Label", "Midi Output / Channel:" };
-    ComboBox mMidiInputList, mMidiOutputList;
-    ComboBox mMidiInputChannelList, mMidiOutputChannelList;
+    
+    ComboBoxWithLabel mMidiInputDeviceList {"Midi in"};
+    ComboBoxWithLabel mMidiInputChannelList {"Channel"};
+    ComboBoxWithLabel mMidiOutputDeviceList {"Midi out"};
+    ComboBoxWithLabel mMidiOutputChannelList {"Channel"};
     
     std::unique_ptr<juce::MidiOutput> mMidiOutput;
     int mMidiInputChannel;

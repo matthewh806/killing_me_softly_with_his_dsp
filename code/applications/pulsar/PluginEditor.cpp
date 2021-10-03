@@ -21,63 +21,60 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
     
     addKeyListener(this);
     
-    addAndMakeVisible(mMidiInputLabel);
-    addAndMakeVisible(mMidiInputList);
+    addAndMakeVisible(mMidiInputDeviceList);
     addAndMakeVisible(mMidiInputChannelList);
-    
-    addAndMakeVisible(mMidiOutputLabel);
-    addAndMakeVisible(mMidiOutputList);
+    addAndMakeVisible(mMidiOutputDeviceList);
     addAndMakeVisible(mMidiOutputChannelList);
     
-    mMidiInputList.setTextWhenNoChoicesAvailable("No Midi Inputs Enabled");
+    mMidiInputDeviceList.comboBox.setTextWhenNoChoicesAvailable("No Midi Inputs Enabled");
     auto midiInputs = MidiInput::getAvailableDevices();
-    mMidiInputList.onChange = [this]
+    mMidiInputDeviceList.comboBox.onChange = [this]
     {
-        auto const index = mMidiInputList.getSelectedItemIndex();
+        auto const index = mMidiInputDeviceList.comboBox.getSelectedItemIndex();
         auto const inputs = MidiInput::getAvailableDevices();
         setMidiInput(inputs[index].identifier);
     };
     
     for(int i = 0; i < midiInputs.size(); ++i)
     {
-        mMidiInputList.addItem(midiInputs[i].name, i+1);
+        mMidiInputDeviceList.comboBox.addItem(midiInputs[i].name, i+1);
         if(mDeviceManager.isMidiInputDeviceEnabled(midiInputs[i].identifier))
         {
             setMidiInput(midiInputs[i].identifier);
-            mMidiInputList.setSelectedId(i+1);
+            mMidiInputDeviceList.comboBox.setSelectedId(i+1);
         }
     }
     
     for(int i = 1; i <= 16; ++i)
     {
-        mMidiInputChannelList.addItem(juce::String(i), i);
-        mMidiOutputChannelList.addItem(juce::String(i), i);
+        mMidiInputChannelList.comboBox.addItem(juce::String(i), i);
+        mMidiOutputChannelList.comboBox.addItem(juce::String(i), i);
     }
     
-    mMidiInputChannelList.onChange = [this] {
-        mMidiInputChannel = mMidiInputChannelList.getSelectedId();
+    mMidiInputChannelList.comboBox.onChange = [this] {
+        mMidiInputChannel = mMidiInputChannelList.comboBox.getSelectedId();
     };
     
-    mMidiOutputChannelList.onChange = [this] {
-        mMidiOutputChannel = mMidiOutputChannelList.getSelectedId();
+    mMidiOutputChannelList.comboBox.onChange = [this] {
+        mMidiOutputChannel = mMidiOutputChannelList.comboBox.getSelectedId();
     };
     
-    mMidiInputList.setTextWhenNoChoicesAvailable("No Midi Outputs Enabled");
+    mMidiOutputDeviceList.comboBox.setTextWhenNoChoicesAvailable("No Midi Outputs Enabled");
     auto midiOutputs = MidiOutput::getAvailableDevices();
-    mMidiOutputList.onChange = [this] {
-        auto const index = mMidiOutputList.getSelectedItemIndex();
+    mMidiOutputDeviceList.comboBox.onChange = [this] {
+        auto const index = mMidiOutputDeviceList.comboBox.getSelectedItemIndex();
         auto const outputs = MidiOutput::getAvailableDevices();
         setMidiOutput(outputs[index].identifier);
     };
     
     for(int i = 0; i < midiOutputs.size(); ++i)
     {
-        mMidiOutputList.addItem(midiOutputs[i].name, i+1);
+        mMidiOutputDeviceList.comboBox.addItem(midiOutputs[i].name, i+1);
         
         if(mDeviceManager.getDefaultMidiOutputIdentifier() == midiOutputs[i].identifier)
         {
             setMidiOutput(midiOutputs[i].identifier);
-            mMidiOutputList.setSelectedId(i+1);
+            mMidiOutputDeviceList.comboBox.setSelectedId(i+1);
         }
     }
     
@@ -106,16 +103,16 @@ void PulsarAudioProcessorEditor::paint (Graphics& g)
 void PulsarAudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
-    auto ioBounds = bounds.reduced(20, 20).removeFromTop(40);
-    auto midiInputBounds = ioBounds.removeFromLeft(static_cast<int>(ioBounds.getWidth() * 0.5));
+    bounds.reduced(20, 20);
+    
+    auto ioBounds = bounds.removeFromTop(40);
+    auto midiInputBounds = ioBounds.removeFromTop(static_cast<int>(ioBounds.getHeight() * 0.5));
     auto midiOutputBounds = ioBounds;
     
-    mMidiInputLabel.setBounds(midiInputBounds.removeFromTop(static_cast<int>(midiInputBounds.getHeight() * 0.5)));
-    mMidiInputList.setBounds(midiInputBounds.removeFromLeft(static_cast<int>(midiInputBounds.getWidth() * 0.67)));
+    mMidiInputDeviceList.setBounds(midiInputBounds.removeFromLeft(static_cast<int>(midiInputBounds.getWidth() * 0.5)));
     mMidiInputChannelList.setBounds(midiInputBounds);
     
-    mMidiOutputLabel.setBounds(midiOutputBounds.removeFromTop(static_cast<int>(midiOutputBounds.getHeight() * 0.5)));
-    mMidiOutputList.setBounds(midiOutputBounds.removeFromLeft(static_cast<int>(midiOutputBounds.getWidth() * 0.67)));
+    mMidiOutputDeviceList.setBounds(midiOutputBounds.removeFromLeft(static_cast<int>(midiOutputBounds.getWidth() * 0.5)));
     mMidiOutputChannelList.setBounds(midiOutputBounds);
 }
 
