@@ -43,6 +43,7 @@ private:
     
     RotarySliderWithLabels mGrainDensity;
     RotarySliderWithLabels mGrainLength;
+    RotarySliderWithLabels mGrainPositionRandomness;
     NumberFieldWithLabel mGrainCountLabel;
     
     juce::AudioFormatManager mFormatManager;

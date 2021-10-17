@@ -6,6 +6,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
 , juce::Thread("backgroundthread")
 , mGrainDensity("Grain density", "g/s")
 , mGrainLength("Grain length", "ms")
+, mGrainPositionRandomness("Position randomness", "")
 , mGrainCountLabel("# grains:", "", 0, false)
 {
     mFormatManager.registerBasicFormats();
@@ -37,6 +38,19 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
         {
             auto const lengthSeconds = mGrainLength.getValue() / 1000.0;
             mScheduler->setGrainDuration(static_cast<size_t>(lengthSeconds * 44100.0));
+        }
+    };
+    
+    addAndMakeVisible(mGrainPositionRandomness);
+    mGrainPositionRandomness.setRange({0.0, 1.0}, 0.05);
+    mGrainPositionRandomness.mLabels.add({0.0, "0.0"});
+    mGrainPositionRandomness.mLabels.add({1.0, "1.0"});
+    mGrainPositionRandomness.setValue(0.0);
+    mGrainPositionRandomness.onValueChange = [this]()
+    {
+        if(mScheduler != nullptr)
+        {
+            mScheduler->setPositionRandomness(mGrainPositionRandomness.getValue());
         }
     };
     
@@ -94,12 +108,14 @@ void MainComponent::resized()
     auto bounds = getLocalBounds().reduced(20, 20);
     
     auto rotaryBounds = bounds.removeFromTop(100);
-    auto const twoColumnSliderWidth = static_cast<int>(rotaryBounds.getWidth() * 0.45f);
-    auto const spacingWidth = rotaryBounds.getWidth() - twoColumnSliderWidth * 2;
+    auto const threeColumnSliderWidth = static_cast<int>(rotaryBounds.getWidth() * 0.30f);
+    auto const spacingWidth = (rotaryBounds.getWidth() - threeColumnSliderWidth*3)/2;
     
-    mGrainDensity.setBounds(rotaryBounds.removeFromLeft(twoColumnSliderWidth));
+    mGrainDensity.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
     rotaryBounds.removeFromLeft(spacingWidth);
-    mGrainLength.setBounds(rotaryBounds.removeFromLeft(twoColumnSliderWidth));
+    mGrainLength.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
+    rotaryBounds.removeFromLeft(spacingWidth);
+    mGrainPositionRandomness.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
     
     mGrainCountLabel.setBounds(bounds.removeFromTop(40));
     
