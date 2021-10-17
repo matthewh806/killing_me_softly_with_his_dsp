@@ -22,6 +22,6 @@ size_t SequenceStrategy::nextDuration()
 
 float SequenceStrategy::nextInteronset()
 {
-    return -std::log(mRandom.nextFloat()) / mGrainsPerUnitTime.load();
+    return -std::log(mRandom.nextFloat()) / static_cast<float>(mGrainsPerUnitTime.load());
 }
 

@@ -1,8 +1,7 @@
 #include "Waveform.h"
 
-WaveformComponent::WaveformComponent(juce::Component& parent, juce::AudioFormatManager& formatManager)
-: mParentComponent(parent)
-, mAudioFormatManager(formatManager)
+WaveformComponent::WaveformComponent(juce::AudioFormatManager& formatManager)
+: mAudioFormatManager(formatManager)
 , mThumbnailCache(1)
 , mThumbnail(512, mAudioFormatManager, mThumbnailCache)
 {

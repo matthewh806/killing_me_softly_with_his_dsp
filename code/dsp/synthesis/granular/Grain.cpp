@@ -54,7 +54,7 @@ void Grain::synthesise(AudioBuffer<float>* buffer, int numSamples)
     auto outputBufPos = 0;
     while(--remaining > 0 && !mComplete)
     {
-        auto const val =  mAudioSampleBuffer->getSample(0, static_cast<int64>(mPosition)) * static_cast<float>(mEnvelope.synthesize());
+        auto const val =  mAudioSampleBuffer->getSample(0, static_cast<int>(mPosition)) * static_cast<float>(mEnvelope.synthesize());
         buffer->setSample(0, outputBufPos, val);
         buffer->setSample(1, outputBufPos, val);
         

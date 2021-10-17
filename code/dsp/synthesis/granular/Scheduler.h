@@ -25,9 +25,9 @@ private:
     public:
         GrainPool();
         
-        int getNumberOfActiveGrains();
+        size_t getNumberOfActiveGrains();
         
-        void create(int position, size_t nextDuration, juce::AudioSampleBuffer* sampleBuffer);
+        void create(size_t position, size_t nextDuration, juce::AudioSampleBuffer* sampleBuffer);
         void synthesiseGrains(AudioBuffer<float>* dest, AudioBuffer<float>* tmpBuffer, int numSamples);
         
     private:
@@ -41,7 +41,6 @@ private:
     SequenceStrategy mSequenceStrategy;
     
     std::atomic<size_t> mGrainDuration {0};
-    std::atomic<double> mGrainsPerUnitTime {30.0};
     
     GrainPool mGrainPool;
     double mSampleRate {44100.0};

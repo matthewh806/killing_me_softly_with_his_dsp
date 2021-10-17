@@ -21,7 +21,6 @@ void Scheduler::setGrainDuration(size_t lengthInSamples)
 
 void Scheduler::setGrainDensity(double grainsPerSecond)
 {
-    mGrainsPerUnitTime.store(grainsPerSecond);
     mSequenceStrategy.setGrainDensity(grainsPerSecond);
 }
 
@@ -40,8 +39,6 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
     }
     
     auto grainDuration = mGrainDuration.load();
-    auto grainsPerUnitTime = mGrainsPerUnitTime.load();
-    
     if(shouldSynthesise)
     {
         mGrainPool.synthesiseGrains(buffer, &mTempBuffer, numSamples);
@@ -49,18 +46,18 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
     
     while(mNextOnset < numSamples)
     {
-        auto const nextInt = mRandom.nextInt(mSampleBuffer->getNumSamples() - grainDuration);
+        auto const nextInt = static_cast<size_t>(mRandom.nextInt(mSampleBuffer->getNumSamples() - static_cast<int>(grainDuration)));
         mGrainPool.create(nextInt, grainDuration, mSampleBuffer);
-        mNextOnset += mSequenceStrategy.nextInteronset() * mSampleRate;
+        mNextOnset += static_cast<size_t>(mSequenceStrategy.nextInteronset() * mSampleRate);
     }
     mNextOnset -= numSamples;
 }
 
 Scheduler::GrainPool::GrainPool()
 {
-};
+}
 
-void Scheduler::GrainPool::create(int position, size_t nextDuration, juce::AudioSampleBuffer* sampleBuffer)
+void Scheduler::GrainPool::create(size_t position, size_t nextDuration, juce::AudioSampleBuffer* sampleBuffer)
 {
     for(size_t i = 0; i < POOL_SIZE; ++i)
     {
@@ -72,9 +69,9 @@ void Scheduler::GrainPool::create(int position, size_t nextDuration, juce::Audio
     }
 }
 
-int Scheduler::GrainPool::getNumberOfActiveGrains()
+size_t Scheduler::GrainPool::getNumberOfActiveGrains()
 {
-    return static_cast<int>(std::count_if(std::begin(mGrains), std::end(mGrains), [](auto const& grain)
+    return static_cast<size_t>(std::count_if(std::begin(mGrains), std::end(mGrains), [](auto const& grain)
     {
         return !grain.isGrainComplete();
     }));
@@ -90,7 +87,7 @@ void Scheduler::GrainPool::synthesiseGrains(AudioBuffer<float>* dest, AudioBuffe
         if(!grain.isGrainComplete())
         {
             grain.synthesise(tmpBuffer, numSamples);
-            for(size_t s = 0; s < numSamples; ++s)
+            for(int s = 0; s < numSamples; ++s)
             {
                 auto const gainVal = tmpBuffer->getSample(0, s);
                 auto const unmixedVal = dest->getSample(0, s);

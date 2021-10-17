@@ -18,7 +18,7 @@ class MainComponent
 {
 public:
     //==============================================================================
-    MainComponent(juce::AudioDeviceManager& deviceManager);
+    MainComponent(juce::AudioDeviceManager& activeDeviceManager);
     ~MainComponent() override;
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
@@ -49,7 +49,7 @@ private:
     std::unique_ptr<juce::AudioFormatReader> mReader;
     std::unique_ptr<Scheduler> mScheduler;
     
-    WaveformComponent mWaveformComponent {*this, mFormatManager};
+    WaveformComponent mWaveformComponent {mFormatManager};
     
     juce::SpinLock mMutex;
     juce::ReferenceCountedArray<ReferenceCountedBuffer> mBuffers;

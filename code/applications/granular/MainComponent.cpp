@@ -1,8 +1,8 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
-: juce::AudioAppComponent(deviceManager)
+MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
+: juce::AudioAppComponent(activeDeviceManager)
 , juce::Thread("backgroundthread")
 , mGrainDensity("Grain density", "g/s")
 , mGrainLength("Grain length", "ms")

@@ -8,7 +8,7 @@ class WaveformComponent
 , private juce::AsyncUpdater
 {
 public:
-    WaveformComponent(juce::Component& parent, juce::AudioFormatManager& formatManager);
+    WaveformComponent(juce::AudioFormatManager& formatManager);
     ~WaveformComponent() override;
     
     juce::AudioThumbnail& getThumbnail();
@@ -29,7 +29,6 @@ public:
     std::function<void(juce::String&)> onNewFileDropped = nullptr;
     
 private:
-    juce::Component& mParentComponent;
     
     juce::AudioFormatManager& mAudioFormatManager;
     juce::AudioThumbnailCache mThumbnailCache;
