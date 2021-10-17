@@ -30,6 +30,11 @@ public:
         mGrainsPerUnitTime.store(grainsPerSecond);
     }
     
+    size_t getNumberOfGrains()
+    {
+        return mGrains.size();
+    }
+    
     bool shouldSynthesise = false; // todo: remove
     void synthesise(AudioBuffer<float>* buffer, int numSamples)
     {
@@ -61,7 +66,7 @@ public:
             mGrainSpawnCountdown = static_cast<size_t>(1.0 / grainsPerUnitTime * mSampleRate);
         }
         
-        if(shouldSynthesise)
+        if(shouldSynthesise && mGrains.size() > 0)
         {
             auto const weight = 1.0 / grainsPerUnitTime;
             for(auto& grain : mGrains)

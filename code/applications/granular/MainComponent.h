@@ -13,6 +13,7 @@
 class MainComponent
 : public juce::AudioAppComponent
 , private juce::Thread
+, private juce::Timer
 {
 public:
     //==============================================================================
@@ -34,11 +35,14 @@ private:
     void run() override;
     void checkForBuffersToFree();
     
+    void timerCallback() override;
+    
     int mBlockSize;
     int mSampleRate;
     
     RotarySliderWithLabels mGrainDensity;
     RotarySliderWithLabels mGrainLength;
+    NumberFieldWithLabel mGrainCountLabel;
     
     juce::AudioFormatManager mFormatManager;
     std::unique_ptr<juce::AudioFormatReader> mReader;

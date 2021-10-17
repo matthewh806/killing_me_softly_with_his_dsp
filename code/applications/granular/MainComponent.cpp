@@ -6,8 +6,12 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
 , juce::Thread("backgroundthread")
 , mGrainDensity("Grain density", "g/s")
 , mGrainLength("Grain length", "ms")
+, mGrainCountLabel("# grains:", "", 0, false)
 {
     mFormatManager.registerBasicFormats();
+    
+    addAndMakeVisible(mGrainCountLabel);
+    mGrainCountLabel.setNumberOfDecimals(0);
     
     addAndMakeVisible(mGrainDensity);
     mGrainDensity.setRange({1.0, 100.0}, 1.0);
@@ -43,12 +47,14 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
         loadSample(path, err);
     };
     
-    setSize (600, 250);
+    setSize (600, 300);
+    startTimer(200);
     setAudioChannels (2, 2);
 }
 
 MainComponent::~MainComponent()
 {
+    stopTimer();
     shutdownAudio();
 }   
 
@@ -95,12 +101,16 @@ void MainComponent::resized()
     rotaryBounds.removeFromLeft(spacingWidth);
     mGrainLength.setBounds(rotaryBounds.removeFromLeft(twoColumnSliderWidth));
     
+    mGrainCountLabel.setBounds(bounds.removeFromTop(40));
+    
     bounds.removeFromTop(20);
     mWaveformComponent.setBounds(bounds.removeFromTop(100));
 }
 
 bool MainComponent::loadSample(juce::String const& filePath, juce::String& error)
 {
+    juce::ignoreUnused(error);
+    
     juce::File file(filePath);
     mReader = std::unique_ptr<juce::AudioFormatReader>(mFormatManager.createReaderFor(file));
     if(mReader == nullptr)
@@ -150,5 +160,14 @@ void MainComponent::checkForBuffersToFree()
         {
             mBuffers.remove(i);
         }
+    }
+}
+
+void MainComponent::timerCallback()
+{
+    if(mScheduler != nullptr)
+    {
+        auto const grains = mScheduler->getNumberOfGrains();
+        mGrainCountLabel.setValue(grains, juce::NotificationType::sendNotificationAsync);
     }
 }
