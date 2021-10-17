@@ -7,15 +7,13 @@ juce_generate_juce_header(Granular)
 set(GranularApplicationSources
     ${UISources}
     ${CoreSources}
+    ${SynthSources}
+    ${EnvelopSources}
     ${CMAKE_SOURCE_DIR}/applications/granular/Main.cpp
     ${CMAKE_SOURCE_DIR}/applications/granular/MainComponent.h
     ${CMAKE_SOURCE_DIR}/applications/granular/MainComponent.cpp
     ${CMAKE_SOURCE_DIR}/applications/granular/Waveform.h
     ${CMAKE_SOURCE_DIR}/applications/granular/Waveform.cpp
-    ${CMAKE_SOURCE_DIR}/applications/granular/Grain.h
-    ${CMAKE_SOURCE_DIR}/applications/granular/Scheduler.h
-    ${CMAKE_SOURCE_DIR}/applications/granular/Envelope.h
-    ${CMAKE_SOURCE_DIR}/applications/granular/SequenceStrategy.h
 )
 source_group("Source/ApplicationSources" FILES ${GranularApplicationSources})
 

@@ -3,9 +3,10 @@
 #include "JuceHeader.h"
 #include "../../ui/CustomLookAndFeel.h"
 #include "../../core/ReferenceCountedBuffer.h"
+#include "../../dsp/synthesis/granular/Scheduler.h"
 
 #include "Waveform.h"
-#include "Scheduler.h"
+
 
 //==============================================================================
 
