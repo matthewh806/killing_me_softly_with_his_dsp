@@ -24,6 +24,12 @@ void Scheduler::setGrainDensity(double grainsPerSecond)
     mSequenceStrategy.setGrainDensity(grainsPerSecond);
 }
 
+void Scheduler::setPositionRandomness(double randomness)
+{
+    auto const length = mSampleBuffer->getNumSamples() - static_cast<int>(mGrainDuration.load());
+    mPositionRandomness.store(static_cast<size_t>(length * randomness));
+}
+
 size_t Scheduler::getNumberOfGrains()
 {
     return mGrainPool.getNumberOfActiveGrains();
@@ -39,6 +45,7 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
     }
     
     auto grainDuration = mGrainDuration.load();
+    auto grainPositionRandomness = mPositionRandomness.load();
     if(shouldSynthesise)
     {
         mGrainPool.synthesiseGrains(buffer, &mTempBuffer, numSamples);
@@ -46,7 +53,7 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
     
     while(mNextOnset < numSamples)
     {
-        auto const nextInt = static_cast<size_t>(mRandom.nextInt(mSampleBuffer->getNumSamples() - static_cast<int>(grainDuration)));
+        auto const nextInt = static_cast<size_t>(mRandom.nextInt(grainPositionRandomness == 0 ? 1 : static_cast<int>(grainPositionRandomness)));
         mGrainPool.create(nextInt, grainDuration, mSampleBuffer);
         mNextOnset += static_cast<size_t>(mSequenceStrategy.nextInteronset() * mSampleRate);
     }

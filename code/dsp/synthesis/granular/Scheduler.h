@@ -14,6 +14,10 @@ public:
     void setGrainDuration(size_t lengthInSamples);
     void setGrainDensity(double grainsPerSecond);
     
+    // todo: add set position
+    // this is between 0.0 and 1.0
+    void setPositionRandomness(double positionRandomness);
+    
     size_t getNumberOfGrains();
     
     bool shouldSynthesise = false; // todo: remove
@@ -41,6 +45,7 @@ private:
     SequenceStrategy mSequenceStrategy;
     
     std::atomic<size_t> mGrainDuration {0};
+    std::atomic<size_t> mPositionRandomness {0}; // the position randomness in terms of samples  
     
     GrainPool mGrainPool;
     double mSampleRate {44100.0};
