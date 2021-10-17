@@ -23,11 +23,13 @@ public:
     void setGrainDuration(size_t lengthInSamples)
     {
         mGrainDuration.store(lengthInSamples);
+        mSequenceStrategy.setGrainDuration(lengthInSamples);
     }
     
     void setGrainDensity(double grainsPerSecond)
     {
         mGrainsPerUnitTime.store(grainsPerSecond);
+        mSequenceStrategy.setGrainDensity(grainsPerSecond);
     }
     
     size_t getNumberOfGrains()
@@ -56,16 +58,6 @@ public:
         mGrains.erase(it, mGrains.end());
         mTempBuffer.clear();
         
-        mGrainSpawnCountdown = std::max(0, mGrainSpawnCountdown - numSamples);
-        if(mGrainSpawnCountdown <= 0)
-        {
-            // this will cause allocations on the audio thread - use a pool instead!
-            auto const nextInt = mRandom.nextInt(mSampleBuffer->getNumSamples() - grainDuration);
-            mGrains.push_back(std::make_unique<Grain>(nextInt, grainDuration, mSampleBuffer));
-
-            mGrainSpawnCountdown = static_cast<size_t>(1.0 / grainsPerUnitTime * mSampleRate);
-        }
-        
         if(shouldSynthesise && mGrains.size() > 0)
         {
             auto const weight = 1.0 / grainsPerUnitTime;
@@ -82,6 +74,14 @@ public:
                 }
             }
         }
+        
+        while(mNextOnset < numSamples)
+        {
+            auto const nextInt = mRandom.nextInt(mSampleBuffer->getNumSamples() - grainDuration);
+            mGrains.push_back(std::make_unique<Grain>(nextInt, mSequenceStrategy.nextDuration(), mSampleBuffer));
+            mNextOnset += mSequenceStrategy.nextInteronset() * mSampleRate;
+        }
+        mNextOnset -= numSamples;
     }
     
 private:
@@ -94,12 +94,10 @@ private:
     std::atomic<double> mGrainsPerUnitTime {30.0};
     
     std::vector<std::unique_ptr<Grain>> mGrains;
-    
-    int mGrainSpawnCountdown {1};
     double mSampleRate {44100.0};
     
     AudioBuffer<float> mTempBuffer;
     
-    size_t mNextOnset {0};
+    int mNextOnset {0};
     
 };
