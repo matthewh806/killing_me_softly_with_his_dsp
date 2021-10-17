@@ -6,6 +6,7 @@ juce_generate_juce_header(Granular)
 
 set(GranularApplicationSources
     ${UISources}
+    ${CoreSources}
     ${CMAKE_SOURCE_DIR}/applications/granular/Main.cpp
     ${CMAKE_SOURCE_DIR}/applications/granular/MainComponent.h
     ${CMAKE_SOURCE_DIR}/applications/granular/MainComponent.cpp

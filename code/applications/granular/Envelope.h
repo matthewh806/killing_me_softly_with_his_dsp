@@ -19,6 +19,11 @@ public:
     
     double synthesize()
     {
+        if(mPosition > mDuration)
+        {
+            return 0.0;
+        }
+        
         // incmrement of 0 is the sustain portion
         auto amplitudeIncrement = 0.0f;
         auto const previousAmplitude = mPreviousAmplitude;
@@ -36,11 +41,6 @@ public:
         auto const nextAmplitude = std::max(0.0f, std::min(1.0f, previousAmplitude + amplitudeIncrement));
         mPreviousAmplitude = nextAmplitude;
         mPosition++;
-        if(mPosition == mDuration)
-        {
-            mPreviousAmplitude = 0.0f;
-            mPosition = 0;
-        }
         
         return nextAmplitude;
     }
