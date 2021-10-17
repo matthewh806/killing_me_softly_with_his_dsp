@@ -13,8 +13,15 @@ public:
     Envelope(size_t sampleDuration)
     : mDuration(sampleDuration)
     {
-        mAttackSamples = static_cast<size_t>(sampleDuration * 0.25);
-        mReleaseSamples = static_cast<size_t>(sampleDuration * 0.25);
+    }
+    
+    void init(size_t durationInSamples)
+    {
+        mDuration = durationInSamples;
+        mAttackSamples = static_cast<size_t>(durationInSamples * 0.25);
+        mReleaseSamples = static_cast<size_t>(durationInSamples * 0.25);
+        mPreviousAmplitude = 0.0;
+        mPosition = 0;
     }
     
     double synthesize()

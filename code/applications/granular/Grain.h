@@ -8,11 +8,22 @@
 class Grain
 {
 public:
-    Grain(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer)
-    : mPosition(position)
-    , mDuration(duration)
+    Grain()
+    : mPosition(0)
+    , mDuration(0)
+    , mComplete(true)
+    , mAudioSampleBuffer(nullptr)
+    , mEnvelope(0)
+    {
+        
+    }
+    
+    Grain(juce::AudioSampleBuffer* sampleBuffer)
+    : mPosition(0)
+    , mDuration(0)
+    , mComplete(true)
     , mAudioSampleBuffer(sampleBuffer)
-    , mEnvelope(duration)
+    , mEnvelope(0)
     {
         //std::cout << "Created grain: id: " << mUuid.toDashedString() << ", pos: " << mPosition << ", duration: " << mDuration << "\n";
     }
@@ -20,6 +31,17 @@ public:
     ~Grain()
     {
         //std::cout << "End of grain: id: " << mUuid.toDashedString() << "\n";
+    }
+    
+    void init(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer)
+    {
+        mPosition = position;
+        mDuration = duration;
+        mAudioSampleBuffer = sampleBuffer;
+        
+        mSampleCounter = 0;
+        mEnvelope.init(duration);
+        mComplete = false;
     }
     
     void activate()
@@ -51,8 +73,9 @@ public:
             
             mPosition += 1;
             outputBufPos += 1;
+            mSampleCounter += 1;
             
-            if(mPosition == mAudioSampleBuffer->getNumSamples() - 1)
+            if(mSampleCounter == mDuration)
             {
                 mComplete = true;
             }
@@ -64,8 +87,9 @@ public:
 private:
     juce::Uuid mUuid;
     
-    size_t mPosition {0};
+    size_t mPosition {0}; // position in audio buffer
     size_t mDuration {0}; // grain duration in samples
+    size_t mSampleCounter {0}; // keeps track of how many samples we've processed
     
     bool mComplete = false;
     
