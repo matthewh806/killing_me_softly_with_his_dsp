@@ -57,6 +57,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
     
     addAndMakeVisible(mEnvelopeTypeSlider);
     mEnvelopeTypeSlider.comboBox.addItem("Trapezoidal", 1);
+    mEnvelopeTypeSlider.comboBox.addItem("Parabolic", 2);
     mEnvelopeTypeSlider.comboBox.setSelectedId(1);
     mEnvelopeTypeSlider.comboBox.onChange = [this]()
     {
