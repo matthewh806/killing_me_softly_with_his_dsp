@@ -9,11 +9,9 @@ class Grain
 {
 public:
     Grain();
-    Grain(juce::AudioSampleBuffer* sampleBuffer);
-    
     ~Grain();
     
-    void init(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer);
+    void init(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer, Envelope::EnvelopeType envelopeType);
     bool isGrainComplete() const;
     
     void synthesise(AudioBuffer<float>* buffer, int numSamples);
@@ -28,5 +26,5 @@ private:
     bool mComplete = false;
     
     juce::AudioSampleBuffer* mAudioSampleBuffer;
-    Envelope mEnvelope;
+    std::unique_ptr<Envelope> mEnvelope;
 };

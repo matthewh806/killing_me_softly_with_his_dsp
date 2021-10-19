@@ -10,15 +10,32 @@
 class Envelope
 {
 public:
+    enum class EnvelopeType
+    {
+        trapezoidal
+    };
+    
     Envelope(size_t sampleDuration);
+    virtual ~Envelope() = default;
     
-    void init(size_t durationInSamples);
-    double synthesize();
+    virtual void init(size_t durationInSamples) = 0;
+    virtual double synthesize() = 0;
     
-private:
+protected:
     size_t mDuration; // length in samples
     size_t mPosition {0}; // position in env
+};
+
+class TrapezoidalEnvelope
+: public Envelope
+{
+public:
+    using Envelope::Envelope;
     
+    void init(size_t durationInSamples) override;
+    double synthesize() override;
+    
+private:
     size_t mAttackSamples;
     size_t mReleaseSamples;
     

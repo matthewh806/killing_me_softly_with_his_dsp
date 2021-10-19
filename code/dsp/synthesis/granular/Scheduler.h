@@ -13,6 +13,7 @@ public:
     
     void setGrainDuration(size_t lengthInSamples);
     void setGrainDensity(double grainsPerSecond);
+    void setEnvelopeType(Envelope::EnvelopeType envelopeType);
     
     // todo: add set position
     // this is between 0.0 and 1.0
@@ -31,7 +32,7 @@ private:
         
         size_t getNumberOfActiveGrains();
         
-        void create(size_t position, size_t nextDuration, juce::AudioSampleBuffer* sampleBuffer);
+        void create(size_t position, size_t nextDuration, Envelope::EnvelopeType envelopeType, juce::AudioSampleBuffer* sampleBuffer);
         void synthesiseGrains(AudioBuffer<float>* dest, AudioBuffer<float>* tmpBuffer, int numSamples);
         
     private:
@@ -45,7 +46,9 @@ private:
     SequenceStrategy mSequenceStrategy;
     
     std::atomic<size_t> mGrainDuration {0};
-    std::atomic<size_t> mPositionRandomness {0}; // the position randomness in terms of samples  
+    std::atomic<size_t> mPositionRandomness {0}; // the position randomness in terms of samples
+    
+    Envelope::EnvelopeType mEnvelopeType { Envelope::EnvelopeType::trapezoidal };
     
     GrainPool mGrainPool;
     double mSampleRate {44100.0};

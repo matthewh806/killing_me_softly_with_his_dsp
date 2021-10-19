@@ -5,7 +5,7 @@ Envelope::Envelope(size_t sampleDuration)
 {
 }
 
-void Envelope::init(size_t durationInSamples)
+void TrapezoidalEnvelope::init(size_t durationInSamples)
 {
     mDuration = durationInSamples;
     mAttackSamples = static_cast<size_t>(durationInSamples * 0.25);
@@ -14,7 +14,7 @@ void Envelope::init(size_t durationInSamples)
     mPosition = 0;
 }
 
-double Envelope::synthesize()
+double TrapezoidalEnvelope::synthesize()
 {
     if(mPosition > mDuration)
     {

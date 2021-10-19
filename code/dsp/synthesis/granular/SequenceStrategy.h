@@ -18,6 +18,5 @@ private:
     std::atomic<size_t> mDuration;
     std::atomic<double> mGrainsPerUnitTime {1.0};
     
-    
     juce::Random mRandom;
 };

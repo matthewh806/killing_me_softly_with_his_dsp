@@ -5,19 +5,9 @@ Grain::Grain()
 , mDuration(0)
 , mComplete(true)
 , mAudioSampleBuffer(nullptr)
-, mEnvelope(0)
+, mEnvelope(nullptr)
 {
     
-}
-
-Grain::Grain(juce::AudioSampleBuffer* sampleBuffer)
-: mPosition(0)
-, mDuration(0)
-, mComplete(true)
-, mAudioSampleBuffer(sampleBuffer)
-, mEnvelope(0)
-{
-    //std::cout << "Created grain: id: " << mUuid.toDashedString() << ", pos: " << mPosition << ", duration: " << mDuration << "\n";
 }
 
 Grain::~Grain()
@@ -25,14 +15,34 @@ Grain::~Grain()
     //std::cout << "End of grain: id: " << mUuid.toDashedString() << "\n";
 }
 
-void Grain::init(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer)
+void Grain::init(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer, Envelope::EnvelopeType envelopeType)
 {
     mPosition = position;
     mDuration = duration;
     mAudioSampleBuffer = sampleBuffer;
     
     mSampleCounter = 0;
-    mEnvelope.init(duration);
+    
+    switch(envelopeType)
+    {
+        case Envelope::EnvelopeType::trapezoidal:
+        {
+            mEnvelope = std::make_unique<TrapezoidalEnvelope>(duration);
+            break;
+        }
+            
+        default:
+            // todo: maybe just unity gain?
+            mEnvelope = std::make_unique<TrapezoidalEnvelope>(duration);
+            break;
+    }
+    if(mEnvelope == nullptr)
+    {
+        std::cerr << "Failed to create envelope!\n";
+        return;
+    }
+    
+    mEnvelope->init(duration);
     mComplete = false;
 }
 
@@ -43,10 +53,16 @@ bool Grain::isGrainComplete() const
 
 void Grain::synthesise(AudioBuffer<float>* buffer, int numSamples)
 {
-    if(mAudioSampleBuffer == nullptr)
+    if(mAudioSampleBuffer == nullptr || mEnvelope == nullptr)
     {
         // todo: uh oh...
+        std::cerr << "Error synthesising grain!\n";
         buffer->clear();
+        return;
+    }
+    
+    if(mComplete)
+    {
         return;
     }
     
@@ -54,7 +70,7 @@ void Grain::synthesise(AudioBuffer<float>* buffer, int numSamples)
     auto outputBufPos = 0;
     while(--remaining > 0 && !mComplete)
     {
-        auto const val =  mAudioSampleBuffer->getSample(0, static_cast<int>(mPosition)) * static_cast<float>(mEnvelope.synthesize());
+        auto const val =  mAudioSampleBuffer->getSample(0, static_cast<int>(mPosition)) * static_cast<float>(mEnvelope->synthesize());
         buffer->setSample(0, outputBufPos, val);
         buffer->setSample(1, outputBufPos, val);
         

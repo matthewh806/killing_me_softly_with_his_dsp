@@ -24,6 +24,11 @@ void Scheduler::setGrainDensity(double grainsPerSecond)
     mSequenceStrategy.setGrainDensity(grainsPerSecond);
 }
 
+void Scheduler::setEnvelopeType(Envelope::EnvelopeType envelopeType)
+{
+    mEnvelopeType = envelopeType;
+}
+
 void Scheduler::setPositionRandomness(double randomness)
 {
     auto const length = mSampleBuffer->getNumSamples() - static_cast<int>(mGrainDuration.load());
@@ -54,7 +59,7 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
     while(mNextOnset < numSamples)
     {
         auto const nextInt = static_cast<size_t>(mRandom.nextInt(grainPositionRandomness == 0 ? 1 : static_cast<int>(grainPositionRandomness)));
-        mGrainPool.create(nextInt, grainDuration, mSampleBuffer);
+        mGrainPool.create(nextInt, grainDuration, mEnvelopeType, mSampleBuffer);
         mNextOnset += static_cast<size_t>(mSequenceStrategy.nextInteronset() * mSampleRate);
     }
     mNextOnset -= numSamples;
@@ -64,13 +69,13 @@ Scheduler::GrainPool::GrainPool()
 {
 }
 
-void Scheduler::GrainPool::create(size_t position, size_t nextDuration, juce::AudioSampleBuffer* sampleBuffer)
+void Scheduler::GrainPool::create(size_t position, size_t nextDuration, Envelope::EnvelopeType envelopeType, juce::AudioSampleBuffer* sampleBuffer)
 {
     for(size_t i = 0; i < POOL_SIZE; ++i)
     {
         if(mGrains[i].isGrainComplete())
         {
-            mGrains[i].init(position, nextDuration, sampleBuffer);
+            mGrains[i].init(position, nextDuration, sampleBuffer, envelopeType);
             return;
         }
     }
