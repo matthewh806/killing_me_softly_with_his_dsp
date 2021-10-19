@@ -4,53 +4,65 @@
 MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
 : juce::AudioAppComponent(activeDeviceManager)
 , juce::Thread("backgroundthread")
-, mGrainDensity("Grain density", "g/s")
-, mGrainLength("Grain length", "ms")
-, mGrainPositionRandomness("Position randomness", "")
+, mGrainDensitySlider("Grain density", "g/s")
+, mGrainLengthSlider("Grain length", "ms")
+, mGrainPositionRandomnessSlider("Position randomness", "")
 , mGrainCountLabel("# grains:", "", 0, false)
+, mEnvelopeTypeSlider("Envelope type")
 {
     mFormatManager.registerBasicFormats();
     
     addAndMakeVisible(mGrainCountLabel);
     mGrainCountLabel.setNumberOfDecimals(0);
     
-    addAndMakeVisible(mGrainDensity);
-    mGrainDensity.setRange({1.0, 100.0}, 1.0);
-    mGrainDensity.mLabels.add({0.0, "1"});
-    mGrainDensity.mLabels.add({1.0, "100"});
-    mGrainDensity.setValue(1.0);
-    mGrainDensity.onValueChange = [this]()
+    addAndMakeVisible(mGrainDensitySlider);
+    mGrainDensitySlider.setRange({1.0, 100.0}, 1.0);
+    mGrainDensitySlider.mLabels.add({0.0, "1"});
+    mGrainDensitySlider.mLabels.add({1.0, "100"});
+    mGrainDensitySlider.setValue(1.0);
+    mGrainDensitySlider.onValueChange = [this]()
     {
         if(mScheduler != nullptr)
         {
-            mScheduler->setGrainDensity(mGrainDensity.getValue());
+            mScheduler->setGrainDensity(mGrainDensitySlider.getValue());
         }
     };
     
-    addAndMakeVisible(mGrainLength);
-    mGrainLength.setRange({10.0, 1000.0}, 1.0);
-    mGrainLength.mLabels.add({0.0, "10"});
-    mGrainLength.mLabels.add({1.0, "1000"});
-    mGrainLength.setValue(1.0);
-    mGrainLength.onValueChange = [this]()
+    addAndMakeVisible(mGrainLengthSlider);
+    mGrainLengthSlider.setRange({10.0, 1000.0}, 1.0);
+    mGrainLengthSlider.mLabels.add({0.0, "10"});
+    mGrainLengthSlider.mLabels.add({1.0, "1000"});
+    mGrainLengthSlider.setValue(300.0); // try to avoid killing our ears on startup
+    mGrainLengthSlider.onValueChange = [this]()
     {
         if(mScheduler != nullptr)
         {
-            auto const lengthSeconds = mGrainLength.getValue() / 1000.0;
+            auto const lengthSeconds = mGrainLengthSlider.getValue() / 1000.0;
             mScheduler->setGrainDuration(static_cast<size_t>(lengthSeconds * 44100.0));
         }
     };
     
-    addAndMakeVisible(mGrainPositionRandomness);
-    mGrainPositionRandomness.setRange({0.0, 1.0}, 0.05);
-    mGrainPositionRandomness.mLabels.add({0.0, "0.0"});
-    mGrainPositionRandomness.mLabels.add({1.0, "1.0"});
-    mGrainPositionRandomness.setValue(0.0);
-    mGrainPositionRandomness.onValueChange = [this]()
+    addAndMakeVisible(mGrainPositionRandomnessSlider);
+    mGrainPositionRandomnessSlider.setRange({0.0, 1.0}, 0.05);
+    mGrainPositionRandomnessSlider.mLabels.add({0.0, "0.0"});
+    mGrainPositionRandomnessSlider.mLabels.add({1.0, "1.0"});
+    mGrainPositionRandomnessSlider.setValue(0.0);
+    mGrainPositionRandomnessSlider.onValueChange = [this]()
     {
         if(mScheduler != nullptr)
         {
-            mScheduler->setPositionRandomness(mGrainPositionRandomness.getValue());
+            mScheduler->setPositionRandomness(mGrainPositionRandomnessSlider.getValue());
+        }
+    };
+    
+    addAndMakeVisible(mEnvelopeTypeSlider);
+    mEnvelopeTypeSlider.comboBox.addItem("Trapezoidal", 1);
+    mEnvelopeTypeSlider.comboBox.setSelectedId(1);
+    mEnvelopeTypeSlider.comboBox.onChange = [this]()
+    {
+        if(mScheduler != nullptr)
+        {
+            mScheduler->setEnvelopeType(static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex()));
         }
     };
     
@@ -61,7 +73,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
         loadSample(path, err);
     };
     
-    setSize (600, 300);
+    setSize (600, 360);
     startTimer(200);
     setAudioChannels (2, 2);
 }
@@ -111,15 +123,17 @@ void MainComponent::resized()
     auto const threeColumnSliderWidth = static_cast<int>(rotaryBounds.getWidth() * 0.30f);
     auto const spacingWidth = (rotaryBounds.getWidth() - threeColumnSliderWidth*3)/2;
     
-    mGrainDensity.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
+    mGrainDensitySlider.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
     rotaryBounds.removeFromLeft(spacingWidth);
-    mGrainLength.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
+    mGrainLengthSlider.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
     rotaryBounds.removeFromLeft(spacingWidth);
-    mGrainPositionRandomness.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
+    mGrainPositionRandomnessSlider.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
     
+    bounds.removeFromTop(10);
+    mEnvelopeTypeSlider.setBounds(bounds.removeFromTop(30));
     mGrainCountLabel.setBounds(bounds.removeFromTop(40));
     
-    bounds.removeFromTop(20);
+    bounds.removeFromTop(10);
     mWaveformComponent.setBounds(bounds.removeFromTop(100));
 }
 
@@ -136,7 +150,7 @@ bool MainComponent::loadSample(juce::String const& filePath, juce::String& error
     
     auto const numChannels = static_cast<int>(mReader.get()->numChannels);
     auto const numSamples = static_cast<int>(mReader.get()->lengthInSamples);
-    ReferenceCountedBuffer::Ptr newBuffer = new ReferenceCountedBuffer(file.getFileName(), numChannels, numSamples);                                                       ;
+    ReferenceCountedBuffer::Ptr newBuffer = new ReferenceCountedBuffer(file.getFileName(), numChannels, numSamples);
     mReader.get()->read(newBuffer->getAudioSampleBuffer(), 0, numSamples, 0, true, true);
     {
         const juce::SpinLock::ScopedLockType lock(mMutex);
@@ -144,7 +158,19 @@ bool MainComponent::loadSample(juce::String const& filePath, juce::String& error
     }
     
     mScheduler = std::make_unique<Scheduler>(mCurrentBuffer->getAudioSampleBuffer());
+    if(mScheduler == nullptr)
+    {
+        // todo: throw error
+        std::cerr << "Scheduler could not be created!\n";
+        return false;
+    }
+    
     mScheduler->prepareToPlay(mBlockSize, mSampleRate);
+    mScheduler->setGrainDensity(mGrainDensitySlider.getValue());
+    auto const lengthSeconds = mGrainLengthSlider.getValue() / 1000.0;
+    mScheduler->setGrainDuration(static_cast<size_t>(lengthSeconds * 44100.0));
+    mScheduler->setEnvelopeType(static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex()));
+    mScheduler->setPositionRandomness(mGrainPositionRandomnessSlider.getValue());
     
     mWaveformComponent.clear();
     

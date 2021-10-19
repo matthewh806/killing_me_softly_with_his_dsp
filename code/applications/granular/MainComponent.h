@@ -41,10 +41,11 @@ private:
     int mBlockSize;
     int mSampleRate;
     
-    RotarySliderWithLabels mGrainDensity;
-    RotarySliderWithLabels mGrainLength;
-    RotarySliderWithLabels mGrainPositionRandomness;
+    RotarySliderWithLabels mGrainDensitySlider;
+    RotarySliderWithLabels mGrainLengthSlider;
+    RotarySliderWithLabels mGrainPositionRandomnessSlider;
     NumberFieldWithLabel mGrainCountLabel;
+    ComboBoxWithLabel mEnvelopeTypeSlider;
     
     juce::AudioFormatManager mFormatManager;
     std::unique_ptr<juce::AudioFormatReader> mReader;
