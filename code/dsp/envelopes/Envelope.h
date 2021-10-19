@@ -12,7 +12,8 @@ class Envelope
 public:
     enum class EnvelopeType
     {
-        trapezoidal
+        trapezoidal,
+        parabolic
     };
     
     Envelope(size_t sampleDuration);
@@ -41,4 +42,22 @@ private:
     
     float mGrainAmplitude {1.0f};
     float mPreviousAmplitude {0.0f};
+};
+
+class ParabolicEnvelope
+: public Envelope
+{
+    using Envelope::Envelope;
+    
+    void init(size_t durationInSamples) override;
+    double synthesize() override;
+    
+private:
+    float mAmplitude {0.0};
+    float mRdur {0.0};
+    float mRdur2 {0.0};
+    float mSlope {0.0};
+    float mCurve {0.0};
+    
+    float mGrainAmplitude {1.0f};
 };

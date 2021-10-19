@@ -41,3 +41,20 @@ double TrapezoidalEnvelope::synthesize()
     
     return nextAmplitude;
 }
+
+void ParabolicEnvelope::init(size_t durationInSamples)
+{
+    mAmplitude = 0.0f;
+    mRdur = 1.0f / static_cast<float>(durationInSamples);
+    mRdur2 = mRdur * mRdur;
+    mSlope = 4.0f * mGrainAmplitude * (mRdur - mRdur2);
+    mCurve = -8.0f * mGrainAmplitude * mRdur2;
+}
+
+double ParabolicEnvelope::synthesize()
+{
+    mAmplitude = mAmplitude + mSlope;
+    mSlope = mSlope + mCurve;
+    
+    return mAmplitude;
+}

@@ -30,6 +30,10 @@ void Grain::init(size_t position, size_t duration, juce::AudioSampleBuffer* samp
             mEnvelope = std::make_unique<TrapezoidalEnvelope>(duration);
             break;
         }
+        case Envelope::EnvelopeType::parabolic:
+        {
+            mEnvelope = std::make_unique<ParabolicEnvelope>(duration);
+        }
             
         default:
             // todo: maybe just unity gain?
