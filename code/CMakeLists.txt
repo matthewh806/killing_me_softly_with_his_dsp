@@ -35,6 +35,8 @@ source_group("Source/UISources" FILES ${UISources})
 set(SynthSources
     ${CMAKE_SOURCE_DIR}/dsp/synthesis/granular/Grain.h
     ${CMAKE_SOURCE_DIR}/dsp/synthesis/granular/Grain.cpp
+    ${CMAKE_SOURCE_DIR}/dsp/synthesis/granular/Source.h
+    ${CMAKE_SOURCE_DIR}/dsp/synthesis/granular/Source.cpp
     ${CMAKE_SOURCE_DIR}/dsp/synthesis/granular/Scheduler.h
     ${CMAKE_SOURCE_DIR}/dsp/synthesis/granular/Scheduler.cpp
     ${CMAKE_SOURCE_DIR}/dsp/synthesis/granular/SequenceStrategy.h
