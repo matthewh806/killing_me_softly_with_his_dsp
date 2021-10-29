@@ -3,7 +3,7 @@
 Grain::Grain()
 : mDuration(0)
 , mComplete(true)
-, mSampleSource(nullptr)
+, mSource(nullptr)
 , mEnvelope(nullptr)
 {
     
@@ -14,19 +14,30 @@ Grain::~Grain()
     //std::cout << "End of grain: id: " << mUuid.toDashedString() << "\n";
 }
 
-void Grain::init(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer, Envelope::EnvelopeType envelopeType)
+void Grain::init(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType)
 {
     mDuration = duration;
     
     mSampleCounter = 0;
     
-    mSampleSource = std::make_unique<SampleSource>(sampleBuffer, position);
-    if(mSampleSource == nullptr)
+    switch(sourceType)
+    {
+        case Source::SourceType::sample:
+        {
+            mSource = std::make_unique<SampleSource>(sampleBuffer, position);
+        }
+        case Source::SourceType::synthetic:
+        {
+            mSource = std::make_unique<SinewaveSource>(220.0);
+        }
+    }
+    
+    if(mSource == nullptr)
     {
         std::cerr << "Failed to create sample source!\n";
         return;
     }
-    mSampleSource->init(duration);
+    mSource->init(duration);
     
     switch(envelopeType)
     {
@@ -62,7 +73,7 @@ bool Grain::isGrainComplete() const
 
 void Grain::synthesise(AudioBuffer<float>* buffer, int numSamples)
 {
-    if(mSampleSource == nullptr || mEnvelope == nullptr)
+    if(mSource == nullptr || mEnvelope == nullptr)
     {
         // todo: uh oh...
         std::cerr << "Error synthesising grain!\n";
@@ -79,7 +90,7 @@ void Grain::synthesise(AudioBuffer<float>* buffer, int numSamples)
     auto outputBufPos = 0;
     while(--remaining > 0 && !mComplete)
     {
-        auto const val =  static_cast<float>(mSampleSource->synthesize()) * static_cast<float>(mEnvelope->synthesize());
+        auto const val =  static_cast<float>(mSource->synthesize()) * static_cast<float>(mEnvelope->synthesize());
         buffer->setSample(0, outputBufPos, val);
         buffer->setSample(1, outputBufPos, val);
         

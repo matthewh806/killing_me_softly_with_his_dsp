@@ -21,3 +21,23 @@ double SampleSource::synthesize()
     
     return mAudioSampleBuffer->getSample(0, static_cast<int>(mPosition++));
 }
+
+SinewaveSource::SinewaveSource(double frequency)
+: mFrequency(frequency)
+, mPhasePerSample(juce::MathConstants<double>::twoPi / (44100.0 / mFrequency))
+{
+    mSourceType = SourceType::synthetic;
+}
+
+void SinewaveSource::init(size_t durationInSamples)
+{
+    // todo: this method is pointless! DELETE DELETE DELETE!!
+}
+
+double SinewaveSource::synthesize()
+{
+    auto const sample = std::sin(mCurrentPhase);
+    mCurrentPhase += mPhasePerSample;
+    
+    return sample;
+}

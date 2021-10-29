@@ -32,7 +32,7 @@ private:
         
         size_t getNumberOfActiveGrains();
         
-        void create(size_t position, size_t nextDuration, Envelope::EnvelopeType envelopeType, juce::AudioSampleBuffer* sampleBuffer);
+        void create(size_t position, size_t nextDuration, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType, juce::AudioSampleBuffer* sampleBuffer);
         void synthesiseGrains(AudioBuffer<float>* dest, AudioBuffer<float>* tmpBuffer, int numSamples);
         
     private:

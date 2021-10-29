@@ -37,3 +37,19 @@ private:
     
     size_t mPosition {0};
 };
+
+class SinewaveSource
+: public Source
+{
+public:
+    SinewaveSource(double frequency);
+    ~SinewaveSource() override = default;
+    
+    void init(size_t durationInSamples) override;
+    double synthesize() override;
+    
+private:
+    double mFrequency {220.0};
+    double mCurrentPhase {0.0};
+    double mPhasePerSample {0.0};
+};
