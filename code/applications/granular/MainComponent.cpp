@@ -8,6 +8,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
 , mGrainLengthSlider("Grain length", "ms")
 , mGrainPositionRandomnessSlider("Position randomness", "")
 , mGrainCountLabel("# grains:", "", 0, false)
+, mSourceTypeSlider("Source type")
 , mEnvelopeTypeSlider("Envelope type")
 {
     mFormatManager.registerBasicFormats();
@@ -52,6 +53,54 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
         if(mScheduler != nullptr)
         {
             mScheduler->setPositionRandomness(mGrainPositionRandomnessSlider.getValue());
+        }
+    };
+    
+    addAndMakeVisible(mSourceTypeSlider);
+    mSourceTypeSlider.comboBox.addItem("Sample", 1);
+    mSourceTypeSlider.comboBox.addItem("Synthetic", 2);
+    mSourceTypeSlider.comboBox.setSelectedId(1);
+    mSourceTypeSlider.comboBox.onChange = [this]()
+    {
+        auto const sourceType = static_cast<Source::SourceType>(mSourceTypeSlider.comboBox.getSelectedItemIndex());
+        if(sourceType == mSourceType)
+        {
+            return;
+        }
+        
+        mSourceType = sourceType;
+        
+        if(mScheduler != nullptr)
+        {
+            mScheduler->shouldSynthesise = false;
+        }
+        mScheduler = nullptr;
+        switch(mSourceType)
+        {
+            case Source::SourceType::sample:
+            {
+                mWaveformComponent.setVisible(true);
+            }
+            break;
+            case Source::SourceType::synthetic:
+            {
+                mWaveformComponent.setVisible(false);
+                mScheduler = std::make_unique<Scheduler>(nullptr, mSourceType);
+                if(mScheduler == nullptr)
+                {
+                    // todo: throw error
+                    std::cerr << "Scheduler could not be created!\n";
+                    return;
+                }
+                
+                mScheduler->prepareToPlay(mBlockSize, mSampleRate);
+                mScheduler->setGrainDensity(mGrainDensitySlider.getValue());
+                auto const lengthSeconds = mGrainLengthSlider.getValue() / 1000.0;
+                mScheduler->setGrainDuration(static_cast<size_t>(lengthSeconds * 44100.0));
+                mScheduler->setEnvelopeType(static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex()));
+                mScheduler->shouldSynthesise = true;
+            }
+            break;
         }
     };
     
@@ -131,7 +180,13 @@ void MainComponent::resized()
     mGrainPositionRandomnessSlider.setBounds(rotaryBounds.removeFromLeft(threeColumnSliderWidth));
     
     bounds.removeFromTop(10);
-    mEnvelopeTypeSlider.setBounds(bounds.removeFromTop(30));
+    auto comboBoxBounds = bounds.removeFromTop(30);
+    auto const twoColumnSliderWidth = static_cast<int>(comboBoxBounds.getWidth() * 0.48f);
+    auto const twoColumnSpacingWidth = comboBoxBounds.getWidth() - twoColumnSliderWidth *2;
+    mSourceTypeSlider.setBounds(comboBoxBounds.removeFromLeft(twoColumnSliderWidth));
+    comboBoxBounds.removeFromLeft(twoColumnSpacingWidth);
+    mEnvelopeTypeSlider.setBounds(comboBoxBounds.removeFromLeft(twoColumnSliderWidth));
+    
     mGrainCountLabel.setBounds(bounds.removeFromTop(40));
     
     bounds.removeFromTop(10);
@@ -158,7 +213,7 @@ bool MainComponent::loadSample(juce::String const& filePath, juce::String& error
         mCurrentBuffer = newBuffer;
     }
     
-    mScheduler = std::make_unique<Scheduler>(mCurrentBuffer->getAudioSampleBuffer());
+    mScheduler = std::make_unique<Scheduler>(mCurrentBuffer->getAudioSampleBuffer(), mSourceType);
     if(mScheduler == nullptr)
     {
         // todo: throw error

@@ -45,6 +45,7 @@ private:
     RotarySliderWithLabels mGrainLengthSlider;
     RotarySliderWithLabels mGrainPositionRandomnessSlider;
     NumberFieldWithLabel mGrainCountLabel;
+    ComboBoxWithLabel mSourceTypeSlider;
     ComboBoxWithLabel mEnvelopeTypeSlider;
     
     juce::AudioFormatManager mFormatManager;
@@ -56,6 +57,8 @@ private:
     juce::SpinLock mMutex;
     juce::ReferenceCountedArray<ReferenceCountedBuffer> mBuffers;
     ReferenceCountedBuffer::Ptr mCurrentBuffer;
+    
+    Source::SourceType mSourceType {Source::SourceType::sample};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

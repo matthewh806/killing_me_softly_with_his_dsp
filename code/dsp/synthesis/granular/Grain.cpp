@@ -26,10 +26,12 @@ void Grain::init(size_t position, size_t duration, juce::AudioSampleBuffer* samp
         {
             mSource = std::make_unique<SampleSource>(sampleBuffer, position);
         }
+            break;
         case Source::SourceType::synthetic:
         {
             mSource = std::make_unique<SinewaveSource>(220.0);
         }
+            break;
     }
     
     if(mSource == nullptr)

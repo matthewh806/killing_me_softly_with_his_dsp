@@ -1,8 +1,9 @@
 #include "Scheduler.h"
 
-Scheduler::Scheduler(juce::AudioSampleBuffer* sampleBuffer)
+Scheduler::Scheduler(juce::AudioSampleBuffer* sampleBuffer, Source::SourceType sourceType)
 : mSampleBuffer(sampleBuffer)
-, mGrainDuration(std::min(static_cast<size_t>(4096*2), static_cast<size_t>(sampleBuffer->getNumSamples())))
+, mSourceType(sourceType)
+, mGrainDuration(4096*2)
 {
     
 }
@@ -43,12 +44,6 @@ size_t Scheduler::getNumberOfGrains()
 bool shouldSynthesise = false; // todo: remove
 void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
 {
-    if(mSampleBuffer == nullptr)
-    {
-        buffer->clear();
-        return;
-    }
-    
     auto grainDuration = mGrainDuration.load();
     auto grainPositionRandomness = mPositionRandomness.load();
     if(shouldSynthesise)
@@ -59,7 +54,7 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
     while(mNextOnset < numSamples)
     {
         auto const nextInt = static_cast<size_t>(mRandom.nextInt(grainPositionRandomness == 0 ? 1 : static_cast<int>(grainPositionRandomness)));
-        mGrainPool.create(nextInt, grainDuration, Source::SourceType::sample, mEnvelopeType, mSampleBuffer);
+        mGrainPool.create(nextInt, grainDuration, mSourceType, mEnvelopeType, mSampleBuffer);
         mNextOnset += static_cast<size_t>(mSequenceStrategy.nextInteronset() * mSampleRate);
     }
     mNextOnset -= numSamples;

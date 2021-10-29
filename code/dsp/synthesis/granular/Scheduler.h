@@ -7,7 +7,7 @@
 class Scheduler
 {
 public:
-    Scheduler(juce::AudioSampleBuffer* sampleBuffer);
+    Scheduler(juce::AudioSampleBuffer* sampleBuffer, Source::SourceType sourceType);
     
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate);
     
@@ -48,6 +48,7 @@ private:
     std::atomic<size_t> mGrainDuration {0};
     std::atomic<size_t> mPositionRandomness {0}; // the position randomness in terms of samples
     
+    Source::SourceType mSourceType;
     Envelope::EnvelopeType mEnvelopeType { Envelope::EnvelopeType::trapezoidal };
     
     GrainPool mGrainPool;
