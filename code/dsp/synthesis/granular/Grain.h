@@ -12,7 +12,7 @@ public:
     Grain();
     ~Grain();
     
-    void init(size_t position, size_t duration, juce::AudioSampleBuffer* sampleBuffer, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType);
+    void init(size_t position, size_t duration, double frequency, juce::AudioSampleBuffer* sampleBuffer, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType);
     bool isGrainComplete() const;
     
     void synthesise(AudioBuffer<float>* buffer, int numSamples);

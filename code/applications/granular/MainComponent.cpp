@@ -10,6 +10,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
 , mGrainCountLabel("# grains:", "", 0, false)
 , mSourceTypeSlider("Source type")
 , mEnvelopeTypeSlider("Envelope type")
+, mFrequencySlider("Frequency", "Hz")
 {
     mFormatManager.registerBasicFormats();
     
@@ -80,11 +81,16 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
             case Source::SourceType::sample:
             {
                 mWaveformComponent.setVisible(true);
+                mFrequencySlider.setVisible(false);
+                mGrainPositionRandomnessSlider.setVisible(true);
             }
             break;
             case Source::SourceType::synthetic:
             {
                 mWaveformComponent.setVisible(false);
+                mFrequencySlider.setVisible(true);
+                mGrainPositionRandomnessSlider.setVisible(false);
+                
                 mScheduler = std::make_unique<Scheduler>(nullptr, mSourceType);
                 if(mScheduler == nullptr)
                 {
@@ -102,6 +108,8 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
             }
             break;
         }
+        
+        resized();
     };
     
     addAndMakeVisible(mEnvelopeTypeSlider);
@@ -121,6 +129,19 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
     {
         juce::String err;
         loadSample(path, err);
+    };
+    
+    addChildComponent(mFrequencySlider);
+    mFrequencySlider.setRange({65.4, 1046.502}, 1);
+    mFrequencySlider.mLabels.add({0.0, "C2"});
+    mFrequencySlider.mLabels.add({1.0, "C6"});
+    mFrequencySlider.setValue(220.0);
+    mFrequencySlider.onValueChange = [this]()
+    {
+        if(mScheduler != nullptr)
+        {
+            mScheduler->setOscillatorFrequency(mFrequencySlider.getValue());
+        }
     };
     
     setSize (600, 360);
@@ -190,7 +211,14 @@ void MainComponent::resized()
     mGrainCountLabel.setBounds(bounds.removeFromTop(40));
     
     bounds.removeFromTop(10);
-    mWaveformComponent.setBounds(bounds.removeFromTop(100));
+    if(mSourceType == Source::SourceType::sample)
+    {
+        mWaveformComponent.setBounds(bounds.removeFromTop(100));
+    }
+    else if(mSourceType == Source::SourceType::synthetic)
+    {
+        mFrequencySlider.setBounds(bounds.removeFromTop(100).removeFromLeft(threeColumnSliderWidth));
+    }
 }
 
 bool MainComponent::loadSample(juce::String const& filePath, juce::String& error)

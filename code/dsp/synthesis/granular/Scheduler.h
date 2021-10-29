@@ -19,6 +19,8 @@ public:
     // this is between 0.0 and 1.0
     void setPositionRandomness(double positionRandomness);
     
+    void setOscillatorFrequency(double frequency);
+    
     size_t getNumberOfGrains();
     
     bool shouldSynthesise = false; // todo: remove
@@ -32,7 +34,7 @@ private:
         
         size_t getNumberOfActiveGrains();
         
-        void create(size_t position, size_t nextDuration, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType, juce::AudioSampleBuffer* sampleBuffer);
+        void create(size_t position, size_t nextDuration, double frequency, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType, juce::AudioSampleBuffer* sampleBuffer);
         void synthesiseGrains(AudioBuffer<float>* dest, AudioBuffer<float>* tmpBuffer, int numSamples);
         
     private:
@@ -47,6 +49,8 @@ private:
     
     std::atomic<size_t> mGrainDuration {0};
     std::atomic<size_t> mPositionRandomness {0}; // the position randomness in terms of samples
+    
+    double mOscillatorFrequency = 220.0;
     
     Source::SourceType mSourceType;
     Envelope::EnvelopeType mEnvelopeType { Envelope::EnvelopeType::trapezoidal };

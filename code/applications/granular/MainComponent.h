@@ -54,6 +54,8 @@ private:
     
     WaveformComponent mWaveformComponent {mFormatManager};
     
+    RotarySliderWithLabels mFrequencySlider;
+    
     juce::SpinLock mMutex;
     juce::ReferenceCountedArray<ReferenceCountedBuffer> mBuffers;
     ReferenceCountedBuffer::Ptr mCurrentBuffer;
