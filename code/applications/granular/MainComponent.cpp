@@ -11,6 +11,9 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
 , mSourceTypeSlider("Source type")
 , mEnvelopeTypeSlider("Envelope type")
 , mFrequencySlider("Frequency", "Hz")
+, mGrainAmplitudeSlider("Grain Amplitude", "")
+, mEnvelopeAttackSlider("Attack", "ms")
+, mEnvelopeReleaseSlider("Release", "ms")
 {
     mFormatManager.registerBasicFormats();
     
@@ -149,10 +152,15 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
                 // todo:: mess improve
                 dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envEssence.get())->attackSamples = 1024;
                 dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envEssence.get())->releaseSamples = 1024;
+                
+                mEnvelopeAttackSlider.setVisible(true);
+                mEnvelopeReleaseSlider.setVisible(true);
             }
             else if(envelopeType == Envelope::EnvelopeType::parabolic)
             {
                 envEssence = std::make_unique<ParabolicEnvelope::ParabolicEssence>();
+                mEnvelopeAttackSlider.setVisible(false);
+                mEnvelopeReleaseSlider.setVisible(false);
             }
             mScheduler->setEnvelopeEssence(std::move(envEssence));
         }
@@ -187,7 +195,37 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
         essence->frequency = mFrequencySlider.getValue();
     };
     
-    setSize (600, 360);
+    addAndMakeVisible(mGrainAmplitudeSlider);
+    mGrainAmplitudeSlider.setRange({0.0, 1.0}, 0.05);
+    mGrainAmplitudeSlider.mLabels.add({0.0, "0.0"});
+    mGrainAmplitudeSlider.mLabels.add({1.0, "1.0"});
+    mGrainAmplitudeSlider.setValue(0.6);
+    mGrainAmplitudeSlider.onValueChange = [this]()
+    {
+        updateEnvelopeEssence();
+    };
+
+    addAndMakeVisible(mEnvelopeAttackSlider);
+    mEnvelopeAttackSlider.setRange({0.0, 200}, 1.0);
+    mEnvelopeAttackSlider.mLabels.add({0.0, "0.0"});
+    mEnvelopeAttackSlider.mLabels.add({1.0, "200.0"});
+    mEnvelopeAttackSlider.setValue(50);
+    mEnvelopeAttackSlider.onValueChange = [this]()
+    {
+        updateEnvelopeEssence();
+    };
+
+    addAndMakeVisible(mEnvelopeReleaseSlider);
+    mEnvelopeReleaseSlider.setRange({0.0, 200}, 1.0);
+    mEnvelopeReleaseSlider.mLabels.add({0.0, "0.0"});
+    mEnvelopeReleaseSlider.mLabels.add({1.0, "200.0"});
+    mEnvelopeReleaseSlider.setValue(50);
+    mEnvelopeReleaseSlider.onValueChange = [this]()
+    {
+        updateEnvelopeEssence();
+    };
+        
+    setSize (600, 460);
     startTimer(200);
     setAudioChannels (2, 2);
 }
@@ -250,6 +288,19 @@ void MainComponent::resized()
     mSourceTypeSlider.setBounds(comboBoxBounds.removeFromLeft(twoColumnSliderWidth));
     comboBoxBounds.removeFromLeft(twoColumnSpacingWidth);
     mEnvelopeTypeSlider.setBounds(comboBoxBounds.removeFromLeft(twoColumnSliderWidth));
+    
+    bounds.removeFromTop(10);
+    auto envelopeBounds = bounds.removeFromTop(100);
+    mGrainAmplitudeSlider.setBounds(envelopeBounds.removeFromLeft(threeColumnSliderWidth));
+    
+    auto const envelopeType = static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex());
+    if(envelopeType == Envelope::EnvelopeType::trapezoidal)
+    {
+        envelopeBounds.removeFromLeft(spacingWidth);
+        mEnvelopeAttackSlider.setBounds(envelopeBounds.removeFromLeft(threeColumnSliderWidth));
+        envelopeBounds.removeFromLeft(spacingWidth);
+        mEnvelopeReleaseSlider.setBounds(envelopeBounds.removeFromLeft(threeColumnSliderWidth));
+    }
     
     mGrainCountLabel.setBounds(bounds.removeFromTop(40));
     
@@ -357,5 +408,37 @@ void MainComponent::timerCallback()
     {
         auto const grains = mScheduler->getNumberOfGrains();
         mGrainCountLabel.setValue(grains, juce::NotificationType::sendNotificationAsync);
+    }
+}
+
+void MainComponent::updateEnvelopeEssence()
+{
+    if(mScheduler == nullptr)
+    {
+        return;
+    }
+    
+    auto* essence = mScheduler->getEnvelopeEssence();
+    
+    if(essence == nullptr)
+    {
+        return;
+    }
+    
+    essence->grainAmplitude = static_cast<float>(mGrainAmplitudeSlider.getValue());
+    
+    if(dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(essence))
+    {
+        
+        /*
+            convert time in ms -> length in samples
+            length_in_samples = time_in_ms / 1000 * 44100
+         */
+        
+        auto const attackSamples = mEnvelopeAttackSlider.getValue() / 1000.0 * 44100.0;
+        auto const releaseSamples = mEnvelopeReleaseSlider.getValue() / 1000.0 * 44100.0;
+        
+        dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(essence)->attackSamples = static_cast<size_t>(std::floor(attackSamples));
+        dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(essence)->releaseSamples = static_cast<size_t>(std::floor(releaseSamples));
     }
 }

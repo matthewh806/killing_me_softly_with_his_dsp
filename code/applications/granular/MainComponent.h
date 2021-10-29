@@ -38,6 +38,8 @@ private:
     
     void timerCallback() override;
     
+    void updateEnvelopeEssence();
+    
     int mBlockSize;
     int mSampleRate;
     
@@ -55,6 +57,10 @@ private:
     WaveformComponent mWaveformComponent {mFormatManager};
     
     RotarySliderWithLabels mFrequencySlider;
+    
+    RotarySliderWithLabels mGrainAmplitudeSlider;
+    RotarySliderWithLabels mEnvelopeAttackSlider;
+    RotarySliderWithLabels mEnvelopeReleaseSlider;
     
     juce::SpinLock mMutex;
     juce::ReferenceCountedArray<ReferenceCountedBuffer> mBuffers;

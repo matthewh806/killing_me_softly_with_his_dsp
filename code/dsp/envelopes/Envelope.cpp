@@ -7,6 +7,7 @@ Envelope::Envelope(size_t sampleDuration)
 
 TrapezoidalEnvelope::TrapezoidalEnvelope(size_t sampleDuration, TrapezoidalEssence* essence)
 : Envelope(sampleDuration)
+, mGrainAmplitude(essence->grainAmplitude)
 , mAttackSamples(essence->attackSamples)
 , mReleaseSamples(essence->releaseSamples)
 {
@@ -49,6 +50,7 @@ double TrapezoidalEnvelope::synthesize()
 
 ParabolicEnvelope::ParabolicEnvelope(size_t durationInSamples, ParabolicEssence* essence)
 : Envelope(durationInSamples)
+, mGrainAmplitude(essence->grainAmplitude)
 {
     mAmplitude = 0.0f;
     mRdur = 1.0f / static_cast<float>(durationInSamples);
