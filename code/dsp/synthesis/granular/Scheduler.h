@@ -7,7 +7,7 @@
 class Scheduler
 {
 public:
-    Scheduler(juce::AudioSampleBuffer* sampleBuffer, Source::SourceType sourceType);
+    Scheduler();
     
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate);
     
@@ -15,11 +15,12 @@ public:
     void setGrainDensity(double grainsPerSecond);
     void setEnvelopeType(Envelope::EnvelopeType envelopeType);
     
+    void setSourceEssence(std::unique_ptr<Source::Essence> essence);
+    Source::Essence* getSourceEssence();
+    
     // todo: add set position
     // this is between 0.0 and 1.0
     void setPositionRandomness(double positionRandomness);
-    
-    void setOscillatorFrequency(double frequency);
     
     size_t getNumberOfGrains();
     
@@ -34,7 +35,7 @@ private:
         
         size_t getNumberOfActiveGrains();
         
-        void create(size_t position, size_t nextDuration, double frequency, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType, juce::AudioSampleBuffer* sampleBuffer);
+        void create(size_t nextDuration, Source::Essence* sourceEssence, Envelope::EnvelopeType envelopeType);
         void synthesiseGrains(AudioBuffer<float>* dest, AudioBuffer<float>* tmpBuffer, int numSamples);
         
     private:
@@ -43,16 +44,13 @@ private:
     };
     
     juce::Random mRandom;
-    juce::AudioSampleBuffer* mSampleBuffer;
     
     SequenceStrategy mSequenceStrategy;
     
     std::atomic<size_t> mGrainDuration {0};
     std::atomic<size_t> mPositionRandomness {0}; // the position randomness in terms of samples
     
-    double mOscillatorFrequency = 220.0;
-    
-    Source::SourceType mSourceType;
+    std::unique_ptr<Source::Essence> mSourceEssence {nullptr};
     Envelope::EnvelopeType mEnvelopeType { Envelope::EnvelopeType::trapezoidal };
     
     GrainPool mGrainPool;

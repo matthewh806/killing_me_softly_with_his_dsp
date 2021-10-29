@@ -1,8 +1,8 @@
 #include "Source.h"
 
-SampleSource::SampleSource(juce::AudioSampleBuffer* sampleBuffer, size_t position)
-: mAudioSampleBuffer(sampleBuffer)
-, mPosition(position)
+SampleSource::SampleSource(SampleEssence* essence)
+: mAudioSampleBuffer(essence->audioSampleBuffer)
+, mPosition(essence->position)
 {
     mSourceType = SourceType::sample;
 }
@@ -22,8 +22,8 @@ double SampleSource::synthesize()
     return mAudioSampleBuffer->getSample(0, static_cast<int>(mPosition++));
 }
 
-SinewaveSource::SinewaveSource(double frequency)
-: mFrequency(frequency)
+SinewaveSource::SinewaveSource(OscillatorEssence* essence)
+: mFrequency(essence->frequency)
 , mPhasePerSample(juce::MathConstants<double>::twoPi / (44100.0 / mFrequency))
 {
     mSourceType = SourceType::synthetic;

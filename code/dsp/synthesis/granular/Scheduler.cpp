@@ -1,11 +1,8 @@
 #include "Scheduler.h"
 
-Scheduler::Scheduler(juce::AudioSampleBuffer* sampleBuffer, Source::SourceType sourceType)
-: mSampleBuffer(sampleBuffer)
-, mSourceType(sourceType)
-, mGrainDuration(4096*2)
+Scheduler::Scheduler()
+: mGrainDuration(4096*2)
 {
-    
 }
 
 void Scheduler::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
@@ -32,13 +29,25 @@ void Scheduler::setEnvelopeType(Envelope::EnvelopeType envelopeType)
 
 void Scheduler::setPositionRandomness(double randomness)
 {
-    auto const length = mSampleBuffer->getNumSamples() - static_cast<int>(mGrainDuration.load());
+    auto essence = dynamic_cast<SampleSource::SampleEssence*>(mSourceEssence.get());
+    if(essence == nullptr)
+    {
+        std::cout << "Could not cast Schedulers Essence to the expected type: SampleSource::SampleEssence\n";
+        return;
+    }
+    
+    auto const length = essence->audioSampleBuffer->getNumSamples() - static_cast<int>(mGrainDuration.load());
     mPositionRandomness.store(static_cast<size_t>(length * randomness));
 }
 
-void Scheduler::setOscillatorFrequency(double frequency)
+void Scheduler::setSourceEssence(std::unique_ptr<Source::Essence> essence)
 {
-    mOscillatorFrequency = frequency;
+    mSourceEssence = std::move(essence);
+}
+
+Source::Essence* Scheduler::getSourceEssence()
+{
+    return mSourceEssence.get();
 }
 
 size_t Scheduler::getNumberOfGrains()
@@ -51,6 +60,7 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
 {
     auto grainDuration = mGrainDuration.load();
     auto grainPositionRandomness = mPositionRandomness.load();
+    
     if(shouldSynthesise)
     {
         mGrainPool.synthesiseGrains(buffer, &mTempBuffer, numSamples);
@@ -58,8 +68,12 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
     
     while(mNextOnset < numSamples)
     {
-        auto const nextInt = static_cast<size_t>(mRandom.nextInt(grainPositionRandomness == 0 ? 1 : static_cast<int>(grainPositionRandomness)));
-        mGrainPool.create(nextInt, grainDuration, mOscillatorFrequency, mSourceType, mEnvelopeType, mSampleBuffer);
+        auto essence = dynamic_cast<SampleSource::SampleEssence*>(mSourceEssence.get());
+        if(essence != nullptr)
+        {
+            essence->position = static_cast<size_t>(mRandom.nextInt(grainPositionRandomness == 0 ? 1 : static_cast<int>(grainPositionRandomness)));
+        }
+        mGrainPool.create(grainDuration, mSourceEssence.get(), mEnvelopeType);
         mNextOnset += static_cast<size_t>(mSequenceStrategy.nextInteronset() * mSampleRate);
     }
     mNextOnset -= numSamples;
@@ -69,13 +83,19 @@ Scheduler::GrainPool::GrainPool()
 {
 }
 
-void Scheduler::GrainPool::create(size_t position, size_t nextDuration, double frequency, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType, juce::AudioSampleBuffer* sampleBuffer)
+void Scheduler::GrainPool::create(size_t nextDuration, Source::Essence* sourceEssence, Envelope::EnvelopeType envelopeType)
 {
+    if(sourceEssence == nullptr)
+    {
+        std::cerr << "Error creating grain: Source Essence is a nullptr\n";
+        return;
+    }
+    
     for(size_t i = 0; i < POOL_SIZE; ++i)
     {
         if(mGrains[i].isGrainComplete())
         {
-            mGrains[i].init(position, nextDuration, frequency, sampleBuffer, sourceType, envelopeType);
+            mGrains[i].init(nextDuration, sourceEssence, envelopeType);
             return;
         }
     }

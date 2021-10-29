@@ -12,6 +12,11 @@ public:
         synthetic
     };
     
+    struct Essence
+    {
+        virtual ~Essence() = default;
+    };
+    
     virtual ~Source() = default;
     
     virtual void init(size_t durationInSamples) = 0;
@@ -25,7 +30,14 @@ class SampleSource
 : public Source
 {
 public:
-    SampleSource(juce::AudioSampleBuffer* sampleBuffer, size_t position);
+    struct SampleEssence
+    : Essence
+    {
+        juce::AudioSampleBuffer* audioSampleBuffer;
+        size_t position;
+    };
+    
+    SampleSource(SampleEssence* essence);
     ~SampleSource() override = default;
     
     void init(size_t durationInSamples) override;
@@ -42,7 +54,13 @@ class SinewaveSource
 : public Source
 {
 public:
-    SinewaveSource(double frequency);
+    struct OscillatorEssence
+    : Essence
+    {
+        double frequency;
+    };
+    
+    SinewaveSource(OscillatorEssence* essence);
     ~SinewaveSource() override = default;
     
     void init(size_t durationInSamples) override;

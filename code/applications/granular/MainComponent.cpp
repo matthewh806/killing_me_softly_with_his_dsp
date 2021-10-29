@@ -51,10 +51,12 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
     mGrainPositionRandomnessSlider.setValue(0.0);
     mGrainPositionRandomnessSlider.onValueChange = [this]()
     {
-        if(mScheduler != nullptr)
+        if(mScheduler == nullptr)
         {
-            mScheduler->setPositionRandomness(mGrainPositionRandomnessSlider.getValue());
+            return;
         }
+        
+        mScheduler->setPositionRandomness(mGrainPositionRandomnessSlider.getValue());
     };
     
     addAndMakeVisible(mSourceTypeSlider);
@@ -91,7 +93,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
                 mFrequencySlider.setVisible(true);
                 mGrainPositionRandomnessSlider.setVisible(false);
                 
-                mScheduler = std::make_unique<Scheduler>(nullptr, mSourceType);
+                mScheduler = std::make_unique<Scheduler>();
                 if(mScheduler == nullptr)
                 {
                     // todo: throw error
@@ -99,6 +101,10 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
                     return;
                 }
                 
+                auto essence = std::make_unique<SinewaveSource::OscillatorEssence>();
+                essence->frequency = mFrequencySlider.getValue();
+                
+                mScheduler->setSourceEssence(std::move(essence));
                 mScheduler->prepareToPlay(mBlockSize, mSampleRate);
                 mScheduler->setGrainDensity(mGrainDensitySlider.getValue());
                 auto const lengthSeconds = mGrainLengthSlider.getValue() / 1000.0;
@@ -138,10 +144,19 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
     mFrequencySlider.setValue(220.0);
     mFrequencySlider.onValueChange = [this]()
     {
-        if(mScheduler != nullptr)
+        if(mScheduler == nullptr)
         {
-            mScheduler->setOscillatorFrequency(mFrequencySlider.getValue());
+            return;
         }
+        
+        auto essence = dynamic_cast<SinewaveSource::OscillatorEssence*>(mScheduler->getSourceEssence());
+        if(essence == nullptr)
+        {
+            std::cout << "Could not cast Schedulers Essence to the expected type: SinewaveSource::OscillatorEssence\n";
+            return;
+        }
+        
+        essence->frequency = mFrequencySlider.getValue();
     };
     
     setSize (600, 360);
@@ -241,7 +256,7 @@ bool MainComponent::loadSample(juce::String const& filePath, juce::String& error
         mCurrentBuffer = newBuffer;
     }
     
-    mScheduler = std::make_unique<Scheduler>(mCurrentBuffer->getAudioSampleBuffer(), mSourceType);
+    mScheduler = std::make_unique<Scheduler>(	);
     if(mScheduler == nullptr)
     {
         // todo: throw error
@@ -249,6 +264,11 @@ bool MainComponent::loadSample(juce::String const& filePath, juce::String& error
         return false;
     }
     
+    auto essence = std::make_unique<SampleSource::SampleEssence>();
+    essence->audioSampleBuffer = mCurrentBuffer->getAudioSampleBuffer();
+    essence->position = 0.0;
+    
+    mScheduler->setSourceEssence(std::move(essence));
     mScheduler->prepareToPlay(mBlockSize, mSampleRate);
     mScheduler->setGrainDensity(mGrainDensitySlider.getValue());
     auto const lengthSeconds = mGrainLengthSlider.getValue() / 1000.0;

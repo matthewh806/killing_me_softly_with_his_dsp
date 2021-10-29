@@ -14,24 +14,20 @@ Grain::~Grain()
     //std::cout << "End of grain: id: " << mUuid.toDashedString() << "\n";
 }
 
-void Grain::init(size_t position, size_t duration, double frequency, juce::AudioSampleBuffer* sampleBuffer, Source::SourceType sourceType, Envelope::EnvelopeType envelopeType)
+void Grain::init(size_t duration, Source::Essence* sourceEssence, Envelope::EnvelopeType envelopeType)
 {
     mDuration = duration;
-    
     mSampleCounter = 0;
     
-    switch(sourceType)
+    if(dynamic_cast<SampleSource::SampleEssence*>(sourceEssence) != nullptr)
     {
-        case Source::SourceType::sample:
-        {
-            mSource = std::make_unique<SampleSource>(sampleBuffer, position);
-        }
-            break;
-        case Source::SourceType::synthetic:
-        {
-            mSource = std::make_unique<SinewaveSource>(frequency);
-        }
-            break;
+        auto essence = dynamic_cast<SampleSource::SampleEssence*>(sourceEssence);
+        mSource = std::make_unique<SampleSource>(essence);
+    }
+    else if(dynamic_cast<SinewaveSource::OscillatorEssence*>(sourceEssence))
+    {
+        auto essence = dynamic_cast<SinewaveSource::OscillatorEssence*>(sourceEssence);
+        mSource = std::make_unique<SinewaveSource>(essence);
     }
     
     if(mSource == nullptr)
