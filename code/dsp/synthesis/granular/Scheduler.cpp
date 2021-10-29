@@ -22,11 +22,6 @@ void Scheduler::setGrainDensity(double grainsPerSecond)
     mSequenceStrategy.setGrainDensity(grainsPerSecond);
 }
 
-void Scheduler::setEnvelopeType(Envelope::EnvelopeType envelopeType)
-{
-    mEnvelopeType = envelopeType;
-}
-
 void Scheduler::setPositionRandomness(double randomness)
 {
     auto essence = dynamic_cast<SampleSource::SampleEssence*>(mSourceEssence.get());
@@ -49,6 +44,17 @@ Source::Essence* Scheduler::getSourceEssence()
 {
     return mSourceEssence.get();
 }
+
+void Scheduler::setEnvelopeEssence(std::unique_ptr<Envelope::Essence> essence)
+{
+    mEnvelopeEssence = std::move(essence);
+}
+
+Envelope::Essence* Scheduler::getEnvelopeEssence()
+{
+    return mEnvelopeEssence.get();
+}
+
 
 size_t Scheduler::getNumberOfGrains()
 {
@@ -73,7 +79,7 @@ void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
         {
             essence->position = static_cast<size_t>(mRandom.nextInt(grainPositionRandomness == 0 ? 1 : static_cast<int>(grainPositionRandomness)));
         }
-        mGrainPool.create(grainDuration, mSourceEssence.get(), mEnvelopeType);
+        mGrainPool.create(grainDuration, mSourceEssence.get(), mEnvelopeEssence.get());
         mNextOnset += static_cast<size_t>(mSequenceStrategy.nextInteronset() * mSampleRate);
     }
     mNextOnset -= numSamples;
@@ -83,7 +89,7 @@ Scheduler::GrainPool::GrainPool()
 {
 }
 
-void Scheduler::GrainPool::create(size_t nextDuration, Source::Essence* sourceEssence, Envelope::EnvelopeType envelopeType)
+void Scheduler::GrainPool::create(size_t nextDuration, Source::Essence* sourceEssence, Envelope::Essence* envelopeEssence)
 {
     if(sourceEssence == nullptr)
     {
@@ -95,7 +101,7 @@ void Scheduler::GrainPool::create(size_t nextDuration, Source::Essence* sourceEs
     {
         if(mGrains[i].isGrainComplete())
         {
-            mGrains[i].init(nextDuration, sourceEssence, envelopeType);
+            mGrains[i].init(nextDuration, sourceEssence, envelopeEssence);
             return;
         }
     }

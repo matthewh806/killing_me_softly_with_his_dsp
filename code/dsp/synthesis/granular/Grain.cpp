@@ -14,7 +14,7 @@ Grain::~Grain()
     //std::cout << "End of grain: id: " << mUuid.toDashedString() << "\n";
 }
 
-void Grain::init(size_t duration, Source::Essence* sourceEssence, Envelope::EnvelopeType envelopeType)
+void Grain::init(size_t duration, Source::Essence* sourceEssence, Envelope::Essence* envelopeEssence)
 {
     mDuration = duration;
     mSampleCounter = 0;
@@ -37,23 +37,17 @@ void Grain::init(size_t duration, Source::Essence* sourceEssence, Envelope::Enve
     }
     mSource->init(duration);
     
-    switch(envelopeType)
+    if(dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envelopeEssence) != nullptr)
     {
-        case Envelope::EnvelopeType::trapezoidal:
-        {
-            mEnvelope = std::make_unique<TrapezoidalEnvelope>(duration);
-            break;
-        }
-        case Envelope::EnvelopeType::parabolic:
-        {
-            mEnvelope = std::make_unique<ParabolicEnvelope>(duration);
-        }
-            
-        default:
-            // todo: maybe just unity gain?
-            mEnvelope = std::make_unique<TrapezoidalEnvelope>(duration);
-            break;
+        auto essence = dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envelopeEssence);
+        mEnvelope = std::make_unique<TrapezoidalEnvelope>(mDuration, essence);
     }
+    else if(dynamic_cast<ParabolicEnvelope::ParabolicEssence*>(envelopeEssence) != nullptr)
+    {
+        auto essence = dynamic_cast<ParabolicEnvelope::ParabolicEssence*>(envelopeEssence);
+        mEnvelope = std::make_unique<ParabolicEnvelope>(mDuration, essence);
+    }
+    
     if(mEnvelope == nullptr)
     {
         std::cerr << "Failed to create envelope!\n";

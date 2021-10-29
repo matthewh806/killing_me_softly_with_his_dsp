@@ -5,13 +5,18 @@ Envelope::Envelope(size_t sampleDuration)
 {
 }
 
-void TrapezoidalEnvelope::init(size_t durationInSamples)
+TrapezoidalEnvelope::TrapezoidalEnvelope(size_t sampleDuration, TrapezoidalEssence* essence)
+: Envelope(sampleDuration)
+, mAttackSamples(essence->attackSamples)
+, mReleaseSamples(essence->releaseSamples)
 {
-    mDuration = durationInSamples;
-    mAttackSamples = static_cast<size_t>(durationInSamples * 0.25);
-    mReleaseSamples = static_cast<size_t>(durationInSamples * 0.25);
     mPreviousAmplitude = 0.0;
     mPosition = 0;
+}
+
+void TrapezoidalEnvelope::init(size_t durationInSamples)
+{
+    
 }
 
 double TrapezoidalEnvelope::synthesize()
@@ -42,13 +47,18 @@ double TrapezoidalEnvelope::synthesize()
     return nextAmplitude;
 }
 
-void ParabolicEnvelope::init(size_t durationInSamples)
+ParabolicEnvelope::ParabolicEnvelope(size_t durationInSamples, ParabolicEssence* essence)
+: Envelope(durationInSamples)
 {
     mAmplitude = 0.0f;
     mRdur = 1.0f / static_cast<float>(durationInSamples);
     mRdur2 = mRdur * mRdur;
     mSlope = 4.0f * mGrainAmplitude * (mRdur - mRdur2);
     mCurve = -8.0f * mGrainAmplitude * mRdur2;
+}
+
+void ParabolicEnvelope::init(size_t durationInSamples)
+{
 }
 
 double ParabolicEnvelope::synthesize()

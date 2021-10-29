@@ -10,10 +10,18 @@
 class Envelope
 {
 public:
+    
     enum class EnvelopeType
     {
         trapezoidal,
         parabolic
+    };
+    
+    struct Essence
+    {
+        virtual ~Essence() = default;
+        
+        float grainAmplitude {1.0};
     };
     
     Envelope(size_t sampleDuration);
@@ -31,7 +39,15 @@ class TrapezoidalEnvelope
 : public Envelope
 {
 public:
-    using Envelope::Envelope;
+    
+    struct TrapezoidalEssence
+    : Essence
+    {
+        size_t attackSamples;
+        size_t releaseSamples;
+    };
+    
+    TrapezoidalEnvelope(size_t sampleDuration, TrapezoidalEssence* essence);
     
     void init(size_t durationInSamples) override;
     double synthesize() override;
@@ -47,7 +63,15 @@ private:
 class ParabolicEnvelope
 : public Envelope
 {
-    using Envelope::Envelope;
+public:
+    
+    struct ParabolicEssence
+    : Essence
+    {
+        
+    };
+    
+    ParabolicEnvelope(size_t sampleDuration, ParabolicEssence* essence);
     
     void init(size_t durationInSamples) override;
     double synthesize() override;

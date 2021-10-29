@@ -101,15 +101,30 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
                     return;
                 }
                 
-                auto essence = std::make_unique<SinewaveSource::OscillatorEssence>();
-                essence->frequency = mFrequencySlider.getValue();
+                auto srcEssence = std::make_unique<SinewaveSource::OscillatorEssence>();
+                srcEssence->frequency = mFrequencySlider.getValue();
                 
-                mScheduler->setSourceEssence(std::move(essence));
+                mScheduler->setSourceEssence(std::move(srcEssence));
                 mScheduler->prepareToPlay(mBlockSize, mSampleRate);
                 mScheduler->setGrainDensity(mGrainDensitySlider.getValue());
                 auto const lengthSeconds = mGrainLengthSlider.getValue() / 1000.0;
+                    
+                auto const envelopeType = static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex());
+                std::unique_ptr<Envelope::Essence> envEssence = nullptr;
+                if(envelopeType == Envelope::EnvelopeType::trapezoidal)
+                {
+                    envEssence = std::make_unique<TrapezoidalEnvelope::TrapezoidalEssence>();
+                    // todo:: mess improve
+                    dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envEssence.get())->attackSamples = 1024;
+                    dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envEssence.get())->releaseSamples = 1024;
+                }
+                else if(envelopeType == Envelope::EnvelopeType::parabolic)
+                {
+                    envEssence = std::make_unique<ParabolicEnvelope::ParabolicEssence>();
+                }
+                mScheduler->setEnvelopeEssence(std::move(envEssence));
+                
                 mScheduler->setGrainDuration(static_cast<size_t>(lengthSeconds * 44100.0));
-                mScheduler->setEnvelopeType(static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex()));
                 mScheduler->shouldSynthesise = true;
             }
             break;
@@ -126,7 +141,20 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
     {
         if(mScheduler != nullptr)
         {
-            mScheduler->setEnvelopeType(static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex()));
+            auto const envelopeType = static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex());
+            std::unique_ptr<Envelope::Essence> envEssence = nullptr;
+            if(envelopeType == Envelope::EnvelopeType::trapezoidal)
+            {
+                envEssence = std::make_unique<TrapezoidalEnvelope::TrapezoidalEssence>();
+                // todo:: mess improve
+                dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envEssence.get())->attackSamples = 1024;
+                dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envEssence.get())->releaseSamples = 1024;
+            }
+            else if(envelopeType == Envelope::EnvelopeType::parabolic)
+            {
+                envEssence = std::make_unique<ParabolicEnvelope::ParabolicEssence>();
+            }
+            mScheduler->setEnvelopeEssence(std::move(envEssence));
         }
     };
     
@@ -264,16 +292,30 @@ bool MainComponent::loadSample(juce::String const& filePath, juce::String& error
         return false;
     }
     
-    auto essence = std::make_unique<SampleSource::SampleEssence>();
-    essence->audioSampleBuffer = mCurrentBuffer->getAudioSampleBuffer();
-    essence->position = 0.0;
+    auto srcEssence = std::make_unique<SampleSource::SampleEssence>();
+    srcEssence->audioSampleBuffer = mCurrentBuffer->getAudioSampleBuffer();
+    srcEssence->position = 0.0;
     
-    mScheduler->setSourceEssence(std::move(essence));
+    mScheduler->setSourceEssence(std::move(srcEssence));
     mScheduler->prepareToPlay(mBlockSize, mSampleRate);
     mScheduler->setGrainDensity(mGrainDensitySlider.getValue());
     auto const lengthSeconds = mGrainLengthSlider.getValue() / 1000.0;
     mScheduler->setGrainDuration(static_cast<size_t>(lengthSeconds * 44100.0));
-    mScheduler->setEnvelopeType(static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex()));
+    
+    auto const envelopeType = static_cast<Envelope::EnvelopeType>(mEnvelopeTypeSlider.comboBox.getSelectedItemIndex());
+    std::unique_ptr<Envelope::Essence> envEssence = nullptr;
+    if(envelopeType == Envelope::EnvelopeType::trapezoidal)
+    {
+        envEssence = std::make_unique<TrapezoidalEnvelope::TrapezoidalEssence>();
+        // todo:: mess improve
+        dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envEssence.get())->attackSamples = 1024;
+        dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envEssence.get())->releaseSamples = 1024;
+    }
+    else if(envelopeType == Envelope::EnvelopeType::parabolic)
+    {
+        envEssence = std::make_unique<ParabolicEnvelope::ParabolicEssence>();
+    }
+    mScheduler->setEnvelopeEssence(std::move(envEssence));
     mScheduler->setPositionRandomness(mGrainPositionRandomnessSlider.getValue());
     
     mWaveformComponent.clear();
