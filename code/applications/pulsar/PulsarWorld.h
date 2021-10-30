@@ -91,10 +91,9 @@ namespace Physics
         std::set<Ball*> mBallsToRemove;
 
         std::unique_ptr<Polygon> mPolygon;
+        juce::Random mRandom;
         
         b2Body* mWorldBoundary;
-        
-        Random mRandom;
     };
 }
 

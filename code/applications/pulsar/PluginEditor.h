@@ -13,6 +13,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
 #include "PulsarWorld.h"
+#include "NoteStrategy.h"
 #include "../../ui/CustomLookAndFeel.h"
 
 #include <memory>
@@ -72,6 +73,12 @@ private:
     ComboBoxWithLabel mMidiInputChannelList {"Channel"};
     ComboBoxWithLabel mMidiOutputDeviceList {"Midi out"};
     ComboBoxWithLabel mMidiOutputChannelList {"Channel"};
+    
+    ComboBoxWithLabel mNoteStrategyList {"Scale"};
+    ComboBoxWithLabel mNoteKey {"Key"};
+    
+    juce::Random mRandom;
+    NoteStrategy mNoteStrategy;
     
     std::unique_ptr<juce::MidiOutput> mMidiOutput;
     int mMidiInputChannel;

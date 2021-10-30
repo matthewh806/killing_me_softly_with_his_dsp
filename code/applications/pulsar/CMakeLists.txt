@@ -17,6 +17,8 @@ set(PulsarApplicationSources
     ${CMAKE_SOURCE_DIR}/applications/pulsar/Polygon.cpp
     ${CMAKE_SOURCE_DIR}/applications/pulsar/PulsarWorld.h
     ${CMAKE_SOURCE_DIR}/applications/pulsar/PulsarWorld.cpp
+    ${CMAKE_SOURCE_DIR}/applications/pulsar/NoteStrategy.h
+    ${CMAKE_SOURCE_DIR}/applications/pulsar/NoteStrategy.cpp
     ${CMAKE_SOURCE_DIR}/applications/pulsar/Utils.h
     ${CMAKE_SOURCE_DIR}/applications/pulsar/Utils.cpp
 )
