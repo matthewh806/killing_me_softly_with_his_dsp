@@ -35,7 +35,6 @@ void Grain::init(size_t duration, Source::Essence* sourceEssence, Envelope::Esse
         std::cerr << "Failed to create sample source!\n";
         return;
     }
-    mSource->init(duration);
     
     if(dynamic_cast<TrapezoidalEnvelope::TrapezoidalEssence*>(envelopeEssence) != nullptr)
     {
@@ -54,7 +53,6 @@ void Grain::init(size_t duration, Source::Essence* sourceEssence, Envelope::Esse
         return;
     }
     
-    mEnvelope->init(duration);
     mComplete = false;
 }
 

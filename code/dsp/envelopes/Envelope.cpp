@@ -1,23 +1,18 @@
 #include "Envelope.h"
 
-Envelope::Envelope(size_t sampleDuration)
-: mDuration(sampleDuration)
+Envelope::Envelope(size_t durationInSamples, Essence* essence)
+: mDuration(durationInSamples)
+, mGrainAmplitude(essence->grainAmplitude)
 {
 }
 
-TrapezoidalEnvelope::TrapezoidalEnvelope(size_t sampleDuration, TrapezoidalEssence* essence)
-: Envelope(sampleDuration)
-, mGrainAmplitude(essence->grainAmplitude)
+TrapezoidalEnvelope::TrapezoidalEnvelope(size_t durationInSamples, TrapezoidalEssence* essence)
+: Envelope(durationInSamples, dynamic_cast<Essence*>(essence))
 , mAttackSamples(essence->attackSamples)
 , mReleaseSamples(essence->releaseSamples)
 {
     mPreviousAmplitude = 0.0;
     mPosition = 0;
-}
-
-void TrapezoidalEnvelope::init(size_t durationInSamples)
-{
-    
 }
 
 double TrapezoidalEnvelope::synthesize()
@@ -49,18 +44,13 @@ double TrapezoidalEnvelope::synthesize()
 }
 
 ParabolicEnvelope::ParabolicEnvelope(size_t durationInSamples, ParabolicEssence* essence)
-: Envelope(durationInSamples)
-, mGrainAmplitude(essence->grainAmplitude)
+: Envelope(durationInSamples, dynamic_cast<Essence*>(essence))
 {
     mAmplitude = 0.0f;
     mRdur = 1.0f / static_cast<float>(durationInSamples);
     mRdur2 = mRdur * mRdur;
     mSlope = 4.0f * mGrainAmplitude * (mRdur - mRdur2);
     mCurve = -8.0f * mGrainAmplitude * mRdur2;
-}
-
-void ParabolicEnvelope::init(size_t durationInSamples)
-{
 }
 
 double ParabolicEnvelope::synthesize()

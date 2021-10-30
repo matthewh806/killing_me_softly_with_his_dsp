@@ -7,11 +7,6 @@ SampleSource::SampleSource(SampleEssence* essence)
     mSourceType = SourceType::sample;
 }
 
-void SampleSource::init(size_t durationInSamples)
-{
-    mDurationInSamples = durationInSamples;
-}
-
 double SampleSource::synthesize()
 {
     if(mAudioSampleBuffer == nullptr)
@@ -27,11 +22,6 @@ SinewaveSource::SinewaveSource(OscillatorEssence* essence)
 , mPhasePerSample(juce::MathConstants<double>::twoPi / (44100.0 / mFrequency))
 {
     mSourceType = SourceType::synthetic;
-}
-
-void SinewaveSource::init(size_t durationInSamples)
-{
-    // todo: this method is pointless! DELETE DELETE DELETE!!
 }
 
 double SinewaveSource::synthesize()

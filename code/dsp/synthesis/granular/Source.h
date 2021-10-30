@@ -19,7 +19,6 @@ public:
     
     virtual ~Source() = default;
     
-    virtual void init(size_t durationInSamples) = 0;
     virtual double synthesize() = 0;
     
 protected:
@@ -40,13 +39,10 @@ public:
     SampleSource(SampleEssence* essence);
     ~SampleSource() override = default;
     
-    void init(size_t durationInSamples) override;
     double synthesize() override;
 
 private:
     juce::AudioSampleBuffer* mAudioSampleBuffer;
-    size_t mDurationInSamples;
-    
     size_t mPosition {0};
 };
 
@@ -63,7 +59,6 @@ public:
     SinewaveSource(OscillatorEssence* essence);
     ~SinewaveSource() override = default;
     
-    void init(size_t durationInSamples) override;
     double synthesize() override;
     
 private:

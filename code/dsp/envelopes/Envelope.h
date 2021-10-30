@@ -24,15 +24,16 @@ public:
         float grainAmplitude {1.0};
     };
     
-    Envelope(size_t sampleDuration);
+    Envelope(size_t durationInSamples, Essence* essence);
     virtual ~Envelope() = default;
     
-    virtual void init(size_t durationInSamples) = 0;
     virtual double synthesize() = 0;
     
 protected:
     size_t mDuration; // length in samples
     size_t mPosition {0}; // position in env
+    
+    float mGrainAmplitude {1.0f};
 };
 
 class TrapezoidalEnvelope
@@ -47,16 +48,14 @@ public:
         size_t releaseSamples;
     };
     
-    TrapezoidalEnvelope(size_t sampleDuration, TrapezoidalEssence* essence);
+    TrapezoidalEnvelope(size_t durationInSamples, TrapezoidalEssence* essence);
     
-    void init(size_t durationInSamples) override;
     double synthesize() override;
     
 private:
     size_t mAttackSamples;
     size_t mReleaseSamples;
     
-    float mGrainAmplitude {1.0f};
     float mPreviousAmplitude {0.0f};
 };
 
@@ -71,9 +70,8 @@ public:
         
     };
     
-    ParabolicEnvelope(size_t sampleDuration, ParabolicEssence* essence);
+    ParabolicEnvelope(size_t durationInSamples, ParabolicEssence* essence);
     
-    void init(size_t durationInSamples) override;
     double synthesize() override;
     
 private:
@@ -82,6 +80,4 @@ private:
     float mRdur2 {0.0};
     float mSlope {0.0};
     float mCurve {0.0};
-    
-    float mGrainAmplitude {1.0f};
 };
