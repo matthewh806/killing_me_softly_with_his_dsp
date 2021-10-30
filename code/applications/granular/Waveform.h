@@ -12,6 +12,7 @@ public:
     ~WaveformComponent() override;
     
     juce::AudioThumbnail& getThumbnail();
+    juce::Rectangle<int> const& getThumbnailBounds() const;
     
     void clear();
     
@@ -29,6 +30,7 @@ public:
     std::function<void(juce::String&)> onNewFileDropped = nullptr;
     
 private:
+    juce::Rectangle<int> mThumbnailBounds;
     
     juce::AudioFormatManager& mAudioFormatManager;
     juce::AudioThumbnailCache mThumbnailCache;

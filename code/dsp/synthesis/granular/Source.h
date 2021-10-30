@@ -19,6 +19,7 @@ public:
     
     virtual ~Source() = default;
     
+    virtual size_t getLastPosition() const;
     virtual double synthesize() = 0;
     
 protected:
@@ -38,6 +39,8 @@ public:
     
     SampleSource(SampleEssence* essence);
     ~SampleSource() override = default;
+    
+    size_t getLastPosition() const override;
     
     double synthesize() override;
 

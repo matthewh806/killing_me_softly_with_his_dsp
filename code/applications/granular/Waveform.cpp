@@ -18,6 +18,11 @@ juce::AudioThumbnail& WaveformComponent::getThumbnail()
     return mThumbnail;
 }
 
+juce::Rectangle<int> const& WaveformComponent::getThumbnailBounds() const
+{
+    return mThumbnailBounds;
+}
+
 void WaveformComponent::clear()
 {
     mThumbnailCache.clear();
@@ -26,26 +31,24 @@ void WaveformComponent::clear()
 
 void WaveformComponent::resized()
 {
-    
+    mThumbnailBounds = juce::Rectangle<int>(10, 10, getWidth()-20, getHeight()-20);
 }
 
 void WaveformComponent::paint(juce::Graphics& g)
 {
-    juce::Rectangle<int> thumbnailBounds (10, 10, getWidth()-20, getHeight()-20);
-    
     if(mThumbnail.getNumChannels() == 0)
     {
         g.setColour(juce::Colours::darkgrey);
-        g.fillRect(thumbnailBounds);
+        g.fillRect(mThumbnailBounds);
         g.setColour(juce::Colours::white);
-        g.drawFittedText("Drag and drop and audio file", thumbnailBounds, juce::Justification::centred, 1);
+        g.drawFittedText("Drag and drop and audio file", mThumbnailBounds, juce::Justification::centred, 1);
     }
     else
     {
         g.setColour(juce::Colours::white);
-        g.fillRect(thumbnailBounds);
+        g.fillRect(mThumbnailBounds);
         g.setColour(juce::Colours::red);
-        mThumbnail.drawChannels(g, thumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
+        mThumbnail.drawChannels(g, mThumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
     }
     
     juce::Range<int64_t> sampleRange { mStartSample, mEndSample };
@@ -58,10 +61,10 @@ void WaveformComponent::paint(juce::Graphics& g)
     auto const sampleSizeRatio = static_cast<double>(sampleRange.getLength() / mSampleRate) / mThumbnail.getTotalLength();
     
     juce::Rectangle<int> clipBounds {
-        thumbnailBounds.getX() + static_cast<int>(thumbnailBounds.getWidth() * sampleStartRatio),
-        thumbnailBounds.getY(),
-        static_cast<int>(thumbnailBounds.getWidth() * sampleSizeRatio),
-        thumbnailBounds.getHeight()
+        mThumbnailBounds.getX() + static_cast<int>(mThumbnailBounds.getWidth() * sampleStartRatio),
+        mThumbnailBounds.getY(),
+        static_cast<int>(mThumbnailBounds.getWidth() * sampleSizeRatio),
+        mThumbnailBounds.getHeight()
     };
     
     g.setColour(juce::Colours::blue.withAlpha(0.4f));

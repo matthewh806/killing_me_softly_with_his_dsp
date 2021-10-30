@@ -61,6 +61,16 @@ bool Grain::isGrainComplete() const
     return mComplete;
 }
 
+size_t Grain::getGrainPosition() const
+{
+    if(mSource == nullptr)
+    {
+        return 0;
+    }
+    
+    return mSource->getLastPosition();
+}
+
 void Grain::synthesise(AudioBuffer<float>* buffer, int numSamples)
 {
     if(mSource == nullptr || mEnvelope == nullptr)

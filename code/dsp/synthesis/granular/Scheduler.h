@@ -7,6 +7,8 @@
 class Scheduler
 {
 public:
+    static const int POOL_SIZE = 200;
+    
     Scheduler();
     
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate);
@@ -25,6 +27,7 @@ public:
     void setPositionRandomness(double positionRandomness);
     
     size_t getNumberOfGrains();
+    std::array<Grain, POOL_SIZE> const& getGrains() const;
     
     bool shouldSynthesise = false; // todo: remove
     void synthesise(AudioBuffer<float>* buffer, int numSamples);
@@ -35,14 +38,14 @@ private:
     public:
         GrainPool();
         
-        size_t getNumberOfActiveGrains();
+        size_t getNumberOfActiveGrains() const;
+        std::array<Grain, POOL_SIZE> const& getGrains() const;
         
         void create(size_t nextDuration, Source::Essence* sourceEssence, Envelope::Essence* envelopeEssence);
         void synthesiseGrains(AudioBuffer<float>* dest, AudioBuffer<float>* tmpBuffer, int numSamples);
         
     private:
-        static const int POOL_SIZE = 200;
-        Grain mGrains[POOL_SIZE];
+        std::array<Grain, POOL_SIZE> mGrains;
     };
     
     juce::Random mRandom;

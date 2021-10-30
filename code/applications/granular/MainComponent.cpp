@@ -406,8 +406,10 @@ void MainComponent::timerCallback()
 {
     if(mScheduler != nullptr)
     {
-        auto const grains = mScheduler->getNumberOfGrains();
-        mGrainCountLabel.setValue(grains, juce::NotificationType::sendNotificationAsync);
+        auto const grainCount = mScheduler->getNumberOfGrains();
+        mGrainCountLabel.setValue(grainCount, juce::NotificationType::sendNotificationAsync);
+        
+        mWaveformComponent.updateGrainInfo(mScheduler->getGrains());
     }
 }
 

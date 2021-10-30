@@ -1,10 +1,20 @@
 #include "Source.h"
 
+size_t Source::getLastPosition() const
+{
+    return 0.0;
+}
+
 SampleSource::SampleSource(SampleEssence* essence)
 : mAudioSampleBuffer(essence->audioSampleBuffer)
 , mPosition(essence->position)
 {
     mSourceType = SourceType::sample;
+}
+
+size_t SampleSource::getLastPosition() const
+{
+    return mPosition;
 }
 
 double SampleSource::synthesize()

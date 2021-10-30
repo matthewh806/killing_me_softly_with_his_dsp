@@ -15,6 +15,8 @@ public:
     void init(size_t duration, Source::Essence* sourceEssence, Envelope::Essence* envelopeEssence);
     bool isGrainComplete() const;
     
+    size_t getGrainPosition() const;
+    
     void synthesise(AudioBuffer<float>* buffer, int numSamples);
     
 private:

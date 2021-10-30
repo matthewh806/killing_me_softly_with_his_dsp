@@ -61,6 +61,11 @@ size_t Scheduler::getNumberOfGrains()
     return mGrainPool.getNumberOfActiveGrains();
 }
 
+std::array<Grain, Scheduler::POOL_SIZE> const& Scheduler::getGrains() const
+{
+    return mGrainPool.getGrains();
+}
+
 bool shouldSynthesise = false; // todo: remove
 void Scheduler::synthesise(AudioBuffer<float>* buffer, int numSamples)
 {
@@ -107,12 +112,17 @@ void Scheduler::GrainPool::create(size_t nextDuration, Source::Essence* sourceEs
     }
 }
 
-size_t Scheduler::GrainPool::getNumberOfActiveGrains()
+size_t Scheduler::GrainPool::getNumberOfActiveGrains() const
 {
     return static_cast<size_t>(std::count_if(std::begin(mGrains), std::end(mGrains), [](auto const& grain)
     {
         return !grain.isGrainComplete();
     }));
+}
+
+std::array<Grain, Scheduler::POOL_SIZE> const& Scheduler::GrainPool::getGrains() const
+{
+    return mGrains;
 }
 
 void Scheduler::GrainPool::synthesiseGrains(AudioBuffer<float>* dest, AudioBuffer<float>* tmpBuffer, int numSamples)
