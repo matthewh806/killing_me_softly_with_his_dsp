@@ -23,6 +23,12 @@ double TrapezoidalEnvelope::synthesize()
     }
     
     // incmrement of 0 is the sustain portion
+    
+    if(mPosition == 0 && mAttackSamples == 0)
+    {
+        mPreviousAmplitude = mGrainAmplitude;
+    }
+    
     auto amplitudeIncrement = 0.0f;
     auto const previousAmplitude = mPreviousAmplitude;
     
