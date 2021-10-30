@@ -116,15 +116,6 @@ bool Physics::PulsarWorld::testPointInPolygon(b2Vec2 const &p)
     return mPolygon->testPoint(p);
 }
 
-Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos)
-{
-    //! @todo: add an option to keep in a particular key
-    //! @todo: add option for user to consider octave / note span
-    int const midiNote = mRandom.nextInt(juce::Range<int>(36, 84)); // C2 - C6
-    int const velocity = mRandom.nextInt(127);
-    return spawnBall(pos, Utils::pixelsToMeters(mRandom.nextFloat() * 5), midiNote, velocity);
-}
-
 Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, float radius, int noteNumber, float velocity)
 {
     Ball* b = new Ball{mWorld, pos, radius};

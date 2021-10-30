@@ -17,7 +17,7 @@
 PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
 : AudioProcessorEditor (&p)
 {
-    setSize (400, 400);
+    setSize (500, 500);
     
     addKeyListener(this);
     
@@ -79,6 +79,25 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
     }
     
     mWorld.setRect({0, 0, Physics::Utils::pixelsToMeters(static_cast<float>(getWidth())), Physics::Utils::pixelsToMeters(static_cast<float>(getHeight()))});
+    
+    addAndMakeVisible(mNoteStrategyList);
+    mNoteStrategyList.comboBox.addItem("random", 1);
+    mNoteStrategyList.comboBox.addItem("major", 2);
+    mNoteStrategyList.comboBox.addItem("minor", 3);
+    mNoteStrategyList.comboBox.setSelectedId(1);
+    mNoteStrategyList.comboBox.onChange = [this]()
+    {
+        auto const strategy = static_cast<NoteStrategy::Strategy>(mNoteStrategyList.comboBox.getSelectedItemIndex());
+        mNoteStrategy.setStrategy(strategy);
+    };
+    
+    addAndMakeVisible(mNoteKey);
+    mNoteKey.comboBox.addItemList({"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}, 1);
+    mNoteKey.comboBox.onChange = [this]()
+    {
+        auto const noteName = mNoteKey.comboBox.getItemText(mNoteKey.comboBox.getSelectedItemIndex());
+        mNoteStrategy.setKey(noteName.toStdString());
+    };
 }
 
 PulsarAudioProcessorEditor::~PulsarAudioProcessorEditor()
@@ -94,7 +113,7 @@ void PulsarAudioProcessorEditor::paint (Graphics& g)
     g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
     g.setColour (Colours::white);
     
-    g.drawSingleLineText("Number of balls: " + juce::String(mWorld.getNumberOfBalls()), 20, getHeight() - 40);
+    g.drawSingleLineText("Number of balls: " + juce::String(mWorld.getNumberOfBalls()), 20, getHeight() - 80);
     
     Box2DRenderer box2DRenderer;
     box2DRenderer.render(g, mWorld.getWorld(), mWorld.getRect().getX(), mWorld.getRect().getY(), mWorld.getRect().getRight(), mWorld.getRect().getBottom(), getLocalBounds().toFloat());
@@ -114,6 +133,10 @@ void PulsarAudioProcessorEditor::resized()
     
     mMidiOutputDeviceList.setBounds(midiOutputBounds.removeFromLeft(static_cast<int>(midiOutputBounds.getWidth() * 0.5)));
     mMidiOutputChannelList.setBounds(midiOutputBounds);
+    
+    auto scaleBounds = bounds.removeFromBottom(20);
+    mNoteStrategyList.setBounds(scaleBounds.removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
+    mNoteKey.setBounds(scaleBounds.removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
 }
 
 bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
@@ -173,7 +196,10 @@ void PulsarAudioProcessorEditor::mouseUp (juce::MouseEvent const& event)
     b2Vec2 const worldPos {Physics::Utils::pixelsToMeters(event.position.x), Physics::Utils::pixelsToMeters(event.position.y)};
     if(mWorld.testPointInPolygon(worldPos))
     {
-        mWorld.spawnBall(worldPos);
+        int const midiNote = mNoteStrategy.getMidiNote();
+        int const velocity = mRandom.nextInt(127);
+        
+        mWorld.spawnBall(midiNote, velocity);
     }
 }
 
