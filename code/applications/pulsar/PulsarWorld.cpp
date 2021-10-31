@@ -118,8 +118,7 @@ bool Physics::PulsarWorld::testPointInPolygon(b2Vec2 const &p)
 
 Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, float radius, int noteNumber, float velocity)
 {
-    Ball* b = new Ball{mWorld, pos, radius};
-    b->setMidiData(noteNumber, velocity);
+    Ball* b = new Ball{mWorld, pos, noteNumber, velocity, radius};
     mBalls.push_back(b);
     
     return b;
@@ -127,7 +126,14 @@ Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, float radius, int not
 
 Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity)
 {
-    return spawnBall(mPolygon->getRandomPointInside(), Utils::pixelsToMeters(mRandom.nextFloat() * 5), noteNumber, velocity);
+    // radius based on velocity
+    // linear for now
+    // map 0 - 127 onto range minRad - maxRad
+    auto constexpr minRadius = 0.5f;
+    auto constexpr maxRadius = 5.0f;
+    auto const radius = velocity / 127 * (maxRadius - minRadius) + minRadius;
+    
+    return spawnBall(mPolygon->getRandomPointInside(), Utils::pixelsToMeters(radius), noteNumber, velocity);
 }
 
 void Physics::PulsarWorld::removeBalls()

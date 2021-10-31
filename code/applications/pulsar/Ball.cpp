@@ -10,9 +10,8 @@
 
 #include "Ball.h"
 
-Physics::Ball::Ball(b2World& world, b2Vec2 pos, double radius, float density, float restitution)
+Physics::Ball::Ball(b2World& world, b2Vec2 pos, int noteNumber, float velocity, double radius, float density, float restitution)
 {
-    
     b2CircleShape circleShape;
     circleShape.m_p.Set(0, 0);
     circleShape.m_radius = static_cast<float>(radius);
@@ -30,6 +29,19 @@ Physics::Ball::Ball(b2World& world, b2Vec2 pos, double radius, float density, fl
     mBody->CreateFixture(&fixtureDef);
     
     mBody->SetUserData(this);
+    
+    setMidiData(noteNumber, velocity);
+    
+    /*
+     todo:
+        this colour is currently unused because juce is relying on the
+        debug draw for box2d which internally manages the colours for
+        specific shapes.
+     
+        it would be nice to either randomise the ball colours or use some kind of
+        scheme where its based on the note value (i.e. scaled with frequency)
+     */
+//    mColour = juce::Colour(mRandom.nextInt (256), mRandom.nextInt (256), mRandom.nextInt (256));
 }
 
 Physics::Ball::~Ball()
