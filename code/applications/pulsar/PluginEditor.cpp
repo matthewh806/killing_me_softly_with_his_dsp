@@ -253,12 +253,15 @@ void PulsarAudioProcessorEditor::sendNoteOnMessage(int noteNumber, float velocit
     
     //! @todo: Use a midi buffer and do the timestamping properly...?
     auto messageOn = MidiMessage::noteOn(mMidiOutputChannel, noteNumber, static_cast<uint8>(velocity));
-    messageOn.setTimeStamp(Time::getMillisecondCounterHiRes() * 0.001);
-    
+    messageOn.setTimeStamp(Time::getMillisecondCounterHiRes());
     auto messageOff = MidiMessage::noteOff (messageOn.getChannel(), messageOn.getNoteNumber());
-    messageOff.setTimeStamp (messageOn.getTimeStamp() + 0.1);
-    mMidiOutput->sendMessageNow(messageOn);
-    mMidiOutput->sendMessageNow(messageOff);
+    messageOff.setTimeStamp (messageOn.getTimeStamp() + NOTE_OFF_TIME_MS); // lasts 300ms
+    
+    MidiBuffer buffer;
+    buffer.addEvent(messageOn, 0);
+    buffer.addEvent(messageOff, static_cast<int>(NOTE_OFF_TIME_MS * 44.1));
+    
+    mMidiOutput->sendBlockOfMessages(buffer, Time::getMillisecondCounterHiRes(), 44100.0);
 }
 
 //==============================================================================
@@ -279,4 +282,12 @@ void PulsarAudioProcessorEditor::setMidiOutput(juce::String const& identifier)
 {
     auto list = MidiOutput::getAvailableDevices();
     mMidiOutput = MidiOutput::openDevice(identifier);
+    
+    if(mMidiOutput == nullptr)
+    {
+        std::cerr << "Error opening midioutput device " << identifier << "\n";
+        return;
+    }
+    
+    mMidiOutput->startBackgroundThread();
 }

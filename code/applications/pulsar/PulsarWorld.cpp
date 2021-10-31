@@ -205,3 +205,11 @@ void Physics::PulsarWorld::removeBall(Ball* ball)
         }
     }
 }
+
+void Physics::PulsarWorld::timerCallback()
+{
+    removeBalls();
+    
+    mWorld.Step(0.02f, 8, 3);
+    mParent.repaint();
+}

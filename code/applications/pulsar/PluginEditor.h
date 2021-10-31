@@ -21,7 +21,10 @@
 /**
 */
 
-//! @todo: Add a free play mode that adds balls in a certain key at random. With random changes to rotation, gravity etc
+//! @todo: note hardcoded. this could be based on the length of a mouse down for e.g. (or rand)
+#define NOTE_OFF_TIME_MS 100
+
+//! @todo: With random changes to rotation, gravity etc
 //! @todo: Add ability to connect rotation, gravity etc with midi for things like lfos
 class PulsarAudioProcessorEditor
 : public juce::AudioProcessorEditor
