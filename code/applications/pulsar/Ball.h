@@ -23,7 +23,7 @@ namespace Physics
             float velocity;
         };
         
-        Ball(b2World& world, b2Vec2 pos, double radius = 1.0, float density = 1.0, float restitution = 0.75);
+        Ball(b2World& world, b2Vec2 pos, int noteNumber, float velocity, double radius = 1.0, float density = 1.0, float restitution = 0.75);
         ~Ball();
         
         void startContact();
@@ -40,8 +40,8 @@ namespace Physics
     private:
         bool mContacting = false;
         b2Body* mBody;
-        float mRadius;
         
+//        juce::Colour mColour;
         MidiData mMidiData {1, 0.0};
     };
 }
