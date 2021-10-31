@@ -48,6 +48,6 @@ namespace Physics
         }
 
         
-        constexpr static const float pixelsPerMeter = 100;
+        constexpr static const float pixelsPerMeter = 125;
     };
 }
