@@ -4,14 +4,7 @@
 //==============================================================================
 PulsarAudioProcessor::PulsarAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : juce::AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+     : juce::AudioProcessor (BusesProperties())
 #endif
 {
 }
