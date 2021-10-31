@@ -71,13 +71,7 @@ namespace Physics
         //! also clears the list of balls to be removed.
         void removeBalls();
         
-        void timerCallback() override
-        {
-            removeBalls();
-            
-            mWorld.Step(0.02f, 8, 3);
-            mParent.repaint();
-        }
+        void timerCallback() override;
         
     private:
         void removeBall(Ball* ball);
