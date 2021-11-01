@@ -1,0 +1,24 @@
+v0.0.2
+  Tagged on: ?
+  - CODE
+    - Imported Pulsar project
+    - Added Granular application
+    - Improved BreakbeatMachine
+        - Refactored the core of it
+        - Added pitch shifting capabilities
+        - Added different slice options (manual, transient, region)
+
+v0.0.1
+  Tagged on: 04/10/2021
+  - CODE
+    - Imported BreakbeatMachine project
+    - Added OfflineStretch application
+    - Added RealTimeStretch application
+    - Added SmashMyBitsUp application
+    - Added template application
+    - Added initial custom UI
+
+  - GENERAL
+    - Added CMake build system
+    - CI/CD: Setup simple system for building & packaging
+             based on tagging using Actions
