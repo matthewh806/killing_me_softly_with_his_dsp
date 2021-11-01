@@ -90,7 +90,7 @@ This is quite simple to implement. All we need to do is load in an audio file an
 - [ ] I'm just using the time stretch factor + pitch shift amt sliders as parameters exposed to the user, but RubberBand has many more to play with.
 - [ ] Put the pitch shift in more meaningful units perhaps? It's just a multiplication factor for now.
 
-###### Audio Decay
+##### Audio Decay
 This is a simple plugin with just a couple of knobs. The theory is a bit more complex though.
 At the moment there are two separate effects going on: **Decimation** & **Bitcrushing**
 
@@ -124,6 +124,22 @@ This is the more complex of the two approaches. My ultimate aim is just to try t
 > Then, you don’t want your signal to be at a lower sample rate, but at the current one. So, you need to upsample it after that operation. To do so, you can add N-1 zeroes between your samples at the lower sample rate. You obtain your signal upsampled, back at the original sample rate, with “imaging artefacts”.
 
 >There, you need to filter the signal to remove some of the upsampling artefacts. But you can also return directly these samples with zeroes. Or, if you want something a little cleaner, but still harsh, you can do linear interpolation, or “drop sample” interpolation for the upsampling part. Linear interpolation is just going linearly from sample k to sample k+1 in the intermediate values, and “drop sample” is repeating N-1 times the sample k.
+
+##### Pulsar
+
+This is an import of an [older repo](https://github.com/matthewh806/Pulsar). I wanted to salvage this and continue working on it.
+Put plainly its a rip off of the ["Tombola Sequencer"](https://teenage.engineering/guides/op-1/sequencers) in the Teenage Engineering OP-1.
+
+The tombola sequencer creates random sequences based on colliding balls in a spinning hexagon. I always thought this was quite a cute idea and so wanted to create my own VST version since (at the time) I didn't come across many implementations.
+
+I've added a few more shapes, but otherwise not really gone beyond the TE approach.
+
+##### Granular
+
+This is an implementation of a simple granular synthesiser based on a [paper](https://github.com/matthewh806/killing_me_softly_with_his_dsp/blob/develop/research/granular/BencinaAudioAnecdotes310801.pdf) by Ross Bencina.
+This was mainly done as a learning exercise. I'd never tried to implement an architecture suggested from a paper - so wanted to see how successful I could be at translating block diagrams & pseudo code into a working synth application.
+
+It works... but how do I know if its really working correctly? There are some nasty sound artifacts, pops etc due to (I think) very short envelope times.
 
 ## Experiments
 
