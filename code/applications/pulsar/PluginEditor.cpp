@@ -17,6 +17,7 @@
 PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
 : AudioProcessorEditor (&p)
 {
+    mInformationScreen.setSize(300, 300);
     setSize (500, 500);
     
     addKeyListener(this);
@@ -152,6 +153,11 @@ bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
     else if (key == 68) // d
     {
         mWorld.decreaseEdgeSeparation();
+    }
+    else if(key == 72) // h
+    {
+        // show control screen
+        showInformationScreen();
     }
     else if(key == KeyPress::numberPad3 || key == 51)
     {
@@ -290,4 +296,20 @@ void PulsarAudioProcessorEditor::setMidiOutput(juce::String const& identifier)
     }
     
     mMidiOutput->startBackgroundThread();
+}
+
+void PulsarAudioProcessorEditor::showInformationScreen()
+{
+    juce::DialogWindow::LaunchOptions o;
+    o.dialogTitle = juce::translate("Pulsar Information");
+    
+    o.content.setNonOwned(&mInformationScreen);
+    o.componentToCentreAround = nullptr;
+    o.dialogBackgroundColour = juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId);
+    o.escapeKeyTriggersCloseButton = true;
+    o.useNativeTitleBar = false;
+    o.resizable = false;
+    o.useBottomRightCornerResizer = false;
+    
+    o.launchAsync();
 }

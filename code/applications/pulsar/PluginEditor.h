@@ -17,9 +17,35 @@
 #include "../../ui/CustomLookAndFeel.h"
 
 #include <memory>
-//==============================================================================
-/**
-*/
+
+class InformationScreen
+: public juce::Component
+{
+public:
+    InformationScreen()
+    {
+        addAndMakeVisible(mControlsLabel);
+        mControlsLabel.setText(text, juce::NotificationType::dontSendNotification);
+    }
+    
+    void resized() override
+    {
+        auto bounds = getLocalBounds();
+        mControlsLabel.setBounds(bounds.reduced(20, 20));
+    }
+    
+private:
+    const char *text =
+      "Controls:\n"
+      " r: increment rotation speed\n"
+      " i: increase the polygon edge separation\n"
+      " d: decrease the polygon edge separation\n"
+      " n [3-9]: create polygon with n sides\n"
+      "     Note: 9 crashes the application!\n"
+      " g: I thought I had gravity ctrls... but no\n";
+    
+    juce::Label mControlsLabel;
+};
 
 //! @todo: note hardcoded. this could be based on the length of a mouse down for e.g. (or rand)
 #define NOTE_OFF_TIME_MS 100
@@ -65,6 +91,8 @@ private:
     void setMidiInput(juce::String const& identifier);
     void setMidiOutput(juce::String const& identifier);
     
+    void showInformationScreen();
+    
     Physics::PulsarWorld mWorld {*this, { 0.0f, 0.0f, 4.0f, 4.0f }, {0.0f, 10.0f}};
     
     CriticalSection mMidiMonitorLock;
@@ -79,6 +107,8 @@ private:
     
     ComboBoxWithLabel mNoteStrategyList {"Scale"};
     ComboBoxWithLabel mNoteKey {"Key"};
+    
+    InformationScreen mInformationScreen;
     
     juce::Random mRandom;
     NoteStrategy mNoteStrategy;
