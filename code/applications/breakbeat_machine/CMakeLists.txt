@@ -32,6 +32,7 @@ target_compile_definitions(BreakbeatMachine
 
 target_include_directories(BreakbeatMachine PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/rubberband/rubberband)
 target_include_directories(BreakbeatMachine PRIVATE /usr/local/include/aubio)
+target_include_directories(BreakbeatMachine PRIVATE /usr/include/aubio)
 
 target_link_libraries(BreakbeatMachine
     PRIVATE
