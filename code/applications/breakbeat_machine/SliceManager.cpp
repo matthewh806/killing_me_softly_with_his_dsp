@@ -1,4 +1,5 @@
 #include "SliceManager.h"
+#include <algorithm>
 
 SliceManager::SliceManager(juce::AudioFormatManager& formatManager, Method sliceMethod)
 : SampleManager(formatManager)
@@ -43,12 +44,14 @@ void SliceManager::setDivisions(float divisions)
 
 void SliceManager::addSlice(size_t position)
 {
-    // TODO: Check its not already there - or use a set?
-    mSlicePositions.push_back(position);
     
-    if(mSliceMethod == Method::manual)
+    if(std::find(mSlicePositions.begin(), mSlicePositions.end(), position) == mSlicePositions.end())
     {
-        performSlice();
+        mSlicePositions.push_back(position);
+        if(mSliceMethod == Method::manual)
+        {
+            performSlice();
+        }
     }
 }
 
@@ -72,11 +75,17 @@ SliceManager::Slice SliceManager::getCurrentSlice() const
 // Sets the current slice to a random one and returns it
 SliceManager::Slice SliceManager::setRandomSlice()
 {
+    // this is a hack to prevent a threading issue
+    if(mSlicePositions.size() == 0)
+    {
+        return mCurrentSlice;
+    }
+ 
     // TODO: better random approach
     auto const sliceIndex = static_cast<size_t>(Random::getSystemRandom().nextInt(static_cast<int>(mSlicePositions.size())));
     auto const sliceStart = mSlicePositions[sliceIndex];
     auto const isFinalSlice = sliceIndex == mSlicePositions.size() - 1;
-    auto const sliceEnd = isFinalSlice ? getBufferNumSamples() : mSlicePositions[sliceIndex + 1];
+    auto const sliceEnd = isFinalSlice ? getBufferNumSamples() - 1  : mSlicePositions[sliceIndex + 1];
     
     jassert(sliceStart < sliceEnd);
     
@@ -132,6 +141,11 @@ void SliceManager::performSlice()
     }
     else if(mSliceMethod == transients)
     {
+        /*
+         TODO:
+         This happens on the message thread and can cause problems
+         for the audio thread still trying to access it 
+         */
         mSlicePositions.clear();
         
         AudioAnalyser::DetectionSettings detectionSettings;

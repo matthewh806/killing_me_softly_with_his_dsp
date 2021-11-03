@@ -176,7 +176,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mSliceTypeCombobox.comboBox.onChange = [this]()
     {
         auto const idx = mSliceTypeCombobox.comboBox.getSelectedItemIndex();
-        mAudioSource.getSliceManager().setSliceMethod(static_cast<SliceManager::Method>(idx));
+        mAudioSource.setSliceMethod(static_cast<SliceManager::Method>(idx));
         
         mSliceDivsorSlider.setVisible(false);
         mSliceTransientThresholdSlider.setVisible(false);

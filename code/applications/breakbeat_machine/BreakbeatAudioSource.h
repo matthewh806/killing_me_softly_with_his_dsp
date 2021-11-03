@@ -20,6 +20,7 @@ public:
     void setReverseSampleThreshold(float threshold);
     void setRetriggerSampleThreshold(float threshold);
     void setBlockDivisionFactor(int factor);
+    void setSliceMethod(SliceManager::Method method);
     void setTransientDetectionThreshold(float threshold);
     
     void setCrossFade(float xfade);

@@ -44,7 +44,12 @@ void BreakbeatAudioSource::setRetriggerSampleThreshold(float threshold)
 void BreakbeatAudioSource::setBlockDivisionFactor(int factor)
 {
     mSliceManager.setDivisions(factor);
-    
+    setNextReadPosition(0);
+}
+
+void BreakbeatAudioSource::setSliceMethod(SliceManager::Method method)
+{
+    mSliceManager.setSliceMethod(method);
     setNextReadPosition(0);
 }
 
