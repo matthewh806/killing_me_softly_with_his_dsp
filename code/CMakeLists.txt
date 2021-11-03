@@ -7,7 +7,7 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "" FORCE)
  set(CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.1)
+project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.2)
 
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
