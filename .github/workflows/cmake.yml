@@ -3,7 +3,7 @@ name: CMake
 on:
   push:
     branches:
-      - main
+      - '**'
     tags:
       - '*'
   pull_request:
@@ -30,7 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install libsamplerate
+        brew install libsamplerate aubio
 
     - name: Configure CMake
       run: cmake -B code/build -S code -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -86,6 +86,7 @@ jobs:
          libglu1-mesa-dev mesa-common-dev
          sudo apt-get update
          sudo apt-get install libsamplerate-dev
+         sudo apt-get install aubio-tools libaubio-dev libaubio-doc
 
     - name: Configure CMake
       run: cmake -B code/build -S code -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}

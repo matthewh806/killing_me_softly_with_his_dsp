@@ -21,10 +21,11 @@ Dependencies will vary between different targets within the subproject. [JUCE](h
 [Rubberband](https://breakfastquay.com/rubberband/) is a dependency of the timestretch applications is similarly included as a dependency and
 compiled / linked as part of the cmake build system.
 
-There is one prerequesite necessary for the Rubberband library `libsamplerate`
+There are two prerequisites necessary `libsamplerate` which is used by the Rubberband library & `aubio` which is used for marker detection
+in the Breakbeat maker (I would like to include this in the CMake build stage but haven't figured out how to make it compile)
 
 ```
-brew install libsamplerate
+brew install libsamplerate aubio
 ```
 
 CMake build system

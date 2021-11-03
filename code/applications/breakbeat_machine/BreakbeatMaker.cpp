@@ -35,12 +35,25 @@ void BreakbeatContentComponent::WaveformComponent::clear()
     mThumbnail.clear();
 }
 
-void BreakbeatContentComponent::WaveformComponent::setSampleStartEnd(int64_t start, int64_t end)
+void BreakbeatContentComponent::WaveformComponent::setSlicePositions(std::vector<size_t> const& slicePositions, size_t activeSliceIndex)
 {
-    mStartSample = std::max(start, static_cast<int64_t>(0));
-    mEndSample = std::min(end, static_cast<int64_t>(mThumbnail.getTotalLength() * mSampleRate));
+    mSlicePositions.clear();
+    mSlicePositions.resize(slicePositions.size());
     
-    triggerAsyncUpdate();
+    for(size_t i = 0; i < mSlicePositions.size(); ++i)
+    {
+        mSlicePositions[i] = slicePositions[i];
+    }
+    
+    mActiveSliceIndex = activeSliceIndex;
+    
+    repaint();
+}
+
+void BreakbeatContentComponent::WaveformComponent::setActiveSlice(size_t sliceIndex)
+{
+    mActiveSliceIndex = sliceIndex;
+    repaint();
 }
 
 void BreakbeatContentComponent::WaveformComponent::resized()
@@ -50,7 +63,7 @@ void BreakbeatContentComponent::WaveformComponent::resized()
 
 void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
 {
-    juce::Rectangle<int> thumbnailBounds (10, 10, getWidth()-20, getHeight()-20);
+    juce::Rectangle<int> thumbnailBounds (0, 0, getWidth(), getHeight());
     
     if(mThumbnail.getNumChannels() == 0)
     {
@@ -67,7 +80,24 @@ void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
         mThumbnail.drawChannels(g, thumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
     }
     
-    juce::Range<int64_t> sampleRange { mStartSample, mEndSample };
+    if(mSlicePositions.size() == 0)
+    {
+        return;
+    }
+    
+    // paint all of the slices
+    g.setColour(juce::Colours::black);
+    for(size_t i = 0; i < mSlicePositions.size(); ++i)
+    {
+        auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / mThumbnail.getTotalLength();
+        g.drawVerticalLine(thumbnailBounds.getX() + static_cast<int>(thumbnailBounds.getWidth() * startRatio), thumbnailBounds.getY(), thumbnailBounds.getBottom());
+    }
+    
+    // paint active slice range;
+    auto const activeSliceStart = mSlicePositions[mActiveSliceIndex];
+    auto const activeSliceEnd = mActiveSliceIndex >= mSlicePositions.size() ? static_cast<size_t>(mThumbnail.getTotalLength() * mSampleRate) : mSlicePositions[mActiveSliceIndex + 1];
+    
+    juce::Range<size_t> sampleRange { activeSliceStart, activeSliceEnd };
     if(sampleRange.getLength() == 0)
     {
         return;
@@ -85,6 +115,14 @@ void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
     
     g.setColour(juce::Colours::blue.withAlpha(0.4f));
     g.fillRect(clipBounds);
+}
+
+void BreakbeatContentComponent::WaveformComponent::mouseDoubleClick(juce::MouseEvent const& event)
+{
+    if(onWaveformDoubleClicked != nullptr)
+    {
+        onWaveformDoubleClicked(event.x);
+    }
 }
 
 bool BreakbeatContentComponent::WaveformComponent::isInterestedInFileDrag (const StringArray& files)
@@ -124,11 +162,40 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 , mPitchShiftSlider("Pitch shift", "")
 , mCrossFadeSlider("Cross fade", "ms")
 , mSliceDivsorSlider("Slice Div", "")
+, mSliceTransientThresholdSlider("Detection Thresh.", "")
 , mChangeSampleProbabilitySlider("Swap slice", "%")
 , mReverseSampleProbabilitySlider("Reverse slice", "%")
 , mRetriggerSampleProbabilitySlider("Retrigger slice", "%")
 , mRecentFiles(recentFiles)
 {
+    addAndMakeVisible(mSliceTypeCombobox);
+    mSliceTypeCombobox.comboBox.addItem("Div", 1);
+    mSliceTypeCombobox.comboBox.addItem("Transient", 2);
+    mSliceTypeCombobox.comboBox.addItem("Manual", 3);
+    mSliceTypeCombobox.comboBox.setSelectedId(1);
+    mSliceTypeCombobox.comboBox.onChange = [this]()
+    {
+        auto const idx = mSliceTypeCombobox.comboBox.getSelectedItemIndex();
+        mAudioSource.setSliceMethod(static_cast<SliceManager::Method>(idx));
+        
+        mSliceDivsorSlider.setVisible(false);
+        mSliceTransientThresholdSlider.setVisible(false);
+        
+        auto const sliceMethod = mAudioSource.getSliceManager().getSliceMethod();
+        if(sliceMethod == SliceManager::Method::divisions)
+        {
+            mSliceDivsorSlider.setVisible(true);
+        }
+        else if(sliceMethod == SliceManager::Method::transients)
+        {
+            mSliceTransientThresholdSlider.setVisible(true);
+        }
+        else if(sliceMethod == SliceManager::Method::manual)
+        {
+            // ?
+        }
+    };
+    
     addAndMakeVisible(mPitchShiftSlider);
     mPitchShiftSlider.mLabels.add({0.0, "-24"});
     mPitchShiftSlider.mLabels.add({1.0, "24"});
@@ -136,13 +203,14 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mPitchShiftSlider.setValue(0.0, juce::NotificationType::dontSendNotification);
     mPitchShiftSlider.onValueChange = [this]()
     {
-        auto const stretchFactor = static_cast<float>(mSampleManager.getBufferLength() / mSampleManager.getFileLength());
+        auto const stretchFactor = static_cast<float>(mAudioSource.getSliceManager().getBufferLength() / mAudioSource.getSliceManager().getFileLength());
         auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
         
-        mSampleManager.performTimestretch(stretchFactor, pitchFactor, [this]()
+        mAudioSource.getSliceManager().performTimestretch(stretchFactor, pitchFactor, [this]()
         {
             mPlayButton.setEnabled(true);
-            mAudioSource.updateSliceSizes();
+            mAudioSource.getSliceManager().performSlice();
+            mAudioSource.setNextReadPosition(0);
             updateWaveform();
         });
     };
@@ -166,6 +234,19 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     {
         auto const divisor = static_cast<int>(std::pow(2, static_cast<int>(mSliceDivsorSlider.getValue())));
         mAudioSource.setBlockDivisionFactor(divisor);
+        mWaveformComponent.setSlicePositions(mAudioSource.getSliceManager().getSlices(), 0);
+    };
+    
+    addChildComponent(mSliceTransientThresholdSlider);
+    mSliceTransientThresholdSlider.mLabels.add({0.0, "0"});
+    mSliceTransientThresholdSlider.mLabels.add({1.0, "1"});
+    mSliceTransientThresholdSlider.setRange(0.0, 1.0, 0.1);
+    mSliceTransientThresholdSlider.setValue(0.3, dontSendNotification);
+    mSliceTransientThresholdSlider.onValueChange = [this]()
+    {
+        auto const threshold = static_cast<float>(mSliceTransientThresholdSlider.getValue());
+        mAudioSource.setTransientDetectionThreshold(threshold);
+        mWaveformComponent.setSlicePositions(mAudioSource.getSliceManager().getSlices(), 0);
     };
     
     addAndMakeVisible(mChangeSampleProbabilitySlider);
@@ -202,6 +283,21 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     };
     
     addAndMakeVisible(mWaveformComponent);
+    mWaveformComponent.onWaveformDoubleClicked = [this](int xPos)
+    {
+        // convert to slice position and set
+        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
+        auto const waveformSize = mWaveformComponent.getWidth();
+        
+        // convert to sample pos
+        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * bufferLength);
+        mAudioSource.getSliceManager().addSlice(samplePosition);
+        
+        if(mAudioSource.getSliceManager().getSliceMethod() != SliceManager::Method::manual)
+        {
+            mSliceTypeCombobox.comboBox.setSelectedItemIndex(static_cast<int>(SliceManager::Method::manual));
+        }
+    };
     
     addAndMakeVisible(mSampleLengthSeconds);
     mSampleDesiredLengthSeconds.setNumberOfDecimals(3);
@@ -216,12 +312,13 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         changeState(TransportState::Stopping);
         mPlayButton.setEnabled(false);
         
-        auto const stretchFactor = static_cast<float>(value / mSampleManager.getFileLength());
+        auto const stretchFactor = static_cast<float>(value / mAudioSource.getSliceManager().getFileLength());
         auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
-        mSampleManager.performTimestretch(stretchFactor, pitchFactor, [this]()
+        mAudioSource.getSliceManager().performTimestretch(stretchFactor, pitchFactor, [this]()
         {
             mPlayButton.setEnabled(true);
-            mAudioSource.updateSliceSizes();
+            mAudioSource.getSliceManager().performSlice();
+            mAudioSource.setNextReadPosition(0);
             updateWaveform();
         });
     };
@@ -263,12 +360,12 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     addAndMakeVisible(mFileSampleRateLabel);
     mFileSampleRateLabel.setEditable(false);
     
-    setSize (500, 580);
+    setSize (500, 620);
 
     mFormatManager.registerBasicFormats();
     
     mTransportSource.addChangeListener(this);
-    
+    mAudioSource.getSliceManager().addChangeListener(this);
     mWaveformComponent.getThumbnail().addChangeListener(this);
     
     startThread();
@@ -291,12 +388,18 @@ void BreakbeatContentComponent::resized()
     auto const threeFieldRowElementWidth = bounds.getWidth() / 4;
     auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
     
+    auto firstRowBounds = bounds.removeFromTop(20);
+    mSliceTypeCombobox.setBounds(firstRowBounds.removeFromRight(static_cast<int>(threeFieldRowElementWidth * 1.5)));
+    
+    bounds.removeFromTop(20);
+    
     auto secondRowBounds = bounds.removeFromTop(100);
     mPitchShiftSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
     secondRowBounds.removeFromLeft(threeFieldRowSpacing);
     mCrossFadeSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
     secondRowBounds.removeFromLeft(threeFieldRowSpacing);
     mSliceDivsorSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    mSliceTransientThresholdSlider.setBounds(mSliceDivsorSlider.getBounds());
     
     bounds.removeFromTop(20);
     
@@ -369,10 +472,6 @@ void BreakbeatContentComponent::getNextAudioBlock (const AudioSourceChannelInfo&
     
     juce::AudioBuffer<float> localBuffer(mTemporaryChannels.data(), numChannels, numSamples);
     mRecorder.processBlock(localBuffer);
-    
-    auto const start = mAudioSource.getStartReadPosition();
-    auto const end = start + mAudioSource.getSliceSize();
-    mWaveformComponent.setSampleStartEnd(start, end);
 }
 
 void BreakbeatContentComponent::releaseResources()
@@ -401,21 +500,29 @@ void BreakbeatContentComponent::changeListenerCallback(juce::ChangeBroadcaster* 
     {
         changeState(mTransportSource.isPlaying() ? TransportState::Playing : TransportState::Stopped);
     }
+    else if(source == &mAudioSource.getSliceManager())
+    {
+        // update the waveform
+        auto const& slices = mAudioSource.getSliceManager().getSlices();
+        auto const activeSlice = mAudioSource.getSliceManager().getCurrentSliceIndex();
+        mWaveformComponent.setSlicePositions(slices, activeSlice);
+    }
 }
 
 void BreakbeatContentComponent::handleAsyncUpdate()
 {
-    mFileNameLabel.setText(mSampleManager.getSampleFileName(), juce::NotificationType::dontSendNotification);
-    mFileSampleRateLabel.setText(juce::String(mSampleManager.getSampleSampleRate()), juce::NotificationType::dontSendNotification);
+    mFileNameLabel.setText(mAudioSource.getSliceManager().getSampleFileName(), juce::NotificationType::dontSendNotification);
+    mFileSampleRateLabel.setText(juce::String(mAudioSource.getSliceManager().getSampleSampleRate()), juce::NotificationType::dontSendNotification);
     
-    mSampleLengthSeconds.setValue(mSampleManager.getFileLength(), juce::NotificationType::sendNotification);
+    mSampleLengthSeconds.setValue(mAudioSource.getSliceManager().getFileLength(), juce::NotificationType::sendNotification);
     
     auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
-    mSampleManager.performTimestretch(1.0f, pitchFactor, [this]()
+    mAudioSource.getSliceManager().performTimestretch(1.0f, pitchFactor, [this]()
     {
-        mSampleDesiredLengthSeconds.setValue(mSampleManager.getBufferLength(), juce::NotificationType::dontSendNotification);
+        mSampleDesiredLengthSeconds.setValue(mAudioSource.getSliceManager().getBufferLength(), juce::NotificationType::dontSendNotification);
         mPlayButton.setEnabled(true);
-        mAudioSource.updateSliceSizes();
+        mAudioSource.getSliceManager().performSlice();
+        mAudioSource.setNextReadPosition(0);
         
         updateWaveform();
     });
@@ -515,9 +622,9 @@ void BreakbeatContentComponent::checkForPathToOpen()
     }
     
     juce::String error;
-    if(mSampleManager.loadNewSample(pathToOpen, error))
+    if(mAudioSource.getSliceManager().loadNewSample(pathToOpen, error))
     {
-        mTransportSource.setSource(&mAudioSource, 0, nullptr, mSampleManager.getSampleSampleRate());
+        mTransportSource.setSource(&mAudioSource, 0, nullptr, mAudioSource.getSliceManager().getSampleSampleRate());
     }
     else
     {
@@ -531,12 +638,12 @@ void BreakbeatContentComponent::checkForPathToOpen()
 
 void BreakbeatContentComponent::checkForBuffersToFree()
 {
-    mSampleManager.clearFreeBuffers();
+    mAudioSource.getSliceManager().clearFreeBuffers();
 }
 
 void BreakbeatContentComponent::updateWaveform()
 {
     mWaveformComponent.clear();
-    mWaveformComponent.getThumbnail().reset(2, mSampleManager.getSampleSampleRate());
-    mWaveformComponent.getThumbnail().addBlock(0, *mSampleManager.getActiveBuffer(), 0, static_cast<int>(mSampleManager.getBufferNumSamples()));
+    mWaveformComponent.getThumbnail().reset(2, mAudioSource.getSliceManager().getSampleSampleRate());
+    mWaveformComponent.getThumbnail().addBlock(0, *mAudioSource.getSliceManager().getActiveBuffer(), 0, static_cast<int>(mAudioSource.getSliceManager().getBufferNumSamples()));
 }

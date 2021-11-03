@@ -7,10 +7,13 @@ target_sources(BreakbeatMachine
     PRIVATE
         ${CoreSources}
         ${DspSources}
+        ${AnalysisSources}
         ${UISources}
         ${UtilsSources}
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SampleManager.h
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SampleManager.cpp
+        ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SliceManager.h
+        ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SliceManager.cpp
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatAudioSource.h
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatAudioSource.cpp
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatMaker.h
@@ -26,8 +29,10 @@ target_compile_definitions(BreakbeatMachine
         JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_gui_app` call
         JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:BreakbeatMachine,JUCE_PRODUCT_NAME>"
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:BreakbeatMachine,JUCE_VERSION>")
-        
-target_include_directories(RealTimeStretch PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/rubberband/rubberband)
+
+target_include_directories(BreakbeatMachine PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/rubberband/rubberband)
+target_include_directories(BreakbeatMachine PRIVATE /usr/local/include/aubio)
+target_include_directories(BreakbeatMachine PRIVATE /usr/include/aubio)
 
 target_link_libraries(BreakbeatMachine
     PRIVATE
@@ -37,4 +42,5 @@ target_link_libraries(BreakbeatMachine
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
-        rubberband)
+        rubberband
+        ${AUBIO})

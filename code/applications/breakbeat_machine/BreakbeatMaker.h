@@ -81,13 +81,15 @@ private:
         
         juce::AudioThumbnail& getThumbnail();
         
-        void setSampleStartEnd(int64_t start, int64_t end);
+        void setSlicePositions(std::vector<size_t> const& slicePositions, size_t activeSliceIndex);
+        void setActiveSlice(size_t sliceIndex);
         
         void clear();
         
         // juce::Component
         void resized() override;
         void paint(juce::Graphics& g) override;
+        void mouseDoubleClick(juce::MouseEvent const& event) override;
         
         // juce::FileDragAndDropTarget
         bool isInterestedInFileDrag (const StringArray& files) override;
@@ -96,6 +98,8 @@ private:
         // juce::AsyncUpdater
         void handleAsyncUpdate() override;
         
+        std::function<void(int)> onWaveformDoubleClicked = nullptr;
+        
     private:
         BreakbeatContentComponent& mParentComponent;
         
@@ -103,8 +107,8 @@ private:
         juce::AudioThumbnailCache mThumbnailCache;
         juce::AudioThumbnail mThumbnail;
         
-        int64_t mStartSample = 0;
-        int64_t mEndSample = 0;
+        std::vector<size_t> mSlicePositions;
+        size_t mActiveSliceIndex {0};
         
         double mSampleRate = 44100.0;
     };
@@ -117,9 +121,12 @@ private:
     void updateWaveform();
     //==========================================================================
     
+    ComboBoxWithLabel mSliceTypeCombobox {"Slice type"};
+    
     RotarySliderWithLabels mPitchShiftSlider;
     RotarySliderWithLabels mCrossFadeSlider;
     SliceRotarySlider mSliceDivsorSlider;
+    RotarySliderWithLabels mSliceTransientThresholdSlider;
     RotarySliderWithLabels mChangeSampleProbabilitySlider;
     RotarySliderWithLabels mReverseSampleProbabilitySlider;
     RotarySliderWithLabels mRetriggerSampleProbabilitySlider;
@@ -139,7 +146,7 @@ private:
     juce::RecentlyOpenedFilesList& mRecentFiles;
     juce::AudioFormatManager mFormatManager;
     
-    BreakbeatAudioSource mAudioSource {mSampleManager};
+    BreakbeatAudioSource mAudioSource {mFormatManager};
     juce::AudioTransportSource mTransportSource;
     
     std::vector<float*> mTemporaryChannels;
@@ -147,7 +154,6 @@ private:
     FileRecorder mRecorder {mFormatManager};
     bool mRecording = false;
     
-    SampleManager mSampleManager {mFormatManager};
     SliceExporter mSliceExporter {mFormatManager};
     
     WaveformComponent mWaveformComponent { *this, mFormatManager };

@@ -1,23 +1,27 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "SampleManager.h"
+#include <algorithm>
+#include "SliceManager.h"
 
 class BreakbeatAudioSource
 : public PositionableAudioSource
 {
 public:
-    BreakbeatAudioSource(SampleManager& sampleManager);
+    BreakbeatAudioSource(juce::AudioFormatManager& formatManager);
     ~BreakbeatAudioSource() override;
     
-    int getNumSlices() const;
-    int64_t getSliceSize() const;
+    size_t getNumSlices() const;
     int64_t getStartReadPosition() const;
+    
+    SliceManager& getSliceManager();
     
     void setSampleChangeThreshold(float threshold);
     void setReverseSampleThreshold(float threshold);
     void setRetriggerSampleThreshold(float threshold);
     void setBlockDivisionFactor(int factor);
+    void setSliceMethod(SliceManager::Method method);
+    void setTransientDetectionThreshold(float threshold);
     
     void setCrossFade(float xfade);
     
@@ -37,11 +41,9 @@ public:
     
     void clear();
     
-    void updateSliceSizes();
-    
 private:
     
-    SampleManager& mSampleManager;
+    SliceManager mSliceManager;
     
     std::atomic<int64_t> mNextReadPosition {0};
     std::atomic<int64_t> mSliceStartPosition {0};
@@ -52,10 +54,6 @@ private:
     
     std::atomic<bool> mRandomPosition {false};
     std::atomic<bool> mRandomDirection {false};
-    
-    std::atomic<int> mNumSlices {1};
-    std::atomic<int> mSliceSampleSize {1}; // in samples
-    std::atomic<int> mBlockDivisionFactor {1};
     
     std::atomic<float> mCrossFade {100.0f};  //ms
 };

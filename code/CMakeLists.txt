@@ -12,6 +12,8 @@ project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.1)
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
 
+find_library(AUBIO NAMES aubio)
+
 set(CoreSources
     ${CMAKE_SOURCE_DIR}/core/Allocators.h
     ${CMAKE_SOURCE_DIR}/core/Allocators.cpp
@@ -61,6 +63,12 @@ set(DspSources
     ${CMAKE_SOURCE_DIR}/dsp/processors/TemplateProcessor.cpp
 )
 source_group("Source/DspSources" FILES ${DspSources})
+
+set(AnalysisSources
+    ${CMAKE_SOURCE_DIR}/analysis/AudioAnalyser.h
+    ${CMAKE_SOURCE_DIR}/analysis/AudioAnalyser.cpp
+)
+source_group("Source/AnalysisSources" FILES ${AnalysisSources})
 
 set(UtilsSources
     ${CMAKE_SOURCE_DIR}/utils/FileRecorder.h
