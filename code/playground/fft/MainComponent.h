@@ -1,0 +1,75 @@
+#pragma once
+
+#include "JuceHeader.h"
+#include "../../ui/CustomLookAndFeel.h"
+
+//==============================================================================
+class MainComponent   : public juce::AudioAppComponent, juce::ChangeListener
+{
+public:
+    //==============================================================================
+    MainComponent();
+    ~MainComponent() override;
+
+    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
+    void releaseResources() override;
+    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
+
+    //==============================================================================
+    void paint (juce::Graphics&) override;
+    void resized() override;
+    
+private:
+    //==============================================================================
+    enum TransportState
+    {
+        Stopped,
+        Starting,
+        Playing,
+        Stopping
+    };
+    
+    static constexpr auto mFFTOrder = 11;
+    static constexpr auto mFFTSize = 1 << mFFTOrder;
+    
+    void openButtonClicked();
+    void playButtonClicked(juce::PositionableAudioSource* audioSource);
+    void stopButtonClicked();
+    
+    void performFFT();
+    
+    void changeState(TransportState newState);
+    void changeListenerCallback (juce::ChangeBroadcaster* source) override;
+    
+    int mBlockSize;
+    int mSampleRate;
+    
+    juce::TextButton mOpenButton;
+    
+    std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource;
+    std::unique_ptr<juce::MemoryAudioSource> mReconstructedReaderSource;
+    
+    juce::TextButton mPlayButton;
+    juce::TextButton mStopButton;
+    juce::TextButton mFFTButton;
+    
+    juce::TextButton mPerformFFTButton;
+    juce::TextButton mPlayReconstructedSoundButton;
+    
+    juce::AudioFormatManager mFormatManager;
+    juce::AudioTransportSource mTransportSource;
+    juce::AudioSampleBuffer mFileBuffer;
+    
+    TransportState mState;
+    
+    juce::dsp::FFT mFFT {mFFTOrder};
+    std::array<float, mFFTSize * 2> mFFTData;
+    size_t mFifoIndex = 0;
+    size_t mOutputIndex = 0;
+    bool mPerformFFT = false;
+    bool mOutputAvailable = false;
+    
+    juce::AudioSampleBuffer mReconstructedAudioBuffer;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
+};

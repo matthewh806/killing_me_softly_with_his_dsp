@@ -78,3 +78,4 @@ set(UtilsSources
 source_group("Source/UtilsSources" FILES ${UtilsSources})
 
 add_subdirectory(applications)
+add_subdirectory(playground)
