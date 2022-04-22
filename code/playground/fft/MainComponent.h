@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JuceHeader.h"
+#include "FFTWrapper.h"
 #include "../../ui/CustomLookAndFeel.h"
 
 //==============================================================================
@@ -28,9 +29,6 @@ private:
         Playing,
         Stopping
     };
-    
-    static constexpr auto mFFTOrder = 11;
-    static constexpr auto mFFTSize = 1 << mFFTOrder;
     
     void openButtonClicked();
     void playButtonClicked(juce::PositionableAudioSource* audioSource);
@@ -62,8 +60,8 @@ private:
     
     TransportState mState;
     
-    juce::dsp::FFT mFFT {mFFTOrder};
-    std::array<float, mFFTSize * 2> mFFTData;
+    FFTWrapper mFFTWrapper;
+    std::array<float, FFTWrapper::FFTSize * 2> mFFTData;
     size_t mFifoIndex = 0;
     size_t mOutputIndex = 0;
     bool mPerformFFT = false;

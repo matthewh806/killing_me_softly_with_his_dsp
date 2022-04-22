@@ -196,12 +196,12 @@ void MainComponent::performFFT()
     auto remainingSamples = numSamples;
     while(remainingSamples > 0)
     {
-        auto const samplesToRead = std::min(mFFTSize, remainingSamples);
+        auto const samplesToRead = std::min(FFTWrapper::FFTSize, remainingSamples);
         mFFTData.fill(0.0f);
         std::copy(&fileChannelData[0] + readPosition, &fileChannelData[0] + readPosition + samplesToRead, mFFTData.begin());
         
-        mFFT.performRealOnlyForwardTransform(mFFTData.data());
-        mFFT.performRealOnlyInverseTransform(mFFTData.data());
+        mFFTWrapper.performRealForwardTransform(mFFTData.data());
+        mFFTWrapper.performRealInverseTransform(mFFTData.data());
         
         mReconstructedAudioBuffer.copyFrom(0, writePosition, mFFTData.data(), samplesToRead);
         
@@ -209,9 +209,6 @@ void MainComponent::performFFT()
         writePosition += samplesToRead;
         remainingSamples -= samplesToRead;
     }
-    
-    //mFileBuffer.setSize(static_cast<int>(reader->numChannels), static_cast<int>(reader->lengthInSamples));
-    //reader->read(&mFileBuffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, true);
     
     auto newSource = std::make_unique<juce::MemoryAudioSource> (mReconstructedAudioBuffer, true);
     mReconstructedReaderSource.reset(newSource.release());
