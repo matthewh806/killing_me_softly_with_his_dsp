@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "RubberbandPitchShifter.h"
 
 //==============================================================================
 class DopplerShiftProcessor  : public AudioProcessor
@@ -14,58 +15,22 @@ public:
                                            .withOutput ("Output", AudioChannelSet::stereo()))
     {
         addParameter (mSourceFrequency = new AudioParameterFloat ("sourceFrequency", "SourceFrequency", 0.0f, 1000.0f, 220.0f));
-        addParameter (mSourceFrequency = new AudioParameterFloat ("sourceVelocity", "SourceVelocity", 0.0f, 344.0f, 30.0f));
+        addParameter (mSourceVelocity = new AudioParameterFloat ("sourceVelocity", "SourceVelocity", 0.0f, 344.0f, 30.0f));
     }
 
     //==============================================================================
-    void prepareToPlay (double, int) override
+    void prepareToPlay (double samplesPerBlockExpected, int sampleRate) override
     {
-        
+        mPitchShifter = std::make_unique<RubberbandPitchShifter>(sampleRate, 2, samplesPerBlockExpected);
     }
     
-    void releaseResources() override {}
-
-    void processBlock (AudioBuffer<float>& buffer, MidiBuffer&) override
+    void releaseResources() override
     {
-        auto* channelData = buffer.getReadPointer(0);
-        for(auto i = 0; i < buffer.getNumSamples(); ++i)
-        {
-            if(mFifoIndex == mFFTSize)
-            {
-                std::fill(mFFTData.begin(), mFFTData.end(), 0.0f);
-                std::copy(mFifo.begin(), mFifo.end(), mFFTData.begin());
-                mFifoIndex = 0;
-                mPerformFFT = true;
-            }
-            mFifo[mFifoIndex++] = channelData[i];
-        }
-        
-        buffer.clear();
-        // fill buffer for output if there is some available
-        if(mOutputAvailable && mOutputIndex < mFFTSize)
-        {
-            auto outChannelData = buffer.getWritePointer(0);
-            auto const samplesToRead = std::min(static_cast<size_t>(buffer.getNumSamples()), static_cast<size_t>(mFFTSize) - mOutputIndex);
-            for(size_t i = 0; i < samplesToRead; ++i)
-            {
-                outChannelData[i] = mFFTData[i + mOutputIndex];
-            }
-            
-            mOutputIndex += samplesToRead;
-            if(mOutputIndex >= mFFTSize)
-            {
-                mOutputAvailable = false;
-                mOutputIndex = 0;
-            }
-        }
-        
-        if(mPerformFFT)
-        {
-            mPerformFFT = false;
-            mOutputAvailable = true;
-            mFFT.performRealOnlyForwardTransform(mFFTData.data());
-            mFFT.performRealOnlyInverseTransform(mFFTData.data());
-        }
+    }
+
+    void processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiBuffer) override
+    {
+        mPitchShifter->process(buffer, buffer.getNumSamples());
     }
 
     //==============================================================================
@@ -107,19 +72,11 @@ public:
 
 private:
     //==============================================================================
-    static constexpr auto mFFTOrder = 10;
-    static constexpr auto mFFTSize = 1 << mFFTOrder;
     
     AudioParameterFloat* mSourceFrequency;
     AudioParameterFloat* mSourceVelocity;
     
-    juce::dsp::FFT mFFT {mFFTOrder};
-    std::array<float, mFFTSize> mFifo;
-    std::array<float, mFFTSize * 2> mFFTData;
-    size_t mFifoIndex = 0;
-    size_t mOutputIndex = 0;
-    bool mPerformFFT = false;
-    bool mOutputAvailable = false;
+    std::unique_ptr<RubberbandPitchShifter> mPitchShifter;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DopplerShiftProcessor)
