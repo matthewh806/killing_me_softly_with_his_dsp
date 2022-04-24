@@ -7,8 +7,11 @@ juce_generate_juce_header(DopplerShift)
 
 set(DopplerShiftSources
     ${UISources}
+    ${DspSources}
     ${CMAKE_SOURCE_DIR}/applications/doppler_shift/DopplerShiftPlugin.h
     ${CMAKE_SOURCE_DIR}/applications/doppler_shift/DopplerShiftPlugin.cpp
+    ${CMAKE_SOURCE_DIR}/applications/doppler_shift/RubberbandPitchShifter.h
+    ${CMAKE_SOURCE_DIR}/applications/doppler_shift/RubberbandPitchShifter.cpp
 )
 source_group("Source/ApplicationSources" FILES ${DopplerShiftSources})
 
@@ -28,8 +31,8 @@ target_link_libraries(DopplerShift
 PRIVATE
     juce::juce_audio_utils
     juce::juce_gui_extra
-    juce::juce_dsp
 PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags)
+    juce::juce_recommended_warning_flags
+    rubberband)
