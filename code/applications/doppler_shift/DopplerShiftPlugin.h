@@ -14,12 +14,12 @@ public:
         : AudioProcessor (BusesProperties().withInput  ("Input",  AudioChannelSet::stereo())
                                            .withOutput ("Output", AudioChannelSet::stereo()))
     {
-        addParameter (mSourceFrequency = new AudioParameterFloat ("sourceFrequency", "SourceFrequency", 0.0f, 1000.0f, 220.0f));
+        addParameter (mSourceFrequency = new AudioParameterFloat ("sourceFrequency", "SourceFrequency", 0.1f, 4.0, 1.0));
         addParameter (mSourceVelocity = new AudioParameterFloat ("sourceVelocity", "SourceVelocity", 0.0f, 344.0f, 30.0f));
     }
 
     //==============================================================================
-    void prepareToPlay (double samplesPerBlockExpected, int sampleRate) override
+    void prepareToPlay (double sampleRate, int samplesPerBlockExpected) override
     {
         mPitchShifter = std::make_unique<RubberbandPitchShifter>(sampleRate, 2, samplesPerBlockExpected);
     }
@@ -30,6 +30,7 @@ public:
 
     void processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiBuffer) override
     {
+        mPitchShifter->setPitchRatio(mSourceFrequency->get());
         mPitchShifter->process(buffer, buffer.getNumSamples());
     }
 
