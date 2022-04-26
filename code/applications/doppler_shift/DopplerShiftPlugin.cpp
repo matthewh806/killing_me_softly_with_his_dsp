@@ -3,8 +3,8 @@
 DopplerShiftProcessor::DopplerShiftProcessor()
 : AudioProcessor (BusesProperties().withInput  ("Input",  AudioChannelSet::stereo())
                                     .withOutput ("Output", AudioChannelSet::stereo()))
+, mState(*this, nullptr, "state", {std::make_unique<AudioParameterFloat>("sourceSpeed", "SourceSpeed", NormalisableRange<float> (0.0f, 344.0f), 10.0f)})
 {
-    addParameter (mSourceSpeed = new AudioParameterFloat ("sourceSpeed", "SourceSpeed", 0.0f, 344.0f, 10.0f));
     startTimerHz(30);
 }
 
@@ -27,7 +27,7 @@ void DopplerShiftProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 //==============================================================================
 AudioProcessorEditor* DopplerShiftProcessor::createEditor()
 {
-    auto* editor = new DopplerShiftPluginEditor(*this);
+    auto* editor = new DopplerShiftPluginEditor(*this, mState);
     // TODO: Not sure this is such a good idea - but is needed to initialise positions correctly
     editor->setInitialPositions(mSourcePosition, mObserverPosition);
     return editor;
@@ -112,7 +112,7 @@ void DopplerShiftProcessor::timerCallback()
     auto const timerInterval = getTimerInterval();
     float constexpr speedOfSound = 344.0f / 1000.0f;
     
-    const auto srcSpeed = mSourceSpeed->get() / 1000.0f;
+    const auto srcSpeed = *mState.getRawParameterValue("sourceSpeed") / 1000.0f;
     const auto srcVelocity = srcSpeed * mSourceDirection;
     
     auto const prevSourceXPosition = mSourcePosition.getX();
