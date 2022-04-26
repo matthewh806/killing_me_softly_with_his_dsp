@@ -48,6 +48,8 @@ private:
     void timerCallback() override;
     //==============================================================================
     
+    juce::AudioProcessorValueTreeState mState;
+    
     float static constexpr timerUpdateTime = 1000; // 1 second
     
     // TODO: Check the thread saftey of this parameter
@@ -57,8 +59,6 @@ private:
     juce::Point<float> mSourcePosition {-30.0f, 0.0f};
     juce::Point<float> mObserverPosition {0.0f, 30.0f};
     float mSourceDirection {1.0f};
-    
-    AudioParameterFloat* mSourceSpeed;
     
     std::unique_ptr<RubberbandPitchShifter> mPitchShifter;
 

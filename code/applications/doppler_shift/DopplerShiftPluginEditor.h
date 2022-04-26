@@ -49,14 +49,12 @@ class DopplerShiftPluginEditor
 /*, private juce::Timer*/
 {
 public:
-    DopplerShiftPluginEditor (AudioProcessor& audioProcessor)
+    DopplerShiftPluginEditor (AudioProcessor& audioProcessor, juce::AudioProcessorValueTreeState& state)
     : AudioProcessorEditor(audioProcessor)
+    , mSourceSpeedAttachment(state, "sourceSpeed", mSourceSpeedSlider)
     {
-        addAndMakeVisible(mSourceSpeedNumberField);
-        mSourceSpeedNumberField.onValueChanged = [this](double value)
-        {
-            // TODO;
-        };
+        addAndMakeVisible(mSourceSpeedSlider);
+        mSourceSpeedSliderLabel.attachToComponent(&mSourceSpeedSlider, true);
         
         addAndMakeVisible(mDopplerScene);
         setSize(400, 400);
@@ -76,10 +74,10 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced(20, 20);
-        auto const bottomBounds = bounds.removeFromBottom(30);
+        auto bottomBounds = bounds.removeFromBottom(30);
         auto const sceneBounds = bounds;
         
-        mSourceSpeedNumberField.setBounds(bottomBounds);
+        mSourceSpeedSlider.setBounds(bottomBounds.removeFromRight(bottomBounds.getWidth() * 0.66f));
         mDopplerScene.setBounds(sceneBounds);
     }
     
@@ -104,7 +102,11 @@ private:
     //=============================================================================
     
     // TODO: Needs to be connected with the speed float audio parameter in the Plugin processor class
-    NumberFieldWithLabel mSourceSpeedNumberField {"Source Speed", "m/s", 2, true, 10.0f};
+    //NumberFieldWithLabel mSourceSpeedNumberField {"Source Speed", "m/s", 2, true, 10.0f};
+    juce::Slider mSourceSpeedSlider;
+    juce::AudioProcessorValueTreeState::SliderAttachment mSourceSpeedAttachment;
+    
+    juce::Label mSourceSpeedSliderLabel {{}, "Source Speed"};
     
     DopplerScene mDopplerScene;
     
