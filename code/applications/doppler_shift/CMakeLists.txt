@@ -10,6 +10,7 @@ set(DopplerShiftSources
     ${DspSources}
     ${CMAKE_SOURCE_DIR}/applications/doppler_shift/DopplerShiftPlugin.h
     ${CMAKE_SOURCE_DIR}/applications/doppler_shift/DopplerShiftPlugin.cpp
+    ${CMAKE_SOURCE_DIR}/applications/doppler_shift/DopplerShiftPluginEditor.h
     ${CMAKE_SOURCE_DIR}/applications/doppler_shift/RubberbandPitchShifter.h
     ${CMAKE_SOURCE_DIR}/applications/doppler_shift/RubberbandPitchShifter.cpp
 )
