@@ -63,9 +63,9 @@ void RubberbandPitchShifter::process(AudioBuffer<float>& buffer, size_t numSampl
         
         if(availableSamples > writableSamples)
         {
-            std::cerr << "RubberbandPitchShifter::process: output buffer is not large enough. size = "
-            << mOutputBuffer[0]->getSize() << ", chunk = " << availableSamples << ", space = "
-            << writableSamples << " (buffer contains " << mOutputBuffer[0]->getReadSpace() << " unread)\n";
+//            std::cerr << "RubberbandPitchShifter::process: output buffer is not large enough. size = "
+//            << mOutputBuffer[0]->getSize() << ", chunk = " << availableSamples << ", space = "
+//            << writableSamples << " (buffer contains " << mOutputBuffer[0]->getReadSpace() << " unread)\n";
         }
         
         auto const outChunk = std::min(availableSamples, writableSamples);
@@ -88,8 +88,8 @@ void RubberbandPitchShifter::process(AudioBuffer<float>& buffer, size_t numSampl
     auto const toRead = mOutputBuffer[0]->getReadSpace();
     if(toRead < static_cast<int>(numSamples))
     {
-        std::cerr << "RubberbandPitchShifter::process: buffer underrun: required = " << numSamples
-        << ", available = " << toRead << "\n";
+//        std::cerr << "RubberbandPitchShifter::process: buffer underrun: required = " << numSamples
+//        << ", available = " << toRead << "\n";
     }
     
     auto const chunk = std::min(toRead, static_cast<int>(numSamples));
