@@ -57,7 +57,6 @@ private:
     
     // Note in this way origin is defined as the center of the world (not the left top / bottom corner)!
     juce::Point<float> mSourcePosition {-30.0f, 0.0f};
-    juce::Point<float> mObserverPosition {0.0f, 30.0f};
     float mSourceDirection {1.0f};
     
     std::unique_ptr<RubberbandPitchShifter> mPitchShifter;
