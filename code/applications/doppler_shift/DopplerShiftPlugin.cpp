@@ -116,26 +116,36 @@ void DopplerShiftProcessor::timerCallback()
     const auto srcVelocity = srcSpeed * mSourceDirection;
     
     auto const prevSourceXPosition = mSourcePosition.getX();
+    auto const prevFreqValue = mFrequencyRatio;
     auto const newSourceXPositon = mSourcePosition.getX() + timerInterval * srcVelocity;
     if(newSourceXPositon >= drawingViewHalfWidth || newSourceXPositon <= -drawingViewHalfWidth)
     {
         mSourceDirection *= -1;
     }
     
-    mSourcePosition = { std::clamp(newSourceXPositon, -drawingViewHalfWidth, drawingViewHalfWidth), mSourcePosition.getY()};
+    mSourcePosition = { std::clamp(newSourceXPositon, -drawingViewHalfWidth, drawingViewHalfWidth), mSourcePosition.getY() };
     
     // work out angle based on source distance
-    float angleRelativeToObserver = std::atan2(mObserverPosition.getY(), mSourcePosition.getX());
+    float angleRelativeToObserver = std::atan2(mObserverPosition.getY(), std::abs(mSourcePosition.getX()));
+    if(mSourcePosition.getX() > 0.0f)
+    {
+        angleRelativeToObserver -= MathConstants<float>::pi - angleRelativeToObserver;
+    }
+    
     float radialSpeed = srcVelocity * std::cos(angleRelativeToObserver);
     mFrequencyRatio = speedOfSound / (speedOfSound - radialSpeed);
     
     editor->updatePositions({mSourcePosition.getX() - prevSourceXPosition, 0.0f});
     
+    auto const incordec = (mFrequencyRatio > prevFreqValue) ? "increasing" : "decreasing";
+    
     std::cout
-    << "velocity=" << srcVelocity
+    << ", radialSpeed=" << radialSpeed * 1000.0f
     << ", distance=" << mSourcePosition.getX()
     << ", angle=" << juce::radiansToDegrees(angleRelativeToObserver)
     << ", frequencyRatio=" << mFrequencyRatio
+    << ", "
+    << incordec
     << "\n";
 }
 
