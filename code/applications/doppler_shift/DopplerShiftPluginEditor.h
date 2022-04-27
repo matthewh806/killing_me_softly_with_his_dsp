@@ -52,9 +52,13 @@ public:
     DopplerShiftPluginEditor (AudioProcessor& audioProcessor, juce::AudioProcessorValueTreeState& state)
     : AudioProcessorEditor(audioProcessor)
     , mSourceSpeedAttachment(state, "sourceSpeed", mSourceSpeedSlider)
+    , mObserverYPositionAttachment(state, "observerY", mObserverYPositionSlider)
     {
         addAndMakeVisible(mSourceSpeedSlider);
         mSourceSpeedSliderLabel.attachToComponent(&mSourceSpeedSlider, true);
+        
+        addAndMakeVisible(mObserverYPositionSlider);
+        mObserverYPositionSliderLabel.attachToComponent(&mObserverYPositionSlider, true);
         
         addAndMakeVisible(mDopplerScene);
         setSize(400, 400);
@@ -74,17 +78,20 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced(20, 20);
-        auto bottomBounds = bounds.removeFromBottom(30);
-        auto const sceneBounds = bounds;
         
-        mSourceSpeedSlider.setBounds(bottomBounds.removeFromRight(bottomBounds.getWidth() * 0.66f));
-        mDopplerScene.setBounds(sceneBounds);
+        mObserverYPositionSlider.setBounds(bounds.removeFromBottom(20).removeFromRight(bounds.getWidth() * 0.66f));
+        mSourceSpeedSlider.setBounds(bounds.removeFromBottom(20).removeFromRight(bounds.getWidth() * 0.66f));
+        mDopplerScene.setBounds(bounds);
     }
     
-    void setInitialPositions(juce::Point<float> sourcePosition, juce::Point<float> observerPosition)
+    void setSourcePosition(juce::Point<float> position)
     {
-        mDopplerScene.setObserverPosition(observerPosition);
-        mDopplerScene.setSourcePosition(sourcePosition);
+        mDopplerScene.setSourcePosition(position);
+    }
+    
+    void setObserverPosition(juce::Point<float> position)
+    {
+        mDopplerScene.setObserverPosition(position);
     }
     
     void updatePositions(juce::Point<float> increment)
@@ -101,12 +108,14 @@ public:
 private:
     //=============================================================================
     
-    // TODO: Needs to be connected with the speed float audio parameter in the Plugin processor class
-    //NumberFieldWithLabel mSourceSpeedNumberField {"Source Speed", "m/s", 2, true, 10.0f};
     juce::Slider mSourceSpeedSlider;
     juce::AudioProcessorValueTreeState::SliderAttachment mSourceSpeedAttachment;
     
+    juce::Slider mObserverYPositionSlider;
+    juce::AudioProcessorValueTreeState::SliderAttachment mObserverYPositionAttachment;
+    
     juce::Label mSourceSpeedSliderLabel {{}, "Source Speed"};
+    juce::Label mObserverYPositionSliderLabel {{}, "Observer Y"};
     
     DopplerScene mDopplerScene;
     

@@ -3,7 +3,13 @@
 DopplerShiftProcessor::DopplerShiftProcessor()
 : AudioProcessor (BusesProperties().withInput  ("Input",  AudioChannelSet::stereo())
                                     .withOutput ("Output", AudioChannelSet::stereo()))
-, mState(*this, nullptr, "state", {std::make_unique<AudioParameterFloat>("sourceSpeed", "SourceSpeed", NormalisableRange<float> (0.0f, 344.0f), 10.0f)})
+, mState(*this,
+         nullptr,
+         "state",
+         {
+            std::make_unique<AudioParameterFloat>("sourceSpeed", "SourceSpeed", NormalisableRange<float> (0.0f, 344.0f), 10.0f),
+            std::make_unique<AudioParameterFloat>("observerY", "ObserverY", NormalisableRange<float>(0.0f, 100.0f), 30.0f)
+})
 {
     startTimerHz(30);
 }
@@ -29,7 +35,8 @@ AudioProcessorEditor* DopplerShiftProcessor::createEditor()
 {
     auto* editor = new DopplerShiftPluginEditor(*this, mState);
     // TODO: Not sure this is such a good idea - but is needed to initialise positions correctly
-    editor->setInitialPositions(mSourcePosition, mObserverPosition);
+    editor->setSourcePosition(mSourcePosition);
+    editor->setObserverPosition({0.0f, *mState.getRawParameterValue("observerY")});
     return editor;
 }
 bool DopplerShiftProcessor::hasEditor() const
@@ -113,6 +120,7 @@ void DopplerShiftProcessor::timerCallback()
     float constexpr speedOfSound = 344.0f / 1000.0f;
     
     const auto srcSpeed = *mState.getRawParameterValue("sourceSpeed") / 1000.0f;
+    const auto observerYPos = *mState.getRawParameterValue("observerY") / 1.0f;
     const auto srcVelocity = srcSpeed * mSourceDirection;
     
     auto const prevSourceXPosition = mSourcePosition.getX();
@@ -126,7 +134,7 @@ void DopplerShiftProcessor::timerCallback()
     mSourcePosition = { std::clamp(newSourceXPositon, -drawingViewHalfWidth, drawingViewHalfWidth), mSourcePosition.getY() };
     
     // work out angle based on source distance
-    float angleRelativeToObserver = std::atan2(mObserverPosition.getY(), std::abs(mSourcePosition.getX()));
+    float angleRelativeToObserver = std::atan2(observerYPos, std::abs(mSourcePosition.getX()));
     if(mSourcePosition.getX() > 0.0f)
     {
         angleRelativeToObserver -= MathConstants<float>::pi - angleRelativeToObserver;
@@ -135,6 +143,7 @@ void DopplerShiftProcessor::timerCallback()
     float radialSpeed = srcVelocity * std::cos(angleRelativeToObserver);
     mFrequencyRatio = speedOfSound / (speedOfSound - radialSpeed);
     
+    editor->setObserverPosition({0.0, observerYPos});
     editor->updatePositions({mSourcePosition.getX() - prevSourceXPosition, 0.0f});
     
     auto const incordec = (mFrequencyRatio > prevFreqValue) ? "increasing" : "decreasing";
