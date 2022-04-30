@@ -2,25 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import fft, fftfreq
 from scipy.io.wavfile import write
+import os, sys 
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
+import utils_functions as UF
 import math
-
-def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
-    '''
-    length in seconds
-    fs = sample rate
-    '''
-
-    fs = float(fs)
-    samples = np.arange(length * fs) / fs
-    print("samples: {}".format(samples))
-    signal = np.sin(2 * np.pi * frequency * samples)
-
-    print("signal: {}".format(signal))
-    return signal
 
 def generateFMSignal(carrier_frequency = 220.0, carrier_amplitude = 1.0, modulator_frequency = 220.0, modulation_index = 1.0, signal_length=1.0, sample_rate=44100.0):
     samples = np.arange(signal_length * float(sample_rate)) / float(sample_rate)
-    modulator = modulation_index * generateSineSignal(modulator_frequency, signal_length, sample_rate)
+    modulator = modulation_index * UF.generateSineSignal(modulator_frequency, signal_length, sample_rate)
     return carrier_amplitude * np.sin(2 * np.pi * carrier_frequency * samples + modulator)
 
 if __name__ == "__main__":
