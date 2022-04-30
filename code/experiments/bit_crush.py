@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import utils_functions as UF
 
 def getQuantisationLevel(bit_depth = 16):
     return 2.0 / (pow(2.0, bit_depth) - 1.0)
@@ -10,21 +11,6 @@ def bitCrushSignal(signal, bit_depth = 16):
     fn = np.vectorize(bit_crush_fn)
 
     return fn(signal)
-
-def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
-    '''
-    length in seconds
-    fs = sample rate
-    '''
-
-    fs = float(fs)
-    samples = np.arange(length * fs) / fs
-    print("samples: {}".format(samples))
-    signal = np.sin(2 * np.pi * frequency * samples)
-
-    print("signal: {}".format(signal))
-    return signal
-
 
 def plotSignal(signal, title="Signal"):
     fig = plt.figure()
@@ -54,6 +40,6 @@ def plotSignals(signal_1, signal_2, title="Signal", signal_1_title="Input Signal
 
 
 if __name__=="__main__":
-    input_signal = generateSineSignal(frequency=3)
+    input_signal = UF.generateSineSignal(frequency=3)
     crushed_signal = bitCrushSignal(input_signal, 2)
     plotSignals(input_signal, crushed_signal)
