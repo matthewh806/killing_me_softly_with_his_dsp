@@ -1,6 +1,7 @@
 import numpy as np
 import os
-from scipy.io.wavfile import read
+import copy
+from scipy.io.wavfile import read, write
 
 def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
     '''
@@ -40,3 +41,16 @@ def wavread(filepath):
         raise ValueError("Audio file should be mono or stereo, not ", len(data.shape), " channels")
 
     return sample_rate, data, 1 if len(data.shape) == 1 else data.shape[1]
+
+
+def wavwrite(y, sample_rate, filepath):
+    """
+    Write a wav file of floating point data (y) in the range [-1, 1] by converting it to int16 using sample_rate
+    and filepath
+    """
+
+    x = copy.deepcopy(y)
+    x *= INT16_FAC
+    x = np.int16(x)
+
+    write(filepath, sample_rate, y)
