@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import fft, fftfreq, rfft, rfftfreq
-from scipy.io.wavfile import write, read
 import os, sys 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 import utils_functions as UF
@@ -9,6 +8,9 @@ from filters import butter_lowpass_filter
 
 """
 Note: Only handle mono files for the time being
+
+TODO: Check the filtering operation when cutoff ~300Hz causes inf values and a messed up FFT spectrum
+TODO: Check why LP Butterworth filter seems to introduce phase shift 
 """
 
 def db_fft(in_data, sample_rate):
@@ -30,6 +32,10 @@ def db_fft(in_data, sample_rate):
     data_length = len(data)
     weighting = np.hanning(data_length)
     data *= weighting
+
+    if not np.all(np.isfinite(data)):
+        np.nan_to_num(data, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+
     fft_values = rfft(data)
     frequencies = rfftfreq(data_length, d=1/sample_rate)
     magnitude_spectrum = np.abs(fft_values) * 2 / np.sum(weighting)
@@ -37,7 +43,9 @@ def db_fft(in_data, sample_rate):
 
     return frequencies, magnitude_dbs
 
-BASE_SIGNAL_PATH = "/Users/matthew/Projects/sound/killing_me_softly_with_his_dsp/code/experiments/steganography/base_sound.wav"
+
+BASE_SIGNAL_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../sounds/daniel_guitar_mono_trimmed.wav")
+OUTPUT_AUDIO_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../sounds/output_sounds")
 
 if __name__ == "__main__":
     sample_rate, data, num_channels = UF.wavread(BASE_SIGNAL_PATH)
@@ -69,10 +77,11 @@ if __name__ == "__main__":
     plt.ylabel("Amplitude (dB)")
     plt.ylim([-100, np.amax(mag_db)])
 
-
     # Low pass filter the base signal
-    filtered_base_signal = butter_lowpass_filter(data, 18000, sample_rate, order=12)
+    filtered_base_signal = butter_lowpass_filter(data, 300, sample_rate, order=12)
     filtered_base_frequencies, filtered_base_mag_db = db_fft(filtered_base_signal, sample_rate)
+
+    UF.wavwrite(filtered_base_signal, sample_rate, os.path.join(OUTPUT_AUDIO_PATH, "filtered_base_signal.wav"))
 
     plt.subplot(413)
     plt.plot(time, filtered_base_signal)
@@ -89,3 +98,4 @@ if __name__ == "__main__":
 
     plt.subplots_adjust(hspace=0.35)
     plt.show()
+
