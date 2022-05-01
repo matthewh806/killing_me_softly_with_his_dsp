@@ -5,6 +5,7 @@ from scipy.io.wavfile import write, read
 import os, sys 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 import utils_functions as UF
+from filters import butter_lowpass_filter
 
 """
 Note: Only handle mono files for the time being
@@ -53,14 +54,38 @@ if __name__ == "__main__":
     print("num samples: ", num_samples, " frequencies: ", len(frequencies), ", mag_db: ", len(mag_db))
 
     time = np.linspace(0., length, data.shape[0])
-    plt.subplot(211)
+
+    # Plot base signal and db mag spectrum
+    plt.subplot(411)
     plt.plot(time, data)
     plt.legend()
+    plt.title("Base signal")
     plt.xlabel("Time [s]")
     plt.ylabel("Amplitude")
-    plt.subplot(212)
+    plt.subplot(412)
     plt.plot(frequencies, mag_db)
+    plt.title("Base signal spectrum")
     plt.xlabel("Frequency [Hz]")
     plt.ylabel("Amplitude (dB)")
     plt.ylim([-100, np.amax(mag_db)])
+
+
+    # Low pass filter the base signal
+    filtered_base_signal = butter_lowpass_filter(data, 18000, sample_rate, order=12)
+    filtered_base_frequencies, filtered_base_mag_db = db_fft(filtered_base_signal, sample_rate)
+
+    plt.subplot(413)
+    plt.plot(time, filtered_base_signal)
+    plt.legend()
+    plt.title("Filtered signal")
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+    plt.subplot(414)
+    plt.plot(filtered_base_frequencies, filtered_base_mag_db)
+    plt.title("Filtered signal spectrum")
+    plt.xlabel("Frequency [Hz]")
+    plt.ylabel("Amplitude (dB)")
+    plt.ylim([-100, np.amax(filtered_base_mag_db)])
+
+    plt.subplots_adjust(hspace=0.35)
     plt.show()
