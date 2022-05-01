@@ -4,7 +4,7 @@ from scipy.fft import fft, fftfreq, rfft, rfftfreq
 import os, sys 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 import utils_functions as UF
-from filters import butter_lowpass_filter
+from filters import lowpass
 
 """
 Note: Only handle mono files for the time being
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     plt.ylim([-100, np.amax(mag_db)])
 
     # Low pass filter the base signal
-    filtered_base_signal = butter_lowpass_filter(data, 300, sample_rate, order=12)
+    filtered_base_signal = lowpass.butter_lowpass_filter(data, 18000, sample_rate, order=12)
     filtered_base_frequencies, filtered_base_mag_db = db_fft(filtered_base_signal, sample_rate)
 
     UF.wavwrite(filtered_base_signal, sample_rate, os.path.join(OUTPUT_AUDIO_PATH, "filtered_base_signal.wav"))
