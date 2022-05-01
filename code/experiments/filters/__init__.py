@@ -1,1 +1,1 @@
-__all__ = ["lowpass"]
+__all__ = ["lowpass", "bandpass"]
