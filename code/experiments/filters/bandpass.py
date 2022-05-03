@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.signal import butter, freqz, lfilter
+from scipy.signal import butter, sosfilt, sosfreqz
 
 """
 TODO: 
@@ -12,7 +12,7 @@ def butter_bandpass(lowcut, highcut, sample_rate, order=5):
     highcut frequnecy
     """
 
-    return butter(order, [lowcut, highcut], fs=sample_rate, btype='bandpass', analog=False)
+    return butter(order, [lowcut, highcut], fs=sample_rate, btype='bandpass', analog=False, output='sos')
 
 
 def butter_bandpass_filter(data, lowcut, highcut, sample_rate, order):
@@ -25,21 +25,21 @@ def butter_bandpass_filter(data, lowcut, highcut, sample_rate, order):
         y: The output of the lowpass digital filter
     """
 
-    b, a = butter_bandpass(lowcut, highcut, sample_rate, order)
-    return lfilter(b, a, data)
+    sos = butter_bandpass(lowcut, highcut, sample_rate, order)
+    return sosfilt(sos, data)
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    lowcut = 80
-    highcut = 150
-    sample_rate = 400.0
-    order = 6
+    lowcut = 300    
+    highcut = 3300
+    sample_rate = 44100.0
+    order = 48
 
     # Design a filter to print the frequency response
-    b, a = butter_bandpass(lowcut, highcut, sample_rate, order=order)
-    w, h = freqz(b, a, fs=sample_rate, worN=8000)
+    sos = butter_bandpass(lowcut, highcut, sample_rate, order=order)
+    w, h = sosfreqz(sos, fs=sample_rate, worN=8000)
 
     plt.subplot(211)
     plt.plot(w, np.abs(h))
