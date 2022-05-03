@@ -31,11 +31,12 @@ class Transmitter:
         lpf_cutoff: the low pass cutoff frequency to use for the low pass filtering operation of the base signal (Hz)
         bpf_lowcutoff: the lower cutoff frequency to use for the bandpass filtering operation of the message signal (Hz)
         bpf_highpass: the upper cutoff frequency to use for the bandpass filtering operation of the message signal (Hz)
+        order: The order of the filter to create (note: same for both lpf & bpf) (int, dimensionless)
 
         Note: The number of channels & sample rate of the base signal & the message signal should be the same
     """
 
-    def __init__(self, base_filepath, message_filepath, lpf_cutoff = 18000.0, bpf_lowcutoff = 300.0, bpf_highcutoff = 3300.0):
+    def __init__(self, base_filepath, message_filepath, lpf_cutoff = 18000.0, bpf_lowcutoff = 300.0, bpf_highcutoff = 3300.0, order = 6):
         self.base_data, self.sample_rate, self.num_channels, self.base_num_samples = self._load_audio(base_filepath)
         self.message_data, message_sample_rate, num_channels, self.message_num_samples = self._load_audio(message_filepath)
 
@@ -48,6 +49,7 @@ class Transmitter:
         self.lpf_cuttoff = lpf_cutoff
         self.bpf_lowcutoff = bpf_lowcutoff
         self.bpf_highcutoff = bpf_highcutoff
+        self.filter_order = order
 
         self.filtered_base_signal = []
         self.filtered_message_signal = []
@@ -202,10 +204,10 @@ class Transmitter:
         """
         
          # Low pass filter the base signal
-        self.filtered_base_signal = butter_lowpass_filter(self.base_data, 18000, self.sample_rate, order=12)
+        self.filtered_base_signal = butter_lowpass_filter(self.base_data, 18000, self.sample_rate, order=self.filter_order)
        
          # band pass filter the message signal
-        self.filtered_message_signal = butter_bandpass_filter(self.message_data, 300, 3300, self.sample_rate, order=6)
+        self.filtered_message_signal = butter_bandpass_filter(self.message_data, 300, 3300, self.sample_rate, order=self.filter_order)
         
         # perform the frequency modulation
         message_length = self.message_num_samples / self.sample_rate
@@ -280,11 +282,12 @@ class Transmitter:
 
 class Receiver:
 
-    def __init__(self, combined_signal_path, bpf_lowcutoff = 300.0, bpf_highcutoff = 3300.0):
+    def __init__(self, combined_signal_path, bpf_lowcutoff = 300.0, bpf_highcutoff = 3300.0, order = 6):
         self.combined_data, self.sample_rate, self.num_channels, self.combined_num_samples = self._load_audio(combined_signal_path)
         
         self.bpf_lowcutoff = bpf_lowcutoff
         self.bpf_highcutoff = bpf_highcutoff
+        self.filter_order = order
 
         self.recovered_message_signal = []
         self._perform()
@@ -340,7 +343,7 @@ class Receiver:
 
         """
         
-        self.bandpassed_signal = butter_bandpass_filter(self.combined_data, self.bpf_lowcutoff, self.bpf_highcutoff, self.sample_rate, order=6)
+        self.bandpassed_signal = butter_bandpass_filter(self.combined_data, self.bpf_lowcutoff, self.bpf_highcutoff, self.sample_rate, order=self.filter_order)
 
         # demodulate
         # this is based on the Transmitter having used an original bpf filter (300.0, 1500.0). 
@@ -350,7 +353,7 @@ class Receiver:
         message_length = self.combined_num_samples / self.sample_rate
         samples = np.arange(message_length * float(self.sample_rate)) / float(self.sample_rate)
         self.recovered_message_signal = np.cos(2.0 * pi * carrier_frequency * samples + modulation_index * self.bandpassed_signal)
-        self.recovered_message_signal = butter_lowpass_filter(self.recovered_message_signal, 3300.0, self.sample_rate, order=6)
+        self.recovered_message_signal = butter_lowpass_filter(self.recovered_message_signal, 3300.0, self.sample_rate, order=self.filter_order)
 
 
     def _db_fft(self, in_data):
@@ -418,12 +421,12 @@ if __name__ == "__main__":
     output_plot_path = os.path.join(current_file_path, "../plots")
 
     # first hide the secret message inside another audio file
-    transmitter = Transmitter(base_signal_path, message_signal_path)
+    transmitter = Transmitter(base_signal_path, message_signal_path, order=96)
     transmitter.write(output_audio_path, write_intermediate=True)
     transmitter.save_plots(output_plot_path)
 
     # then recover the message from that combined audio file
     combined_signal_path = os.path.join(output_audio_path, "combined_signal.wav")
-    receiver = Receiver(combined_signal_path)
+    receiver = Receiver(combined_signal_path, order=96)
     receiver.write(output_audio_path)
     receiver.plot()
