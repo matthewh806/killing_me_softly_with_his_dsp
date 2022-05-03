@@ -60,66 +60,43 @@ class Transmitter:
 
     def plot(self):
          # Plot base signal and db mag spectrum
+        
+        def signal_plot(index, time_data, amplitude_data, title="Signal"):
+            plt.subplot(index)
+            plt.plot(time_data, amplitude_data)
+            plt.legend()
+            plt.title("Base signal")
+            plt.xlabel("Time [s]")
+            plt.ylabel("Amplitude")
+
+        def spectrum_plot(index, frequency_data, amplitude_data, title="Spectrum"):
+            plt.subplot(index)
+            plt.plot(frequency_data, amplitude_data)
+            plt.title(title)
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("Amplitude (dB)")
+            plt.ylim([-100, np.amax(amplitude_data)])
+
         base_length = self.base_num_samples / self.sample_rate
         base_time = np.linspace(0., base_length, self.base_num_samples)
         base_frequencies, base_mag_db = self._db_fft(self.base_data)
-        plt.subplot(421)
-        plt.plot(base_time, self.base_data)
-        plt.legend()
-        plt.title("Base signal")
-        plt.xlabel("Time [s]")
-        plt.ylabel("Amplitude")
-        plt.subplot(423)
-        plt.plot(base_frequencies, base_mag_db)
-        plt.title("Base signal spectrum")
-        plt.xlabel("Frequency [Hz]")
-        plt.ylabel("Amplitude (dB)")
-        plt.ylim([-100, np.amax(base_mag_db)])
-
         filtered_base_frequencies, filtered_base_mag_db = self._db_fft(self.filtered_base_signal)
-        plt.subplot(425)
-        plt.plot(base_time, self.filtered_base_signal)
-        plt.legend()
-        plt.title("Filtered base signal")
-        plt.xlabel("Time [s]")
-        plt.ylabel("Amplitude")
-        plt.subplot(427)
-        plt.plot(filtered_base_frequencies, filtered_base_mag_db)
-        plt.title("Filtered base spectrum")
-        plt.xlabel("Frequency [Hz]")
-        plt.ylabel("Amplitude (dB)")
-        plt.ylim([-100, np.amax(filtered_base_mag_db)])
+
+        signal_plot(421, base_time, self.base_data, title = "Base Signal")
+        spectrum_plot(423, base_frequencies, base_mag_db, title = "Base Spectrum")
+        signal_plot(425, base_time, self.filtered_base_signal, title = "Filtered Base Signal")
+        spectrum_plot(427, filtered_base_frequencies, filtered_base_mag_db, title = "Filtered Base Spectrum")
 
         message_length = self.message_num_samples / self.sample_rate
         message_time = np.linspace(0, message_length, self.message_num_samples)
         message_frequencies, message_mag_db = self._db_fft(self.message_data)
-        plt.subplot(422)
-        plt.plot(message_time, self.message_data)
-        plt.legend()
-        plt.title("Message signal")
-        plt.xlabel("Time [s]")
-        plt.ylabel("Amplitude")
-        plt.subplot(424)
-        plt.plot(message_frequencies, message_mag_db)
-        plt.title("Message signal spectrum")
-        plt.xlabel("Frequency [Hz]")
-        plt.ylabel("Amplitude (dB)")
-        plt.ylim([-100, np.amax(message_mag_db)])
-
         filtered_message_frequencies, filtered_message_mag_db = self._db_fft(self.filtered_message_signal)
-        plt.subplot(426)
-        plt.plot(message_time, self.filtered_message_signal)
-        plt.legend()
-        plt.title("Filtered message signal")
-        plt.xlabel("Time [s]")
-        plt.ylabel("Amplitude")
-        plt.subplot(428)
-        plt.plot(filtered_message_frequencies, filtered_message_mag_db)
-        plt.title("Filtered Message spectrum")
-        plt.xlabel("Frequency [Hz]")
-        plt.ylabel("Amplitude (dB)")
-        plt.ylim([-100, np.amax(filtered_message_mag_db)])
-
+        
+        signal_plot(422, message_time, self.message_data, title = "Message Signal")
+        spectrum_plot(424, message_frequencies, message_mag_db, title="Message Spectrum")
+        signal_plot(426, message_time, self.filtered_message_signal, title = "Filtered Message Signal")
+        spectrum_plot(428, filtered_message_frequencies, filtered_message_mag_db, title = "Filtered Message Spectrum")
+        
         plt.tight_layout()
         plt.show()
 
