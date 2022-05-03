@@ -2,7 +2,9 @@ from cmath import pi
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import fft, fftfreq, rfft, rfftfreq
-import os, sys 
+import os, sys
+from experiments.filters.bandpass import butter_bandpass_filter
+from experiments.filters.lowpass import butter_lowpass_filter 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 import utils_functions as UF
 from filters import lowpass, bandpass
@@ -118,6 +120,7 @@ class Transmitter:
         self._plot()
         plt.show()
 
+
     def write(self, output_directory, write_intermediate=False):
         """
         Writes the combined audio to disk in the specified output_directory
@@ -199,10 +202,10 @@ class Transmitter:
         """
         
          # Low pass filter the base signal
-        self.filtered_base_signal = lowpass.butter_lowpass_filter(self.base_data, 18000, self.sample_rate, order=12)
+        self.filtered_base_signal = butter_lowpass_filter(self.base_data, 18000, self.sample_rate, order=12)
        
          # band pass filter the message signal
-        self.filtered_message_signal = bandpass.butter_bandpass_filter(self.message_data, 300, 3300, self.sample_rate, order=6)
+        self.filtered_message_signal = butter_bandpass_filter(self.message_data, 300, 3300, self.sample_rate, order=6)
         
         # perform the frequency modulation
         message_length = self.message_num_samples / self.sample_rate
@@ -275,6 +278,138 @@ class Transmitter:
         plt.tight_layout()
 
 
+class Receiver:
+
+    def __init__(self, combined_signal_path, bpf_lowcutoff = 300.0, bpf_highcutoff = 3300.0):
+        self.combined_data, self.sample_rate, self.num_channels, self.combined_num_samples = self._load_audio(combined_signal_path)
+        
+        self.bpf_lowcutoff = bpf_lowcutoff
+        self.bpf_highcutoff = bpf_highcutoff
+
+        self.recovered_message_signal = []
+        self._perform()
+
+
+    def plot(self):
+        # Plot base signal and db mag spectrum
+        
+        plt.figure(figsize=(10,10))
+        def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
+            plt.subplot(nrows, ncols, n)
+            plt.plot(time_data, amplitude_data)
+            plt.legend()
+            plt.title(title)
+            plt.xlabel("Time [s]")
+            plt.ylabel("Amplitude")
+
+        def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
+            plt.subplot(nrows, ncols, n)
+            plt.plot(frequency_data, amplitude_data)
+            plt.title(title)
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("Amplitude (dB)")
+            plt.ylim([-100, np.amax(amplitude_data)])
+
+        combined_length = self.combined_num_samples / self.sample_rate
+        combined_time = np.linspace(0., combined_length, self.combined_num_samples)
+        combined_frequencies, combined_mag_db = self._db_fft(self.combined_data)
+
+        signal_plot(2,2,1, combined_time, self.combined_data, title = "Combined Signal")
+        spectrum_plot(2,2,3, combined_frequencies, combined_mag_db, title = "Combined Spectrum")
+
+        recovered_frequencies, recovered_mag_db = self._db_fft(self.recovered_message_signal)
+        signal_plot(2, 2, 2, combined_time, self.recovered_message_signal, title = "Recovered Secret Signal")
+        spectrum_plot(2, 2, 4, recovered_frequencies, recovered_mag_db, title = "Recovered Secret Spectrum")
+
+        plt.show()
+
+
+    def write(self, output_directory):
+        UF.wavwrite(self.recovered_message_signal, self.sample_rate, os.path.join(output_directory, "recovered_secret_signal.wav"))
+
+
+    def _perform(self):
+        """
+
+        Performs the operation of retrieving the hidden message from the combined source
+        The basic steps are:
+            - Remove the base signal by bandpassing above and below the hidden message
+            - Modulate the message back down to the audio range using a cosine carrier (what freq?)
+            - Lowpass the demodulated signal to remove additive noise and higher frequencies
+            - The result should be an approximation of the original message
+
+        """
+        
+        self.bandpassed_signal = butter_bandpass_filter(self.combined_data, self.bpf_lowcutoff, self.bpf_highcutoff, self.sample_rate, order=6)
+
+        # demodulate
+        # this is based on the Transmitter having used an original bpf filter (300.0, 1500.0). 
+        # TODO: Expose as param? 
+        carrier_frequency = 1500.0
+        modulation_index = 1
+        message_length = self.combined_num_samples / self.sample_rate
+        samples = np.arange(message_length * float(self.sample_rate)) / float(self.sample_rate)
+        self.recovered_message_signal = np.cos(2.0 * pi * carrier_frequency * samples + modulation_index * self.bandpassed_signal)
+        self.recovered_message_signal = butter_lowpass_filter(self.recovered_message_signal, 3300.0, self.sample_rate, order=6)
+
+
+    def _db_fft(self, in_data):
+        """
+        Performs a real FFT on the data supplied, uses a hanning window to weight the data appropriately
+        in_data: 1 dimensional normalized ([-1, 1]) numpy array of data, sample_rate: sample rate of the input audio
+
+        Note: Creates a copy of the in_data for the purposes of windowing so that we don't modify the input data
+        This is less efficient than reversing the window operation - but at least we know the in_data is totally unmodified
+
+        returns:
+            frequencies: array values based on bin centers calculated using the sample rate
+            magnitude_dbs: magnitude array of the fft data calculated using 10*log10(magnitude spectrum)
+
+            The returned array sizes are len(data) // 2 + 1
+
+        TODO: Duplication, remove
+        """
+        data = np.array(in_data, copy=True)
+        data_length = len(data)
+        weighting = np.hanning(data_length)
+        data *= weighting
+
+        if not np.all(np.isfinite(data)):
+            np.nan_to_num(data, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+
+        fft_values = rfft(data)
+        frequencies = rfftfreq(data_length, d=1/self.sample_rate)
+        magnitude_spectrum = np.abs(fft_values) * 2 / np.sum(weighting)
+        magnitude_dbs = 10*np.log10(magnitude_spectrum)
+
+        return frequencies, magnitude_dbs
+
+
+    def _load_audio(self, file_path):
+        """
+        TODO: Duplication with Transmitter class 
+        - either make an abstract base class with this filled in or pass in the file handle / data directly
+
+        Load an audio wav file located at file_path
+        Note: should be a mono file
+
+        returns:
+            data - floating point array of audio samples with range [-1,1]
+            sample_rate - the sample rate of the audio data
+            num_channels - the number of channels of audio data
+            num_samples - the number of samples in the data
+
+        """
+        sample_rate, data, num_channels = UF.wavread(file_path)
+        print(f"number of channels = {num_channels}")
+
+        if num_channels > 1:
+            raise ValueError("Base file should be mono!")
+
+        num_samples = data.shape[0]
+        return data, sample_rate, num_channels, num_samples
+
+
 if __name__ == "__main__":
     current_file_path = os.path.dirname(os.path.realpath(__file__))
     base_signal_path = os.path.join(current_file_path, "../sounds/daniel_guitar_mono_trimmed.wav")
@@ -282,6 +417,13 @@ if __name__ == "__main__":
     output_audio_path = os.path.join(current_file_path, "../sounds/output_sounds")
     output_plot_path = os.path.join(current_file_path, "../plots")
 
+    # first hide the secret message inside another audio file
     transmitter = Transmitter(base_signal_path, message_signal_path)
     transmitter.write(output_audio_path, write_intermediate=True)
     transmitter.save_plots(output_plot_path)
+
+    # then recover the message from that combined audio file
+    combined_signal_path = os.path.join(output_audio_path, "combined_signal.wav")
+    receiver = Receiver(combined_signal_path)
+    receiver.write(output_audio_path)
+    receiver.plot()
