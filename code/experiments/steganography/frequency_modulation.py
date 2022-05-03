@@ -1,3 +1,4 @@
+from cmath import pi
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import fft, fftfreq, rfft, rfftfreq
@@ -48,6 +49,7 @@ class Transmitter:
 
         self.filtered_base_signal = []
         self.filtered_message_signal = []
+        self.frequency_shifted_message_signal = []
         self.combined_signal = []
 
         self._perform()
@@ -58,48 +60,13 @@ class Transmitter:
     def set_message_bandpass_cutoff(low_freq, high_freq):
         pass
 
-    def plot(self):
-         # Plot base signal and db mag spectrum
-        
-        def signal_plot(index, time_data, amplitude_data, title="Signal"):
-            plt.subplot(index)
-            plt.plot(time_data, amplitude_data)
-            plt.legend()
-            plt.title("Base signal")
-            plt.xlabel("Time [s]")
-            plt.ylabel("Amplitude")
+    def save_plot(self, output_directory):
+        self._plot()
+        plt.savefig(os.path.join(output_directory, "steganography_plots.wav"))
 
-        def spectrum_plot(index, frequency_data, amplitude_data, title="Spectrum"):
-            plt.subplot(index)
-            plt.plot(frequency_data, amplitude_data)
-            plt.title(title)
-            plt.xlabel("Frequency [Hz]")
-            plt.ylabel("Amplitude (dB)")
-            plt.ylim([-100, np.amax(amplitude_data)])
-
-        base_length = self.base_num_samples / self.sample_rate
-        base_time = np.linspace(0., base_length, self.base_num_samples)
-        base_frequencies, base_mag_db = self._db_fft(self.base_data)
-        filtered_base_frequencies, filtered_base_mag_db = self._db_fft(self.filtered_base_signal)
-
-        signal_plot(421, base_time, self.base_data, title = "Base Signal")
-        spectrum_plot(423, base_frequencies, base_mag_db, title = "Base Spectrum")
-        signal_plot(425, base_time, self.filtered_base_signal, title = "Filtered Base Signal")
-        spectrum_plot(427, filtered_base_frequencies, filtered_base_mag_db, title = "Filtered Base Spectrum")
-
-        message_length = self.message_num_samples / self.sample_rate
-        message_time = np.linspace(0, message_length, self.message_num_samples)
-        message_frequencies, message_mag_db = self._db_fft(self.message_data)
-        filtered_message_frequencies, filtered_message_mag_db = self._db_fft(self.filtered_message_signal)
-        
-        signal_plot(422, message_time, self.message_data, title = "Message Signal")
-        spectrum_plot(424, message_frequencies, message_mag_db, title="Message Spectrum")
-        signal_plot(426, message_time, self.filtered_message_signal, title = "Filtered Message Signal")
-        spectrum_plot(428, filtered_message_frequencies, filtered_message_mag_db, title = "Filtered Message Spectrum")
-        
-        plt.tight_layout()
+    def display_plot(self):
+        self._plot()
         plt.show()
-
 
     def write(self, output_directory, write_intermediate=False):
         """
@@ -109,9 +76,12 @@ class Transmitter:
         (this is mainly useful for debugging purposes)
         """
 
+        UF.wavwrite(self.combined_signal, self.sample_rate, os.path.join(output_directory, "combined_signal.wav"))
+
         if write_intermediate:
             UF.wavwrite(self.filtered_base_signal, self.sample_rate, os.path.join(output_directory, "filtered_base_signal.wav"))
             UF.wavwrite(self.filtered_message_signal, self.sample_rate, os.path.join(output_directory, "filtered_message_signal.wav"))
+            UF.wavwrite(self.frequency_shifted_message_signal, self.sample_rate, os.path.join(output_directory, "shifted_message_signal.wav"))
 
 
     def _load_audio(self, file_path):
@@ -167,7 +137,7 @@ class Transmitter:
         return frequencies, magnitude_dbs
 
 
-    def _perform(self):
+    def _perform(self, carrier_frequency = 20000.0, modulation_index = 1.0):
         """
         Performs the message hiding operation. 
         The basic steps are:
@@ -185,6 +155,77 @@ class Transmitter:
         self.filtered_message_signal = bandpass.butter_bandpass_filter(self.message_data, 300, 3300, self.sample_rate, order=6)
         
         # perform the frequency modulation
+        message_length = self.message_num_samples / self.sample_rate
+        samples = np.arange(message_length * float(self.sample_rate)) / float(self.sample_rate)
+        self.frequency_shifted_message_signal = np.cos(2.0 * pi * carrier_frequency * samples + modulation_index * self.filtered_message_signal)
+
+        # Combine the filtered base signal with the filtered and frequency modulated message signal
+        base_num_samples = len(self.filtered_base_signal)
+        message_num_samples = len(self.frequency_shifted_message_signal)
+        if message_num_samples < base_num_samples:
+            pad_size = base_num_samples - message_num_samples
+            print("Padding message signal with: ", pad_size, " zeros")
+            self.frequency_shifted_message_signal = np.pad(self.frequency_shifted_message_signal, (0, pad_size))
+        elif message_num_samples > base_num_samples:
+            # TODO: Warn and truncate
+            pass
+
+        self.combined_signal = self.filtered_base_signal + self.frequency_shifted_message_signal
+
+    def _plot(self):
+        """
+        TODO: This method is incredibly slow!
+        """
+         # Plot base signal and db mag spectrum
+        
+        plt.figure(figsize=(10,10))
+        def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
+            plt.subplot(nrows, ncols, n)
+            plt.plot(time_data, amplitude_data)
+            plt.legend()
+            plt.title(title)
+            plt.xlabel("Time [s]")
+            plt.ylabel("Amplitude")
+
+        def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
+            plt.subplot(nrows, ncols, n)
+            plt.plot(frequency_data, amplitude_data)
+            plt.title(title)
+            plt.xlabel("Frequency [Hz]")
+            plt.ylabel("Amplitude (dB)")
+            plt.ylim([-100, np.amax(amplitude_data)])
+
+        base_length = self.base_num_samples / self.sample_rate
+        base_time = np.linspace(0., base_length, self.base_num_samples)
+        base_frequencies, base_mag_db = self._db_fft(self.base_data)
+        filtered_base_frequencies, filtered_base_mag_db = self._db_fft(self.filtered_base_signal)
+
+        signal_plot(4,3,1, base_time, self.base_data, title = "Base Signal")
+        spectrum_plot(4,3,4, base_frequencies, base_mag_db, title = "Base Spectrum")
+        signal_plot(4,3,7, base_time, self.filtered_base_signal, title = "Filtered Base Signal")
+        spectrum_plot(4,3,10, filtered_base_frequencies, filtered_base_mag_db, title = "Filtered Base Spectrum")
+
+        message_length = self.message_num_samples / self.sample_rate
+        message_time = np.linspace(0, message_length, self.message_num_samples)
+        message_frequencies, message_mag_db = self._db_fft(self.message_data)
+        filtered_message_frequencies, filtered_message_mag_db = self._db_fft(self.filtered_message_signal)
+        
+        signal_plot(4,3,2, message_time, self.message_data, title = "Message Signal")
+        spectrum_plot(4,3,5, message_frequencies, message_mag_db, title="Message Spectrum")
+        signal_plot(4,3,8, message_time, self.filtered_message_signal, title = "Filtered Message Signal")
+        spectrum_plot(4,3,11, filtered_message_frequencies, filtered_message_mag_db, title = "Filtered Message Spectrum")
+
+        shifted_message_frequncies, shifted_message_mag_db = self._db_fft(self.frequency_shifted_message_signal)
+        shifted_message_length = self.frequency_shifted_message_signal / self.sample_rate
+        shifted_message_time = np.linspace(0, shifted_message_length, len(self.frequency_shifted_message_signal))
+        signal_plot(4,3,3, shifted_message_time, self.frequency_shifted_message_signal, title = "Shifted Message Signal")
+        spectrum_plot(4,3,6, shifted_message_frequncies, shifted_message_mag_db, title = "Shifted Message Spectrum")
+
+        combined_frequencies, combined_mag_db = self._db_fft(self.combined_signal)
+        signal_plot(4, 3, 9, base_length, self.combined_signal, title = "Combined Signal")
+        spectrum_plot(4, 3, 12, combined_frequencies, combined_mag_db, title = "Combined Signal Spectrum")
+
+        plt.tight_layout()
 
 
 if __name__ == "__main__":
@@ -192,7 +233,8 @@ if __name__ == "__main__":
     base_signal_path = os.path.join(current_file_path, "../sounds/daniel_guitar_mono_trimmed.wav")
     message_signal_path = os.path.join(current_file_path, "../sounds/secret_message.wav")
     output_audio_path = os.path.join(current_file_path, "../sounds/output_sounds")
+    output_plot_path = os.path.join(current_file_path, "../plots")
 
     transmitter = Transmitter(base_signal_path, message_signal_path)
     transmitter.write(output_audio_path, write_intermediate=True)
-    transmitter.plot()
+    transmitter.save_plot(output_plot_path)
