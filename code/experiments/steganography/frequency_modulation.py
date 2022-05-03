@@ -204,10 +204,10 @@ class Transmitter:
         """
         
          # Low pass filter the base signal
-        self.filtered_base_signal = butter_lowpass_filter(self.base_data, 18000, self.sample_rate, order=self.filter_order)
+        self.filtered_base_signal = butter_lowpass_filter(self.base_data, self.lpf_cuttoff, self.sample_rate, order=self.filter_order)
        
          # band pass filter the message signal
-        self.filtered_message_signal = butter_bandpass_filter(self.message_data, 300, 3300, self.sample_rate, order=self.filter_order)
+        self.filtered_message_signal = butter_bandpass_filter(self.message_data, self.bpf_lowcutoff, self.bpf_highcutoff, self.sample_rate, order=self.filter_order)
         
         # perform the frequency modulation
         message_length = self.message_num_samples / self.sample_rate
