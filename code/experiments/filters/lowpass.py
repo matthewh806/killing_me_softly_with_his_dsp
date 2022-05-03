@@ -58,6 +58,8 @@ if __name__ == "__main__":
     plt.grid(which='both', axis='both')
     plt.axvline(cutoff, color='green')
 
+    import os, sys
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
     import utils_functions as UF
     # Demonstrate the use of the filter
     T = 1.0 # 1 second of data
