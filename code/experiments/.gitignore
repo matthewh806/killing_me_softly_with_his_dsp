@@ -6,5 +6,6 @@ __pycache__/
 # Project specific
 sounds/
 plots/
+workspace/
 
 
