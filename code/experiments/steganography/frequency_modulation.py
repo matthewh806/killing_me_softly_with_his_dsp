@@ -1,13 +1,13 @@
 from cmath import pi
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.fft import fft, fftfreq, rfft, rfftfreq
 import os, sys
+from experiments.spectral.fft import db_fft
 from experiments.filters.bandpass import butter_bandpass_filter
 from experiments.filters.lowpass import butter_lowpass_filter 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 import utils_functions as UF
-from filters import lowpass, bandpass
+
 
 """
 Note: Only handle mono files for the time being
@@ -15,6 +15,47 @@ Note: Only handle mono files for the time being
 TODO: Check the filtering operation when cutoff ~300Hz causes inf values and a messed up FFT spectrum
 TODO: Check why LP Butterworth filter seems to introduce phase shift 
 """
+
+def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
+    plt.subplot(nrows, ncols, n)
+    plt.plot(time_data, amplitude_data)
+    plt.legend()
+    plt.title(title)
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+
+
+def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
+    plt.subplot(nrows, ncols, n)
+    plt.plot(frequency_data, amplitude_data)
+    plt.title(title)
+    plt.xlabel("Frequency [Hz]")
+    plt.ylabel("Amplitude (dB)")
+    plt.ylim([-100, np.amax(amplitude_data)])
+
+
+def load_audio(file_path):
+    """
+    Load an audio wav file located at file_path
+    Note: should be a mono file
+
+    returns:
+        data - floating point array of audio samples with range [-1,1]
+        sample_rate - the sample rate of the audio data
+        num_channels - the number of channels of audio data
+        num_samples - the number of samples in the data
+
+    """
+    sample_rate, data, num_channels = UF.wavread(file_path)
+    print(f"number of channels = {num_channels}")
+
+    if num_channels > 1:
+        raise ValueError("Base file should be mono!")
+
+    num_samples = data.shape[0]
+    return data, sample_rate, num_channels, num_samples
+
+
 
 class Transmitter:
     """
@@ -37,8 +78,8 @@ class Transmitter:
     """
 
     def __init__(self, base_filepath, message_filepath, lpf_cutoff = 18000.0, bpf_lowcutoff = 300.0, bpf_highcutoff = 3300.0, order = 6):
-        self.base_data, self.sample_rate, self.num_channels, self.base_num_samples = self._load_audio(base_filepath)
-        self.message_data, message_sample_rate, num_channels, self.message_num_samples = self._load_audio(message_filepath)
+        self.base_data, self.sample_rate, self.num_channels, self.base_num_samples = load_audio(base_filepath)
+        self.message_data, message_sample_rate, num_channels, self.message_num_samples = load_audio(message_filepath)
 
         if message_sample_rate != self.sample_rate:
             raise ValueError("Base and message sample rates differ, they must be the same, base=", self.sample_rate, " message=", message_sample_rate)
@@ -65,30 +106,14 @@ class Transmitter:
         pass
 
     def save_plots(self, output_directory):
-        def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
-            plt.subplot(nrows, ncols, n)
-            plt.plot(time_data, amplitude_data)
-            plt.legend()
-            plt.title(title)
-            plt.xlabel("Time [s]")
-            plt.ylabel("Amplitude")
-
-
-        def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
-            plt.subplot(nrows, ncols, n)
-            plt.plot(frequency_data, amplitude_data)
-            plt.title(title)
-            plt.xlabel("Frequency [Hz]")
-            plt.ylabel("Amplitude (dB)")
-            plt.ylim([-100, np.amax(amplitude_data)])
 
         base_length = self.base_num_samples / self.sample_rate
         base_time = np.linspace(0., base_length, self.base_num_samples)
-        base_frequencies, base_mag_db = self._db_fft(self.base_data)
+        base_frequencies, base_mag_db = db_fft(self.base_data, self.sample_rate)
 
         message_length = self.message_num_samples / self.sample_rate
         message_time = np.linspace(0, message_length, self.message_num_samples)
-        message_frequencies, message_mag_db = self._db_fft(self.message_data)
+        message_frequencies, message_mag_db = db_fft(self.message_data, self.sample_rate)
 
         signal_plot(2, 2, 1, base_time, self.base_data, title = "Base Signal")
         spectrum_plot(2, 2, 3, base_frequencies, base_mag_db, title = "Base Spectrum")
@@ -98,8 +123,8 @@ class Transmitter:
         plt.savefig(os.path.join(output_directory, "input_signal_plots.png"))
         plt.close()
 
-        filtered_base_frequencies, filtered_base_mag_db = self._db_fft(self.filtered_base_signal)
-        shifted_message_frequncies, shifted_message_mag_db = self._db_fft(self.frequency_shifted_message_signal)
+        filtered_base_frequencies, filtered_base_mag_db = db_fft(self.filtered_base_signal, self.sample_rate)
+        shifted_message_frequncies, shifted_message_mag_db = db_fft(self.frequency_shifted_message_signal, self.sample_rate)
         shifted_message_length = len(self.frequency_shifted_message_signal) / self.sample_rate
         shifted_message_time = np.linspace(0, shifted_message_length, len(self.frequency_shifted_message_signal))
         signal_plot(2,2,1, base_time, self.filtered_base_signal, title = "Filtered Base Signal")
@@ -110,7 +135,7 @@ class Transmitter:
         plt.savefig(os.path.join(output_directory, "filtered_and_shifted_plots.png"))
         plt.close()
 
-        combined_frequencies, combined_mag_db = self._db_fft(self.combined_signal)
+        combined_frequencies, combined_mag_db = db_fft(self.combined_signal, self.sample_rate)
         signal_plot(2, 1, 1, base_time, self.combined_signal, title = "Combined Signal")
         spectrum_plot(2, 1, 2, combined_frequencies, combined_mag_db, title = "Combined Signal Spectrum")
         plt.tight_layout()
@@ -137,59 +162,6 @@ class Transmitter:
             UF.wavwrite(self.filtered_base_signal, self.sample_rate, os.path.join(output_directory, "filtered_base_signal.wav"))
             UF.wavwrite(self.filtered_message_signal, self.sample_rate, os.path.join(output_directory, "filtered_message_signal.wav"))
             UF.wavwrite(self.frequency_shifted_message_signal, self.sample_rate, os.path.join(output_directory, "shifted_message_signal.wav"))
-
-
-    def _load_audio(self, file_path):
-        """
-        Load an audio wav file located at file_path
-        Note: should be a mono file
-
-        returns:
-            data - floating point array of audio samples with range [-1,1]
-            sample_rate - the sample rate of the audio data
-            num_channels - the number of channels of audio data
-            num_samples - the number of samples in the data
-
-        """
-        sample_rate, data, num_channels = UF.wavread(file_path)
-        print(f"number of channels = {num_channels}")
-
-        if num_channels > 1:
-            raise ValueError("Base file should be mono!")
-
-        num_samples = data.shape[0]
-        return data, sample_rate, num_channels, num_samples
-
-
-    def _db_fft(self, in_data):
-        """
-        Performs a real FFT on the data supplied, uses a hanning window to weight the data appropriately
-        in_data: 1 dimensional normalized ([-1, 1]) numpy array of data, sample_rate: sample rate of the input audio
-
-        Note: Creates a copy of the in_data for the purposes of windowing so that we don't modify the input data
-        This is less efficient than reversing the window operation - but at least we know the in_data is totally unmodified
-
-        returns:
-            frequencies: array values based on bin centers calculated using the sample rate
-            magnitude_dbs: magnitude array of the fft data calculated using 10*log10(magnitude spectrum)
-
-            The returned array sizes are len(data) // 2 + 1
-
-        """
-        data = np.array(in_data, copy=True)
-        data_length = len(data)
-        weighting = np.hanning(data_length)
-        data *= weighting
-
-        if not np.all(np.isfinite(data)):
-            np.nan_to_num(data, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
-
-        fft_values = rfft(data)
-        frequencies = rfftfreq(data_length, d=1/self.sample_rate)
-        magnitude_spectrum = np.abs(fft_values) * 2 / np.sum(weighting)
-        magnitude_dbs = 10*np.log10(magnitude_spectrum)
-
-        return frequencies, magnitude_dbs
 
 
     def _perform(self, carrier_frequency = 20000.0, modulation_index = 1.0):
@@ -230,27 +202,10 @@ class Transmitter:
     def _plot(self):
          # Plot base signal and db mag spectrum
         
-        plt.figure(figsize=(10,10))
-        def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
-            plt.subplot(nrows, ncols, n)
-            plt.plot(time_data, amplitude_data)
-            plt.legend()
-            plt.title(title)
-            plt.xlabel("Time [s]")
-            plt.ylabel("Amplitude")
-
-        def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
-            plt.subplot(nrows, ncols, n)
-            plt.plot(frequency_data, amplitude_data)
-            plt.title(title)
-            plt.xlabel("Frequency [Hz]")
-            plt.ylabel("Amplitude (dB)")
-            plt.ylim([-100, np.amax(amplitude_data)])
-
         base_length = self.base_num_samples / self.sample_rate
         base_time = np.linspace(0., base_length, self.base_num_samples)
-        base_frequencies, base_mag_db = self._db_fft(self.base_data)
-        filtered_base_frequencies, filtered_base_mag_db = self._db_fft(self.filtered_base_signal)
+        base_frequencies, base_mag_db = db_fft(self.base_data, self.sample_rate)
+        filtered_base_frequencies, filtered_base_mag_db = db_fft(self.filtered_base_signal, self.sample_rate)
 
         signal_plot(4,3,1, base_time, self.base_data, title = "Base Signal")
         spectrum_plot(4,3,4, base_frequencies, base_mag_db, title = "Base Spectrum")
@@ -259,21 +214,21 @@ class Transmitter:
 
         message_length = self.message_num_samples / self.sample_rate
         message_time = np.linspace(0, message_length, self.message_num_samples)
-        message_frequencies, message_mag_db = self._db_fft(self.message_data)
-        filtered_message_frequencies, filtered_message_mag_db = self._db_fft(self.filtered_message_signal)
+        message_frequencies, message_mag_db = db_fft(self.message_data, self.sample_rate)
+        filtered_message_frequencies, filtered_message_mag_db = db_fft(self.filtered_message_signal, self.sample_rate)
         
         signal_plot(4,3,2, message_time, self.message_data, title = "Message Signal")
         spectrum_plot(4,3,5, message_frequencies, message_mag_db, title="Message Spectrum")
         signal_plot(4,3,8, message_time, self.filtered_message_signal, title = "Filtered Message Signal")
         spectrum_plot(4,3,11, filtered_message_frequencies, filtered_message_mag_db, title = "Filtered Message Spectrum")
 
-        shifted_message_frequncies, shifted_message_mag_db = self._db_fft(self.frequency_shifted_message_signal)
+        shifted_message_frequncies, shifted_message_mag_db = db_fft(self.frequency_shifted_message_signal, self.sample_rate)
         shifted_message_length = len(self.frequency_shifted_message_signal) / self.sample_rate
         shifted_message_time = np.linspace(0, shifted_message_length, len(self.frequency_shifted_message_signal))
         signal_plot(4,3,3, shifted_message_time, self.frequency_shifted_message_signal, title = "Shifted Message Signal")
         spectrum_plot(4,3,6, shifted_message_frequncies, shifted_message_mag_db, title = "Shifted Message Spectrum")
 
-        combined_frequencies, combined_mag_db = self._db_fft(self.combined_signal)
+        combined_frequencies, combined_mag_db = db_fft(self.combined_signal, self.sample_rate)
         signal_plot(4, 3, 9, base_time, self.combined_signal, title = "Combined Signal")
         spectrum_plot(4, 3, 12, combined_frequencies, combined_mag_db, title = "Combined Signal Spectrum")
 
@@ -281,9 +236,28 @@ class Transmitter:
 
 
 class Receiver:
+    """
+    A class for recovering an audio message hidden inside another
+
+    This class will perform a bandpass filtering operation on the input signal, centered around the high frequency shifted range of
+    the hidden signal, it will then demodulate the remaining signal back into the audio range using a carrier signal of 
+    frequency equal to the midpoint of the original message signal in the human frequency range. This signal will then be lowpass filtered
+    to remove any noise and unwanted high frequency content
+
+    arguments:
+        combined_signal_path: the full filepath to where the combined signal exists on disc (mono wav file)
+        bpf_lowcutoff: the lower cutoff frequency to use for the bandpass filtering operation of the message signal (Hz)
+        bpf_highpass: the upper cutoff frequency to use for the bandpass filtering operation of the message signal (Hz)
+        order: The order of the filter to create (note: same for both lpf & bpf) (int, dimensionless)
+    
+        NOTE: The bpf cutoff frequencies supplied based on where the signal has been shifted into the higher frequency domain
+              For example - if the original message signal used in the Transmitter was bandpassed at (300, 3.3k) Hz before being
+              frequency modulated to 20 kHz the bandpass filter cutoff points for the reciever should then take this shift into 
+              account. i.e. cutoff = (18000, 21800)
+    """
 
     def __init__(self, combined_signal_path, bpf_lowcutoff = 300.0, bpf_highcutoff = 3300.0, order = 6):
-        self.combined_data, self.sample_rate, self.num_channels, self.combined_num_samples = self._load_audio(combined_signal_path)
+        self.combined_data, self.sample_rate, self.num_channels, self.combined_num_samples = load_audio(combined_signal_path)
         
         self.bpf_lowcutoff = bpf_lowcutoff
         self.bpf_highcutoff = bpf_highcutoff
@@ -315,12 +289,12 @@ class Receiver:
 
         combined_length = self.combined_num_samples / self.sample_rate
         combined_time = np.linspace(0., combined_length, self.combined_num_samples)
-        combined_frequencies, combined_mag_db = self._db_fft(self.combined_data)
+        combined_frequencies, combined_mag_db = db_fft(self.combined_data, self.sample_rate)
 
         signal_plot(2,2,1, combined_time, self.combined_data, title = "Combined Signal")
         spectrum_plot(2,2,3, combined_frequencies, combined_mag_db, title = "Combined Spectrum")
 
-        recovered_frequencies, recovered_mag_db = self._db_fft(self.recovered_message_signal)
+        recovered_frequencies, recovered_mag_db = db_fft(self.recovered_message_signal, self.sample_rate)
         signal_plot(2, 2, 2, combined_time, self.recovered_message_signal, title = "Recovered Secret Signal")
         spectrum_plot(2, 2, 4, recovered_frequencies, recovered_mag_db, title = "Recovered Secret Spectrum")
 
@@ -354,63 +328,6 @@ class Receiver:
         samples = np.arange(message_length * float(self.sample_rate)) / float(self.sample_rate)
         self.recovered_message_signal = np.cos(2.0 * pi * carrier_frequency * samples + modulation_index * self.bandpassed_signal)
         self.recovered_message_signal = butter_lowpass_filter(self.recovered_message_signal, 3300.0, self.sample_rate, order=self.filter_order)
-
-
-    def _db_fft(self, in_data):
-        """
-        Performs a real FFT on the data supplied, uses a hanning window to weight the data appropriately
-        in_data: 1 dimensional normalized ([-1, 1]) numpy array of data, sample_rate: sample rate of the input audio
-
-        Note: Creates a copy of the in_data for the purposes of windowing so that we don't modify the input data
-        This is less efficient than reversing the window operation - but at least we know the in_data is totally unmodified
-
-        returns:
-            frequencies: array values based on bin centers calculated using the sample rate
-            magnitude_dbs: magnitude array of the fft data calculated using 10*log10(magnitude spectrum)
-
-            The returned array sizes are len(data) // 2 + 1
-
-        TODO: Duplication, remove
-        """
-        data = np.array(in_data, copy=True)
-        data_length = len(data)
-        weighting = np.hanning(data_length)
-        data *= weighting
-
-        if not np.all(np.isfinite(data)):
-            np.nan_to_num(data, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
-
-        fft_values = rfft(data)
-        frequencies = rfftfreq(data_length, d=1/self.sample_rate)
-        magnitude_spectrum = np.abs(fft_values) * 2 / np.sum(weighting)
-        magnitude_dbs = 10*np.log10(magnitude_spectrum)
-
-        return frequencies, magnitude_dbs
-
-
-    def _load_audio(self, file_path):
-        """
-        TODO: Duplication with Transmitter class 
-        - either make an abstract base class with this filled in or pass in the file handle / data directly
-
-        Load an audio wav file located at file_path
-        Note: should be a mono file
-
-        returns:
-            data - floating point array of audio samples with range [-1,1]
-            sample_rate - the sample rate of the audio data
-            num_channels - the number of channels of audio data
-            num_samples - the number of samples in the data
-
-        """
-        sample_rate, data, num_channels = UF.wavread(file_path)
-        print(f"number of channels = {num_channels}")
-
-        if num_channels > 1:
-            raise ValueError("Base file should be mono!")
-
-        num_samples = data.shape[0]
-        return data, sample_rate, num_channels, num_samples
 
 
 if __name__ == "__main__":
