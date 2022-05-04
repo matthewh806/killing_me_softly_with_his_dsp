@@ -154,7 +154,7 @@ class Transmitter:
         # perform the frequency modulation
         message_length = self.message_num_samples / self.sample_rate
         samples = np.arange(message_length * float(self.sample_rate)) / float(self.sample_rate)
-        self.frequency_shifted_message_signal = np.cos(2.0 * pi * carrier_frequency * samples + modulation_index * self.filtered_message_signal)
+        self.frequency_shifted_message_signal = np.sin(2.0 * pi * carrier_frequency * samples + modulation_index * self.filtered_message_signal)
 
         # Combine the filtered base signal with the filtered and frequency modulated message signal
         base_num_samples = len(self.filtered_base_signal)
