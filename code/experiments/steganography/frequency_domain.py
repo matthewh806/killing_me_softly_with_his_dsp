@@ -5,6 +5,7 @@ import os, sys
 from experiments.spectral.fft import db_fft
 from experiments.filters.bandpass import butter_bandpass_filter
 from experiments.filters.lowpass import butter_lowpass_filter 
+from experiments.FM.frequency_modulation import frequency_modulate_signal
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 import utils_functions as UF
 
@@ -152,9 +153,7 @@ class Transmitter:
         self.filtered_message_signal = butter_bandpass_filter(self.message_data, self.bpf_lowcutoff, self.bpf_highcutoff, self.sample_rate, order=self.filter_order)
         
         # perform the frequency modulation
-        message_length = self.message_num_samples / self.sample_rate
-        samples = np.arange(message_length * float(self.sample_rate)) / float(self.sample_rate)
-        self.frequency_shifted_message_signal = np.sin(2.0 * pi * carrier_frequency * samples + modulation_index * self.filtered_message_signal)
+        self.frequency_shifted_message_signal = frequency_modulate_signal(self.filtered_message_signal, carrier_frequency, modulation_index, self.sample_rate)
 
         # Combine the filtered base signal with the filtered and frequency modulated message signal
         base_num_samples = len(self.filtered_base_signal)
@@ -272,9 +271,7 @@ class Receiver:
         # TODO: Expose as param? 
         carrier_frequency = 1500.0
         modulation_index = 1
-        message_length = self.combined_num_samples / self.sample_rate
-        samples = np.arange(message_length * float(self.sample_rate)) / float(self.sample_rate)
-        self.recovered_message_signal = np.cos(2.0 * pi * carrier_frequency * samples + modulation_index * bandpassed_signal)
+        self.recovered_message_signal = frequency_modulate_signal(bandpassed_signal, carrier_frequency, modulation_index, self.sample_rate)
         self.recovered_message_signal = butter_lowpass_filter(self.recovered_message_signal, 3300.0, self.sample_rate, order=self.filter_order)
 
     def _plot(self, output_directory):
