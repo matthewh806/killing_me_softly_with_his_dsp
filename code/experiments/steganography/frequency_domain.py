@@ -105,7 +105,7 @@ class Transmitter:
         self.frequency_shifted_message_signal = []
         self.combined_signal = []
 
-        self._perform()
+        self.perform()
 
     def set_base_lowpass_cutoff(freq):
         pass
@@ -135,7 +135,7 @@ class Transmitter:
             UF.wavwrite(self.frequency_shifted_message_signal, self.sample_rate, os.path.join(output_directory, "shifted_message_signal.wav"))
 
 
-    def _perform(self, carrier_frequency = 20000.0, modulation_index = 1.0):
+    def perform(self, carrier_frequency = 20000.0, modulation_index = 1.0):
         """
         Performs the message hiding operation. 
         The basic steps are:
@@ -240,7 +240,7 @@ class Receiver:
         self.filter_order = order
 
         self.recovered_message_signal = []
-        self._perform()
+        self.perform()
 
 
     def save_plots(self, output_directory):
@@ -252,7 +252,7 @@ class Receiver:
         UF.wavwrite(self.recovered_message_signal, self.sample_rate, os.path.join(output_directory, "recovered_secret_signal.wav"))
 
 
-    def _perform(self):
+    def perform(self, carrier_frequency = 1500.0, modulation_index = 1.0):
         """
 
         Performs the operation of retrieving the hidden message from the combined source
@@ -268,9 +268,6 @@ class Receiver:
 
         # demodulate
         # this is based on the Transmitter having used an original bpf filter (300.0, 1500.0). 
-        # TODO: Expose as param? 
-        carrier_frequency = 1500.0
-        modulation_index = 1
         self.recovered_message_signal = frequency_modulate_signal(bandpassed_signal, carrier_frequency, modulation_index, self.sample_rate)
         self.recovered_message_signal = butter_lowpass_filter(self.recovered_message_signal, 3300.0, self.sample_rate, order=self.filter_order)
 
@@ -303,11 +300,13 @@ if __name__ == "__main__":
 
     # first hide the secret message inside another audio file
     transmitter = Transmitter(base_signal_path, message_signal_path, lpf_cutoff=14000.0, order=96)
+    transmitter.perform(modulation_index=50)
     transmitter.write(output_audio_path, write_intermediate=True)
     transmitter.save_plots(output_plot_path)
 
     # then recover the message from that combined audio file
     combined_signal_path = os.path.join(output_audio_path, "combined_signal.wav")
     receiver = Receiver(combined_signal_path, order=48, bpf_lowcutoff=18500.0, bpf_highcutoff=21500.0)
+    receiver.perform(modulation_index=50)
     receiver.write(output_audio_path)
     receiver.save_plots(output_plot_path)
