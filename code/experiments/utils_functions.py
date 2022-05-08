@@ -65,6 +65,14 @@ def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
     plt.ylabel("Amplitude")
 
 
+def magnitude_spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
+    plt.subplot(nrows, ncols, n)
+    plt.plot(frequency_data, amplitude_data)
+    plt.title(title)
+    plt.xlabel("Frequency [Hz]")
+    plt.ylabel("Amplitude")
+
+
 def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
     plt.subplot(nrows, ncols, n)
     plt.plot(frequency_data, amplitude_data)
@@ -79,3 +87,7 @@ def specgram_plot(nrows, ncols, n, input_signal, sample_rate, title="Specgram"):
     plt.specgram(input_signal, NFFT=256, Fs=sample_rate)
     plt.xlabel("Time [s]")
     plt.ylabel("Frequency [Hz]")
+
+
+def next_power_of_2(x):
+    return 1 if x == 0 else int(2**np.ceil(np.log2(x)))
