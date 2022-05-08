@@ -17,31 +17,6 @@ TODO: Check the filtering operation when cutoff ~300Hz causes inf values and a m
 TODO: Check why LP Butterworth filter seems to introduce phase shift 
 """
 
-def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
-    plt.subplot(nrows, ncols, n)
-    plt.plot(time_data, amplitude_data)
-    plt.legend()
-    plt.title(title)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Amplitude")
-
-
-def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
-    plt.subplot(nrows, ncols, n)
-    plt.plot(frequency_data, amplitude_data)
-    plt.title(title)
-    plt.xlabel("Frequency [Hz]")
-    plt.ylabel("Amplitude (dB)")
-    plt.ylim([-100, np.amax(amplitude_data)])
-
-
-def specgram_plot(nrows, ncols, n, input_signal, sample_rate, title="Specgram"):
-    plt.subplot(nrows, ncols, n)
-    plt.specgram(input_signal, NFFT=256, Fs=sample_rate)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Frequency [Hz]")
-
-
 def load_audio(file_path):
     """
     Load an audio wav file located at file_path
@@ -178,12 +153,12 @@ class Transmitter:
         message_time = np.linspace(0, message_length, self.message_num_samples)
         message_frequencies, message_mag_db = db_fft(self.message_data, self.sample_rate)
 
-        signal_plot(3,2,1, base_time, self.base_data, title = "Base Signal")
-        spectrum_plot(3,2,3, base_frequencies, base_mag_db, title = "Base Spectrum")
-        specgram_plot(3,2,5, self.base_data, self.sample_rate, title = "Base Spectrogram")
-        signal_plot(3,2,2, message_time, self.message_data, title = "Message Signal")
-        spectrum_plot(3,2,4, message_frequencies, message_mag_db, title="Message Spectrum")
-        specgram_plot(3,2,6, self.message_data, self.sample_rate, title="Message Spectrogram")
+        UF.signal_plot(3,2,1, base_time, self.base_data, title = "Base Signal")
+        UF.spectrum_plot(3,2,3, base_frequencies, base_mag_db, title = "Base Spectrum")
+        UF.specgram_plot(3,2,5, self.base_data, self.sample_rate, title = "Base Spectrogram")
+        UF.signal_plot(3,2,2, message_time, self.message_data, title = "Message Signal")
+        UF.spectrum_plot(3,2,4, message_frequencies, message_mag_db, title="Message Spectrum")
+        UF.specgram_plot(3,2,6, self.message_data, self.sample_rate, title="Message Spectrogram")
         plt.tight_layout()
         plt.savefig(os.path.join(output_directory, "input_signal_plots.png"))
         plt.close()
@@ -192,20 +167,20 @@ class Transmitter:
         shifted_message_frequncies, shifted_message_mag_db = db_fft(self.frequency_shifted_message_signal, self.sample_rate)
         shifted_message_length = len(self.frequency_shifted_message_signal) / self.sample_rate
         shifted_message_time = np.linspace(0, shifted_message_length, len(self.frequency_shifted_message_signal))
-        signal_plot(3,2,1, base_time, self.filtered_base_signal, title = "Filtered Base Signal")
-        spectrum_plot(3,2,3, filtered_base_frequencies, filtered_base_mag_db, title = "Filtered Base Spectrum")
-        specgram_plot(3,2,5, self.filtered_base_signal, self.sample_rate, title="Filtered Base Spectrogram")
-        signal_plot(3,2,2, shifted_message_time, self.frequency_shifted_message_signal, title = "Shifted Message Signal")
-        spectrum_plot(3,2,4, shifted_message_frequncies, shifted_message_mag_db, title = "Shifted Message Spectrum")
-        specgram_plot(3,2,6, self.frequency_shifted_message_signal, self.sample_rate, title="Filtered Message Spectrogram")
+        UF.signal_plot(3,2,1, base_time, self.filtered_base_signal, title = "Filtered Base Signal")
+        UF.spectrum_plot(3,2,3, filtered_base_frequencies, filtered_base_mag_db, title = "Filtered Base Spectrum")
+        UF.specgram_plot(3,2,5, self.filtered_base_signal, self.sample_rate, title="Filtered Base Spectrogram")
+        UF.signal_plot(3,2,2, shifted_message_time, self.frequency_shifted_message_signal, title = "Shifted Message Signal")
+        UF.spectrum_plot(3,2,4, shifted_message_frequncies, shifted_message_mag_db, title = "Shifted Message Spectrum")
+        UF.specgram_plot(3,2,6, self.frequency_shifted_message_signal, self.sample_rate, title="Filtered Message Spectrogram")
         plt.tight_layout()
         plt.savefig(os.path.join(output_directory, "filtered_and_shifted_plots.png"))
         plt.close()
 
         combined_frequencies, combined_mag_db = db_fft(self.combined_signal, self.sample_rate)
-        signal_plot(3,1,1, base_time, self.combined_signal, title = "Combined Signal")
-        spectrum_plot(3,1,2, combined_frequencies, combined_mag_db, title = "Combined Signal Spectrum")
-        specgram_plot(3,1,3, self.combined_signal, self.sample_rate, title = "Combined Signal Spectrogram")
+        UF.signal_plot(3,1,1, base_time, self.combined_signal, title = "Combined Signal")
+        UF.spectrum_plot(3,1,2, combined_frequencies, combined_mag_db, title = "Combined Signal Spectrum")
+        UF.specgram_plot(3,1,3, self.combined_signal, self.sample_rate, title = "Combined Signal Spectrogram")
         plt.tight_layout()
         plt.savefig(os.path.join(output_directory, "steganography_plot.png"))
         plt.close()
@@ -277,14 +252,14 @@ class Receiver:
         combined_time = np.linspace(0., combined_length, self.combined_num_samples)
         combined_frequencies, combined_mag_db = db_fft(self.combined_data, self.sample_rate)
 
-        signal_plot(3,2,1, combined_time, self.combined_data, title = "Combined Signal")
-        spectrum_plot(3,2,3, combined_frequencies, combined_mag_db, title = "Combined Spectrum")
-        specgram_plot(3,2,5, self.combined_data, self.sample_rate, title = "Combined Spectrogram")
+        UF.signal_plot(3,2,1, combined_time, self.combined_data, title = "Combined Signal")
+        UF.spectrum_plot(3,2,3, combined_frequencies, combined_mag_db, title = "Combined Spectrum")
+        UF.specgram_plot(3,2,5, self.combined_data, self.sample_rate, title = "Combined Spectrogram")
 
         recovered_frequencies, recovered_mag_db = db_fft(self.recovered_message_signal, self.sample_rate)
-        signal_plot(3,2,2, combined_time, self.recovered_message_signal, title = "Recovered Secret Signal")
-        spectrum_plot(3,2,4, recovered_frequencies, recovered_mag_db, title = "Recovered Secret Spectrum")
-        specgram_plot(3,2,6, self.recovered_message_signal, self.sample_rate, title = "Combined Spectrogram")
+        UF.signal_plot(3,2,2, combined_time, self.recovered_message_signal, title = "Recovered Secret Signal")
+        UF.spectrum_plot(3,2,4, recovered_frequencies, recovered_mag_db, title = "Recovered Secret Spectrum")
+        UF.specgram_plot(3,2,6, self.recovered_message_signal, self.sample_rate, title = "Combined Spectrogram")
 
         plt.tight_layout()
         plt.savefig(os.path.join(output_directory, "combined_and_recovered_signals.png"))
