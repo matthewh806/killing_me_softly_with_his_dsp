@@ -2,6 +2,7 @@ import numpy as np
 import os
 import copy
 from scipy.io.wavfile import read, write
+import matplotlib.pyplot as plt
 
 def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
     '''
@@ -54,3 +55,27 @@ def wavwrite(y, sample_rate, filepath):
     x = np.int16(x)
 
     write(filepath, sample_rate, y)
+
+def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
+    plt.subplot(nrows, ncols, n)
+    plt.plot(time_data, amplitude_data)
+    plt.legend()
+    plt.title(title)
+    plt.xlabel("Time [s]")
+    plt.ylabel("Amplitude")
+
+
+def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
+    plt.subplot(nrows, ncols, n)
+    plt.plot(frequency_data, amplitude_data)
+    plt.title(title)
+    plt.xlabel("Frequency [Hz]")
+    plt.ylabel("Amplitude (dB)")
+    plt.ylim([-100, np.amax(amplitude_data)])
+
+
+def specgram_plot(nrows, ncols, n, input_signal, sample_rate, title="Specgram"):
+    plt.subplot(nrows, ncols, n)
+    plt.specgram(input_signal, NFFT=256, Fs=sample_rate)
+    plt.xlabel("Time [s]")
+    plt.ylabel("Frequency [Hz]")
