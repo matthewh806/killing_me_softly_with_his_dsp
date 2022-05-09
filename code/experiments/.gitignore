@@ -7,5 +7,5 @@ __pycache__/
 sounds/
 plots/
 workspace/
-
+*.config.json
 
