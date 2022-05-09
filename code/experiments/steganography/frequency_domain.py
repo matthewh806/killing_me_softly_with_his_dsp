@@ -225,8 +225,8 @@ class Receiver:
         self._plot(output_directory)
         
 
-    def write(self, output_directory):
-        UF.wavwrite(self.recovered_message_signal, self.sample_rate, os.path.join(output_directory, "recovered_secret_signal.wav"))
+    def write(self, output_path):
+        UF.wavwrite(self.recovered_message_signal, self.sample_rate, output_path)
 
 
     def perform(self, carrier_frequency = 1500.0, modulation_index = 1.0):
@@ -285,5 +285,5 @@ if __name__ == "__main__":
     # then recover the message from that combined audio file
     receiver = Receiver(combined_signal_path, order=48, bpf_lowcutoff=18500.0, bpf_highcutoff=21500.0)
     receiver.perform(modulation_index=1, carrier_frequency = 20000.0)
-    receiver.write(output_audio_path)
+    receiver.write(os.path.join(output_audio_path, "recovered_secret_signal.wav"))
     receiver.save_plots(output_plot_path)
