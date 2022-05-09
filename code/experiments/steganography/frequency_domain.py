@@ -94,17 +94,19 @@ class Transmitter:
         self._plot(output_directory)
 
 
-    def write(self, output_directory, write_intermediate=False):
+    def write(self, output_path, write_intermediate=False):
         """
-        Writes the combined audio to disk in the specified output_directory
+        Writes the combined audio to disk in the specified output_path
 
-        Optionally writes the intermediate filtered base & filtered message signals to disk in the same output_directory
+        Optionally writes the intermediate filtered base & filtered message signals to disk in the same directory as output_path
         (this is mainly useful for debugging purposes)
         """
 
-        UF.wavwrite(self.combined_signal, self.sample_rate, os.path.join(output_directory, "combined_signal.wav"))
+        UF.wavwrite(self.combined_signal, self.sample_rate, output_path)
 
         if write_intermediate:
+            output_directory = os.path.dirname(output_path)
+
             UF.wavwrite(self.filtered_base_signal, self.sample_rate, os.path.join(output_directory, "filtered_base_signal.wav"))
             UF.wavwrite(self.filtered_message_signal, self.sample_rate, os.path.join(output_directory, "filtered_message_signal.wav"))
             UF.wavwrite(self.frequency_shifted_message_signal, self.sample_rate, os.path.join(output_directory, "shifted_message_signal.wav"))
@@ -276,11 +278,11 @@ if __name__ == "__main__":
     # first hide the secret message inside another audio file
     transmitter = Transmitter(base_signal_path, message_signal_path, lpf_cutoff=14000.0, order=96)
     transmitter.perform(modulation_index=1)
-    transmitter.write(output_audio_path, write_intermediate=True)
+    combined_signal_path = os.path.join(output_audio_path, "combined_signal.wav")
+    transmitter.write(combined_signal_path, write_intermediate=True)
     transmitter.save_plots(output_plot_path)
 
     # then recover the message from that combined audio file
-    combined_signal_path = os.path.join(output_audio_path, "combined_signal.wav")
     receiver = Receiver(combined_signal_path, order=48, bpf_lowcutoff=18500.0, bpf_highcutoff=21500.0)
     receiver.perform(modulation_index=1, carrier_frequency = 20000.0)
     receiver.write(output_audio_path)
