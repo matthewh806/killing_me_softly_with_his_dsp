@@ -38,7 +38,11 @@ class NumpySoundPlayer:
 
         self.stream.start_stream()
 
+
     def processing(self):
+        if not hasattr(self, "stream"):
+            return False
+
         return self.stream.is_active()
         
 
@@ -46,6 +50,9 @@ class NumpySoundPlayer:
         '''
         Abort the audio streaming if currently running
         '''
+        if not hasattr(self, "stream"):
+            return
+
         self.stream.stop_stream()
         self.stream.close()
 
@@ -58,6 +65,8 @@ class NumpySoundPlayer:
 
         if frame_count * self.cycle_count > audio_len:
             print("processing complete")
+            # TODO: This could be handled better, currently stop_processing is not called automatically - that would be better!
+            self.cycle_count = 0
             return (None, pyaudio.paComplete)
 
         start_pos = frame_count * self.cycle_count
