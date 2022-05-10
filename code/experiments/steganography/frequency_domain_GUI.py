@@ -1,10 +1,12 @@
 import tkinter as tk
 from tkinter import filedialog as fd
 from functools import partial
-import pyaudio
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
+from sound_player import NumpySoundPlayer
 import numpy as np
-import os
 import json
+import time
 import frequency_domain
 
 class FrequencySteganographyGUI:
@@ -21,6 +23,8 @@ class FrequencySteganographyGUI:
             # TODO: check paths still exist
             self.most_recent_input_directory = config_json['input_file_directory']
             self.most_recent_output_directory = config_json['output_file_directory']
+
+        self.numpy_player = NumpySoundPlayer()
 
         master.grid_columnconfigure(0, weight = 1)
         master.grid_columnconfigure(1, weight = 1)
@@ -68,6 +72,7 @@ class FrequencySteganographyGUI:
         self.save_recovered_sound_button = tk.Button(receiver_frame, text="Save recovered sound", command=self.save_recovered_sound, state='disabled')
         self.save_recovered_sound_button.pack()
 
+
     def browse_sound(self, out_path):
         input_directory = self.most_recent_input_directory if hasattr(self, 'most_recent_input_directory') else os.path.dirname(os.path.realpath(__file__))
         filename = fd.askopenfilename(title="Open audio file", initialdir=input_directory, filetypes=(('wav files', '*.wav'),))
@@ -82,10 +87,12 @@ class FrequencySteganographyGUI:
         self.transmitter.perform()
         self.update_button_states()
 
+
     def recover_message(self):
         self.receiver = frequency_domain.Receiver(self.steganographed_sound_path.get(), order=48, bpf_lowcutoff=18500.0, bpf_highcutoff=21500.0)
         self.receiver.perform(carrier_frequency = 20000.0)
         self.update_button_states()
+
 
     def play_combined_sound(self):
         if not hasattr(self, 'transmitter'):
@@ -96,6 +103,7 @@ class FrequencySteganographyGUI:
 
         self.play_sound(self.transmitter.combined_signal)
 
+
     def play_recovered_sound(self):
         if not hasattr(self, 'receiver'):
             return
@@ -105,10 +113,12 @@ class FrequencySteganographyGUI:
 
         self.play_sound(self.receiver.recovered_message_signal)
 
-    def play_sound(self, sound_sample_data):
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paFloat32, channels=1, rate=44100, frames_per_buffer=1024, output=True, output_device_index=1)
-        stream.write(sound_sample_data.astype(np.float32).tostring())
+    def play_sound(self, numpy_array):
+        if self.numpy_player.processing():
+            return
+
+        self.numpy_player.start_processing_non_blocking(numpy_array, sample_rate=44100)
+
 
     def save_combined_sound(self):
         if not hasattr(self, 'transmitter'):
@@ -118,6 +128,7 @@ class FrequencySteganographyGUI:
         path = fd.asksaveasfilename(initialdir=output_directory)
         self.most_recent_output_directory = os.path.dirname(path)
         self.transmitter.write(path, True)
+
 
     def save_recovered_sound(self):
         if not self.receiver:
