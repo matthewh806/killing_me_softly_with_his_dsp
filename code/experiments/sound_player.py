@@ -43,6 +43,9 @@ class NumpySoundPlayer:
         if not hasattr(self, "stream"):
             return False
 
+        if self.stream is None:
+            return False
+
         return self.stream.is_active()
         
 
@@ -53,8 +56,12 @@ class NumpySoundPlayer:
         if not hasattr(self, "stream"):
             return
 
+        if self.stream is None:
+            return False
+
         self.stream.stop_stream()
         self.stream.close()
+        self.stream = None
 
         self.cycle_count = 0
         self.sound_source = np.array([], dtype=np.float32)
