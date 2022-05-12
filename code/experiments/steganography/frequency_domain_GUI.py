@@ -4,9 +4,9 @@ from functools import partial
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 from sound_player import NumpySoundPlayer
+from sound_recorder import SoundRecorder
 import numpy as np
 import json
-import time
 import frequency_domain
 
 class FrequencySteganographyGUI:
@@ -25,6 +25,7 @@ class FrequencySteganographyGUI:
             self.most_recent_output_directory = config_json['output_file_directory']
 
         self.numpy_player = NumpySoundPlayer()
+        self.sound_recorder = SoundRecorder()
 
         master.grid_columnconfigure(0, weight = 1)
         master.grid_columnconfigure(1, weight = 1)
@@ -43,6 +44,9 @@ class FrequencySteganographyGUI:
         self.secret_message_path = tk.StringVar(transmitter_frame)
         self.secret_message_path_button = tk.Button(transmitter_frame, text="Select Secret Message", command=partial(self.browse_sound, self.secret_message_path))
         self.secret_message_path_button.pack()
+
+        self.record_secret_message_button = tk.Button(transmitter_frame, text="Record Secret Message", command=self.record_secret_message)
+        self.record_secret_message_button.pack()
 
         self.hide_message_button = tk.Button(transmitter_frame, text="Hide Message", command=self.hide_message, state='disabled')
         self.hide_message_button.pack()
@@ -80,11 +84,24 @@ class FrequencySteganographyGUI:
         out_path.set(filename)
         self.update_button_states()
 
+
+    def record_secret_message(self):
+        if self.sound_recorder.recording():
+            self.secret_message_path.set(os.path.join(os.path.dirname(os.path.realpath(__file__)), "secret_message.wav"))
+            self.sound_recorder.stop_recording()
+            self.sound_recorder.save_recording(self.secret_message_path.get())
+        else:
+            self.sound_recorder.start_recording_non_blocking()
+        
+        self.update_button_states()
+
     
     def hide_message(self):
         # TODO: Check paths are valid & mono
+        self.steganographed_sound_path.set(os.path.join(os.path.dirname(os.path.realpath(__file__)), "steganographed_audio.wav"))
         self.transmitter = frequency_domain.Transmitter(self.base_sound_path.get(), self.secret_message_path.get(), lpf_cutoff=14000.0, order=96)
         self.transmitter.perform()
+        self.transmitter.write(self.steganographed_sound_path.get())
         self.update_button_states()
 
 
@@ -113,6 +130,7 @@ class FrequencySteganographyGUI:
 
         self.play_sound(self.receiver.recovered_message_signal)
 
+
     def play_sound(self, numpy_array):
         if self.numpy_player.processing():
             return
@@ -139,7 +157,13 @@ class FrequencySteganographyGUI:
         self.most_recent_output_directory = os.path.dirname(path)
         self.receiver.write(path)
 
+
     def update_button_states(self):
+        if self.sound_recorder.recording():
+            self.record_secret_message_button.config(text="Stop Recording")
+        else:
+            self.record_secret_message_button.config(text="Start Recording")
+
         have_base_sound = self.base_sound_path.get() is not ''
         have_message_sound = self.secret_message_path.get() is not ''
         self.hide_message_button.config(state='normal' if have_base_sound and have_message_sound else 'disabled')
