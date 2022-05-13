@@ -218,7 +218,7 @@ class FrequencySteganographyGUI:
             self.numpy_player.stop_processing()
             self.update_button_states()
         else:
-            self.numpy_player.start_processing_non_blocking(numpy_array, sample_rate=44100)
+            self.numpy_player.start_processing_non_blocking(numpy_array, sample_rate=44100, on_complete_callback=self._on_playback_complete_callback)
             self.update_button_states()
 
 
@@ -319,6 +319,11 @@ class FrequencySteganographyGUI:
     def on_destroy(self, event):
         if event.widget == self.master:
             self.save_config_file()
+
+
+    def _on_playback_complete_callback(self):
+        self.numpy_player.stop_processing()
+        self.update_button_states()
 
 
 if __name__ == "__main__":
