@@ -114,6 +114,11 @@ bool DopplerShiftProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 void DopplerShiftProcessor::timerCallback()
 {
     auto* editor = dynamic_cast<DopplerShiftPluginEditor*>(getActiveEditor());
+    if(!editor)
+    {
+        return;
+    }
+    
     auto const drawingViewHalfWidth = editor->getDrawingViewWidth() / 2.0f;
     
     auto const timerInterval = getTimerInterval();
@@ -146,8 +151,10 @@ void DopplerShiftProcessor::timerCallback()
     editor->setObserverPosition({0.0, observerYPos});
     editor->updatePositions({mSourcePosition.getX() - prevSourceXPosition, 0.0f});
     
-    auto const incordec = (mFrequencyRatio > prevFreqValue) ? "increasing" : "decreasing";
+    std::cout << "Latency: " << mPitchShifter->getLatency() << "\n";
     
+#if PRINT_DOPPLER_DEBUG
+    auto const incordec = (mFrequencyRatio > prevFreqValue) ? "increasing" : "decreasing";
     std::cout
     << ", radialSpeed=" << radialSpeed * 1000.0f
     << ", distance=" << mSourcePosition.getX()
@@ -156,6 +163,7 @@ void DopplerShiftProcessor::timerCallback()
     << ", "
     << incordec
     << "\n";
+#endif
 }
 
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()

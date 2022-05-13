@@ -32,14 +32,22 @@ public:
         auto const halfWidth = getWidth() / 2.0f;
         auto const halfHeight = getHeight() / 2.0f;
         
-        g.setColour(juce::Colours::yellow);
-        g.drawEllipse(mSourcePosition.getX() + halfWidth, mSourcePosition.getY() + halfHeight, 10.0f, 10.0f, 2.0f);
+        auto drawCircle = [&g]( float centerX, float centerY, float radius, juce::Colour colour)
+        {
+            auto const topLeftX = centerX - radius;
+            auto const topLeftY = centerY - radius;
+            
+            g.setColour(colour);
+            g.drawEllipse(topLeftX, topLeftY, radius * 2.0f, radius * 2.0f, 2.0f);
+        };
         
-        g.setColour(juce::Colours::red);
-        g.drawEllipse(mObserverPosition.getX() + halfWidth, mObserverPosition.getY() + halfHeight, 10.0f, 10.0f, 2.0f);
+        drawCircle(mSourcePosition.getX() + halfWidth, mSourcePosition.getY() + halfHeight, mCircleRadius, juce::Colours::yellow);
+        drawCircle(mObserverPosition.getX() + halfWidth, mObserverPosition.getY() + halfHeight, mCircleRadius, juce::Colours::red);
     }
     
 private:
+    float static constexpr mCircleRadius = 5.0f;
+    
     juce::Point<float> mSourcePosition {0.0f, 0.0f};
     juce::Point<float> mObserverPosition {0.0f, 0.0f}; // fixed for now
 };
@@ -77,10 +85,10 @@ public:
     
     void resized() override
     {
-        auto bounds = getLocalBounds().reduced(20, 20);
+        auto bounds = getLocalBounds();
         
-        mObserverYPositionSlider.setBounds(bounds.removeFromBottom(20).removeFromRight(bounds.getWidth() * 0.66f));
-        mSourceSpeedSlider.setBounds(bounds.removeFromBottom(20).removeFromRight(bounds.getWidth() * 0.66f));
+        mObserverYPositionSlider.setBounds(bounds.removeFromBottom(20).removeFromRight(static_cast<int>(bounds.getWidth() * 0.66f)));
+        mSourceSpeedSlider.setBounds(bounds.removeFromBottom(20).removeFromRight(static_cast<int>(bounds.getWidth() * 0.66f)));
         mDopplerScene.setBounds(bounds);
     }
     

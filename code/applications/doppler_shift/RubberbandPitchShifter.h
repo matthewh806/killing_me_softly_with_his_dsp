@@ -10,6 +10,8 @@ public:
     RubberbandPitchShifter(int sampleRate, size_t numChannels, int blockSize);
     ~RubberbandPitchShifter();
     
+    size_t getLatency();
+    
     void setPitchRatio(float ratio);
     void process(AudioBuffer<float>& buffer, size_t numSamples);
     
