@@ -82,11 +82,14 @@ class SoundRecorder:
         if not hasattr(self, "stream"):
             return
 
+        if self.stream is None:
+            return False
+
         self.stream.stop_stream()
         self.stream.close()
         self.stream = None
 
-    
+
     def _pyaudio_callback(self, in_data, frame_count, time_info, status):
         self.recorded_frames = np.append(self.recorded_frames, np.frombuffer(in_data, dtype=np.float32))
         return in_data, pyaudio.paContinue
