@@ -45,7 +45,6 @@ if(REAPER)
     set_target_properties(DopplerShift PROPERTIES CMAKE_XCODE_SCHEME_EXECUTABLE ${REAPER})
 endif()
 
-
 target_link_libraries(DopplerShift
 PRIVATE
     juce::juce_audio_utils

@@ -13,6 +13,10 @@ project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.2)
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
 
+if(UNIX AND NOT APPLE)
+    set_property(TARGET rubberband PROPERTY CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+endif()
+
 find_library(AUBIO NAMES aubio)
 
 set(CoreSources
