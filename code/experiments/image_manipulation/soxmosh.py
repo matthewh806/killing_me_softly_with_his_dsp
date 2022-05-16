@@ -20,6 +20,9 @@ TODO:
     - UI (tkinter) for viewing the image directly and selecting regions to affect
     - Refactor into classes ?
     - Refactor so that the loading of image data isnt handled by the bend function
+
+    - DONT USE A DICTIONARY FOR THE EFFECTS (duplicate keys are obviously not allowed,
+    so its not possible to repeat the same effect more than once duuuuuuuh)
 '''
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
