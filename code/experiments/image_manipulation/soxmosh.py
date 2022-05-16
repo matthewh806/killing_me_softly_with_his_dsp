@@ -3,6 +3,7 @@ import os
 from PIL import Image
 import pathlib
 import json
+import tempfile
 
 '''
 A script for data moshing images using the pysox library
@@ -15,19 +16,14 @@ See the sox documentation https://pysox.readthedocs.io/en/latest/api.html for a 
 of all of the available effects
 
 TODO:
-    - Add command line interface to pass input path, output path, dict (/json) of effects
-    - Add json parser
     - funtionality to manipulate specific regions of the image
     - UI (tkinter) for viewing the image directly and selecting regions to affect
     - Refactor into classes ?
+    - Refactor so that the loading of image data isnt handled by the bend function
 '''
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-INPUT_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "input_images")
-OUTPUT_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "output_images")
 TEMP_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "temp")
-INPUT_JSON_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "input_json")
-
 
 def separate_header(input_path, header_path, body_path):
     '''
@@ -86,7 +82,7 @@ def get_transform_method(tfm, method_string):
     return getattr(tfm, method_string)
 
 
-def databend_image(input_path, effects_dict=None):
+def databend_image(input_path, output_path, effects_dict=None):
     '''
     Databend an input image using sox transformers
     The best approach is to use a bmp image, if another format is
@@ -122,26 +118,34 @@ def databend_image(input_path, effects_dict=None):
             get_transform_method(tfm, effect)(**params)
 
     input_file_name = pathlib.Path(input_path).stem
-    header_path = os.path.join(TEMP_DIRECTORY, input_file_name + "_header.bmp")
-    body_path = os.path.join(TEMP_DIRECTORY, input_file_name + "_body.bmp")
-    temp_body_path = os.path.join(
-        TEMP_DIRECTORY, input_file_name + "temp_body.bmp")
-    body_length = separate_header(input_path, header_path, body_path)
 
-    output_path = os.path.join(
-        OUTPUT_DIRECTORY, input_file_name + "_bended.bmp")
-    tfm.build_file(body_path, temp_body_path)
+    with tempfile.TemporaryDirectory() as temp_directory:
+        header_path = os.path.join(temp_directory, input_file_name + "_header.bmp")
+        body_path = os.path.join(temp_directory, input_file_name + "_body.bmp")
+        temp_body_path = os.path.join(
+            temp_directory, input_file_name + "temp_body.bmp")
+        body_length = separate_header(input_path, header_path, body_path)
 
-    resize(temp_body_path, body_length)
-    attach_header(header_path, temp_body_path, output_path)
+        tfm.build_file(body_path, temp_body_path)
+
+        resize(temp_body_path, body_length)
+        attach_header(header_path, temp_body_path, output_path)
+
+
+def main(input_image_path, output_image_path, effects_data_path):
+    with open(effects_data_path, "r") as json_file:
+        data = json.load(json_file)
+
+    databend_image(input_image_path, output_image_path, data)
 
 
 if __name__ == "__main__":
-    # convert format to bmp
+    import argparse
 
-    with open(os.path.join(INPUT_JSON_DIRECTORY, "example_effects.json"), "r") as json_file:
-        data = json.load(json_file)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_image", help="The path to the input image to be datamoshed")
+    parser.add_argument("output_image", help="The path to where the output image will be saved")
+    parser.add_argument("effects", help="The path to the effects json file")
+    args = parser.parse_args()
 
-    databend_image(os.path.join(INPUT_DIRECTORY,
-                   "perfect_blue_face.tiff"), data)
-    databend_image(os.path.join(INPUT_DIRECTORY, "perfect_blue_city.tiff"), data)
+    main(input_image_path=args.input_image, output_image_path=args.output_image, effects_data_path=args.effects)
