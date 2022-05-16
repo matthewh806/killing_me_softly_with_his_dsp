@@ -9,6 +9,16 @@ A script for data moshing images using the pysox library
 Note: as png, bmp, tif(f) are ignored the directories are "empty" and 
 hence not checked into version control. So you'll have to make the directories
 as appropriate and modify the path globals defined below before running
+
+See the sox documentation https://pysox.readthedocs.io/en/latest/api.html for a list 
+of all of the available effects
+
+TODO:
+    - Add command line interface to pass input path, output path, dict (/json) of effects
+    - Add json parser
+    - funtionality to manipulate specific regions of the image
+    - UI (tkinter) for viewing the image directly and selecting regions to affect
+    - Refactor into classes ?
 '''
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
@@ -69,11 +79,29 @@ def resize(body_path, length):
         body_file.write(body)
 
 
-def databend_image(input_path):
+def get_transform_method(tfm, method_string):
+    assert hasattr(tfm, method_string)
+    return getattr(tfm, method_string)
+
+
+def databend_image(input_path, effects_dict=None):
     '''
     Databend an input image using sox transformers
     The best approach is to use a bmp image, if another format is
     supplied it will be converted to bmp before applying the transformations
+
+    effects_dict is a python dictionary with the expected format:
+    {'effect1_name': {'param1': value, 'param2': value, ... }, 'effect2_name': {'param1': value, 'param2': value, ...}, ...}
+
+    where the key corresponds to a sox effect (see Transformer documentation) and the dictionary or params / values will be used
+    as kwargs to customise the effect. If any of the named parameters are omitted the defaults will be used
+
+    e.g. to create a default echo effect use:
+    {"echos": {}}
+
+    or parameterised with:
+
+    {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays":[60], "decays":[0.5]}}
     '''
 
     if pathlib.Path(input_path).suffix != ".bmp":
@@ -87,9 +115,9 @@ def databend_image(input_path):
     tfm.set_output_format(
         file_type="raw", encoding="u-law", channels=1, rate=48000)
 
-    tfm.echos(gain_in=0.8, gain_out=0.88, delays=[60], decays=[0.5])
-    tfm.compand()
-    tfm.reverb()
+    if effects_dict:
+        for effect, params in effects_dict.items():
+            get_transform_method(tfm, effect)(**params)
 
     input_file_name = pathlib.Path(input_path).stem
     header_path = os.path.join(TEMP_DIRECTORY, input_file_name + "_header.bmp")
@@ -108,5 +136,7 @@ def databend_image(input_path):
 
 if __name__ == "__main__":
     # convert format to bmp
-    databend_image(os.path.join(INPUT_DIRECTORY, "perfect_blue_face.tiff"))
-    databend_image(os.path.join(INPUT_DIRECTORY, "perfect_blue_city.tiff"))
+    databend_image(os.path.join(INPUT_DIRECTORY,
+                   "perfect_blue_face.tiff"), {"reverb": {}})
+    databend_image(os.path.join(INPUT_DIRECTORY, "perfect_blue_city.tiff"), {
+                   "echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [60], "decays": [0.5]}})
