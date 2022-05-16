@@ -2,6 +2,7 @@ import sox
 import os
 from PIL import Image
 import pathlib
+import json
 
 '''
 A script for data moshing images using the pysox library
@@ -25,6 +26,7 @@ CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 INPUT_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "input_images")
 OUTPUT_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "output_images")
 TEMP_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "temp")
+INPUT_JSON_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "input_json")
 
 
 def separate_header(input_path, header_path, body_path):
@@ -136,7 +138,10 @@ def databend_image(input_path, effects_dict=None):
 
 if __name__ == "__main__":
     # convert format to bmp
+
+    with open(os.path.join(INPUT_JSON_DIRECTORY, "example_effects.json"), "r") as json_file:
+        data = json.load(json_file)
+
     databend_image(os.path.join(INPUT_DIRECTORY,
-                   "perfect_blue_face.tiff"), {"reverb": {}})
-    databend_image(os.path.join(INPUT_DIRECTORY, "perfect_blue_city.tiff"), {
-                   "echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [60], "decays": [0.5]}})
+                   "perfect_blue_face.tiff"), data)
+    databend_image(os.path.join(INPUT_DIRECTORY, "perfect_blue_city.tiff"), data)

@@ -1,0 +1,5 @@
+{
+   "overdrive": {"gain_db":10, "colour":7.0},
+   "phaser": {},
+   "bandreject": {"frequency":300, "width_q": 0.7}
+}
