@@ -2,7 +2,6 @@ import sox
 import os
 from PIL import Image
 import pathlib
-import json
 import tempfile
 
 '''
@@ -166,25 +165,15 @@ class SoxMosh:
         return getattr(self.tfm, method_string)
 
 
-def main(input_image_path, output_image_path, effects_data_path):
-    with open(effects_data_path, "r") as json_file:
-        data = json.load(json_file)
-
-    sox_mosh = SoxMosh(input_path=input_image_path,
-                       output_path=output_image_path)
-    sox_mosh.databend_image(data['effects'])
-
-
 if __name__ == "__main__":
-    import argparse
+    # This is just to demonstrate how to use the class directly
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "input_image", help="The path to the input image to be datamoshed")
-    parser.add_argument(
-        "output_image", help="The path to where the output image will be saved")
-    parser.add_argument("effects", help="The path to the effects json file")
-    args = parser.parse_args()
+    input_path = os.path.join(
+        CURRENT_DIRECTORY, "input_images/perfect_blue_city.bmp")
+    output_path = os.path.join(
+        CURRENT_DIRECTORY, "output_images/perfect_blue_city_moshed.bmp")
+    sox_mosh = SoxMosh(input_path, output_path)
 
-    main(input_image_path=args.input_image,
-         output_image_path=args.output_image, effects_data_path=args.effects)
+    effects_list = [
+        {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [60], "decays": [0.5]}}]
+    sox_mosh.databend_image(effects_list)
