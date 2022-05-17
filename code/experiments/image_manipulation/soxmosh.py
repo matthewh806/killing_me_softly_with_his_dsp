@@ -23,6 +23,10 @@ TODO:
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 TEMP_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "temp")
 
+# The VALID_FORMATS list is generated  by calling sox -h and parsing the AUDIO FILE FORMATS
+# section. As the library is intended specifically for audio it obviously doesn't include 
+# image formats, so this is just a hack to allow it to process bitmap files.
+sox.core.VALID_FORMATS.append("bmp")
 
 def separate_header(input_path, header_path, body_path):
     '''
