@@ -18,12 +18,12 @@ of all of the available effects
 TODO:
     - funtionality to manipulate specific regions of the image
     - UI (tkinter) for viewing the image directly and selecting regions to affect
-    - Refactor into classes ?
     - Refactor so that the loading of image data isnt handled by the bend function
 '''
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 TEMP_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "temp")
+
 
 def separate_header(input_path, header_path, body_path):
     '''
@@ -77,83 +77,114 @@ def resize(body_path, length):
         body_file.write(body)
 
 
-def get_transform_method(tfm, method_string):
-    assert hasattr(tfm, method_string)
-    return getattr(tfm, method_string)
-
-
-def databend_image(input_path, output_path, effects_list=None):
+class SoxMosh:
     '''
     Databend an input image using sox transformers
     The best approach is to use a bmp image, if another format is
     supplied it will be converted to bmp before applying the transformations
 
-    effects_list is a python list with the expected format:
-
-    [
-        {'effect1_name': {'param1': value, 'param2': value, ... }}, 
-        {'effect2_name': {'param1': value, 'param2': value, ...}}, 
-        ...
-        {'effectn_name: {...}}
-    ]
-
-    where the key in each element corresponds to a sox effect (see Transformer documentation) 
-    and the dictionary or params / values will be used as kwargs to customise the effect. 
-    If any of the named parameters are omitted the defaults will be used
-
-    e.g. to create a default echo effect use:
-    {"echos": {}}
-
-    or parameterised with:
-
-    {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays":[60], "decays":[0.5]}}
+    To perform the actual effect operations call databend_image(...) with a list
+    of effects in a dictionary structure to apply (see example json in input_json directory)
     '''
 
-    if pathlib.Path(input_path).suffix != ".bmp":
-        converted_path = os.path.splitext(input_path)[0] + ".bmp"
-        Image.open(input_path).save(converted_path)
-        input_path = converted_path
+    def __init__(self, input_path, output_path):
+        if pathlib.Path(input_path).suffix != ".bmp":
+            converted_path = os.path.splitext(input_path)[0] + ".bmp"
+            Image.open(input_path).save(converted_path)
+            input_path = converted_path
 
-    tfm = sox.Transformer()
-    tfm.set_input_format(file_type="raw", encoding="u-law",
-                         channels=1, rate=48000)
-    tfm.set_output_format(
-        file_type="raw", encoding="u-law", channels=1, rate=48000)
+        self.input_path = input_path
+        self.output_path = output_path
+        self.tfm = sox.Transformer()
 
-    if effects_list:
-        for effect in effects_list:
-            (name, params) = list(effect.items())[0]
-            get_transform_method(tfm, name)(**params)
+    def databend_image(self, effects_list=None):
+        '''
+        effects_list is a python list with the expected format:
 
-    input_file_name = pathlib.Path(input_path).stem
+        [
+            {'effect1_name': {'param1': value, 'param2': value, ... }}, 
+            {'effect2_name': {'param1': value, 'param2': value, ...}}, 
+            ...
+            {'effectn_name: {...}}
+        ]
 
-    with tempfile.TemporaryDirectory() as temp_directory:
-        header_path = os.path.join(temp_directory, input_file_name + "_header.bmp")
-        body_path = os.path.join(temp_directory, input_file_name + "_body.bmp")
-        temp_body_path = os.path.join(
-            temp_directory, input_file_name + "temp_body.bmp")
-        body_length = separate_header(input_path, header_path, body_path)
+        where the key in each element corresponds to a sox effect (see Transformer documentation) 
+        and the dictionary or params / values will be used as kwargs to customise the effect. 
+        If any of the named parameters are omitted the defaults will be used
 
-        tfm.build_file(body_path, temp_body_path)
+        e.g. to create a default echo effect use:
+        {"echos": {}}
 
-        resize(temp_body_path, body_length)
-        attach_header(header_path, temp_body_path, output_path)
+        or parameterised with:
+
+        {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays":[60], "decays":[0.5]}}
+        '''
+
+        self.tfm.set_input_format(file_type="raw", encoding="u-law",
+                                  channels=1, rate=48000)
+        self.tfm.set_output_format(
+            file_type="raw", encoding="u-law", channels=1, rate=48000)
+
+        if effects_list:
+            for effect in effects_list:
+                (name, params) = list(effect.items())[0]
+                self._get_transform_method(name)(**params)
+
+        input_file_name = pathlib.Path(self.input_path).stem
+
+        with tempfile.TemporaryDirectory() as temp_directory:
+            header_path = os.path.join(
+                temp_directory, input_file_name + "_header.bmp")
+            body_path = os.path.join(
+                temp_directory, input_file_name + "_body.bmp")
+            temp_body_path = os.path.join(
+                temp_directory, input_file_name + "temp_body.bmp")
+            body_length = separate_header(
+                self.input_path, header_path, body_path)
+
+            self.tfm.build_file(body_path, temp_body_path)
+
+            resize(temp_body_path, body_length)
+            attach_header(header_path, temp_body_path, self.output_path)
+
+        self.tfm.clear_effects()
+
+    def _get_transform_method(self, method_string):
+        '''
+        Returns a python attribute from the sox transform class
+        The expected return value is a function called "method_string" 
+
+        This allows us to not have to specify the specific transforms explicitly in the code
+        and instead rely on external data supplied as for e.g. json
+
+        E.g. method_string = "echo" would return self.tfm.echo from the function 
+        can be called with parameters
+
+        self.tfm.echo({"gain_in":0.2, "gain_out":0.88, ...})
+        '''
+        assert hasattr(self.tfm, method_string)
+        return getattr(self.tfm, method_string)
 
 
 def main(input_image_path, output_image_path, effects_data_path):
     with open(effects_data_path, "r") as json_file:
         data = json.load(json_file)
 
-    databend_image(input_image_path, output_image_path, data['effects'])
+    sox_mosh = SoxMosh(input_path=input_image_path,
+                       output_path=output_image_path)
+    sox_mosh.databend_image(data['effects'])
 
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_image", help="The path to the input image to be datamoshed")
-    parser.add_argument("output_image", help="The path to where the output image will be saved")
+    parser.add_argument(
+        "input_image", help="The path to the input image to be datamoshed")
+    parser.add_argument(
+        "output_image", help="The path to where the output image will be saved")
     parser.add_argument("effects", help="The path to the effects json file")
     args = parser.parse_args()
 
-    main(input_image_path=args.input_image, output_image_path=args.output_image, effects_data_path=args.effects)
+    main(input_image_path=args.input_image,
+         output_image_path=args.output_image, effects_data_path=args.effects)
