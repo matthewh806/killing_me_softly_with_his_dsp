@@ -131,3 +131,4 @@ The code works directly with bmp images - other formats may be provided, but the
 - Specify an area of the image to apply an effect to - currently its applied to the whole image
 - Add a GUI to view the transmoformations in real time
 - Transform GIFs / Video
+- Web interface
