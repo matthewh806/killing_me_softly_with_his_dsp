@@ -20,9 +20,6 @@ TODO:
     - UI (tkinter) for viewing the image directly and selecting regions to affect
     - Refactor into classes ?
     - Refactor so that the loading of image data isnt handled by the bend function
-
-    - DONT USE A DICTIONARY FOR THE EFFECTS (duplicate keys are obviously not allowed,
-    so its not possible to repeat the same effect more than once duuuuuuuh)
 '''
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
@@ -85,17 +82,24 @@ def get_transform_method(tfm, method_string):
     return getattr(tfm, method_string)
 
 
-def databend_image(input_path, output_path, effects_dict=None):
+def databend_image(input_path, output_path, effects_list=None):
     '''
     Databend an input image using sox transformers
     The best approach is to use a bmp image, if another format is
     supplied it will be converted to bmp before applying the transformations
 
-    effects_dict is a python dictionary with the expected format:
-    {'effect1_name': {'param1': value, 'param2': value, ... }, 'effect2_name': {'param1': value, 'param2': value, ...}, ...}
+    effects_list is a python list with the expected format:
 
-    where the key corresponds to a sox effect (see Transformer documentation) and the dictionary or params / values will be used
-    as kwargs to customise the effect. If any of the named parameters are omitted the defaults will be used
+    [
+        {'effect1_name': {'param1': value, 'param2': value, ... }}, 
+        {'effect2_name': {'param1': value, 'param2': value, ...}}, 
+        ...
+        {'effectn_name: {...}}
+    ]
+
+    where the key in each element corresponds to a sox effect (see Transformer documentation) 
+    and the dictionary or params / values will be used as kwargs to customise the effect. 
+    If any of the named parameters are omitted the defaults will be used
 
     e.g. to create a default echo effect use:
     {"echos": {}}
@@ -116,9 +120,10 @@ def databend_image(input_path, output_path, effects_dict=None):
     tfm.set_output_format(
         file_type="raw", encoding="u-law", channels=1, rate=48000)
 
-    if effects_dict:
-        for effect, params in effects_dict.items():
-            get_transform_method(tfm, effect)(**params)
+    if effects_list:
+        for effect in effects_list:
+            (name, params) = list(effect.items())[0]
+            get_transform_method(tfm, name)(**params)
 
     input_file_name = pathlib.Path(input_path).stem
 
@@ -139,7 +144,7 @@ def main(input_image_path, output_image_path, effects_data_path):
     with open(effects_data_path, "r") as json_file:
         data = json.load(json_file)
 
-    databend_image(input_image_path, output_image_path, data)
+    databend_image(input_image_path, output_image_path, data['effects'])
 
 
 if __name__ == "__main__":
