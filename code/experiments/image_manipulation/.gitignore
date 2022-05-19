@@ -6,3 +6,8 @@
 input_json/*
 !input_json/example_effect.json
 !input_json/example_effects.json
+
+.python-version
+*.spec
+dist/
+build/
