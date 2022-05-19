@@ -11,3 +11,6 @@ input_json/*
 *.spec
 dist/
 build/
+
+SoxMosh/
+*.zip
