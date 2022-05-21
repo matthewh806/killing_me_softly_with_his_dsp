@@ -2,11 +2,11 @@ from cmath import pi
 import matplotlib.pyplot as plt
 import numpy as np
 import os, sys
-from experiments.spectral.fft import db_fft
-from experiments.filters.bandpass import butter_bandpass_filter
-from experiments.filters.lowpass import butter_lowpass_filter 
-from experiments.FM.frequency_modulation import frequency_modulate_signal
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
+from spectral.fft import db_fft
+from filters.bandpass import butter_bandpass_filter
+from filters.lowpass import butter_lowpass_filter 
+from FM.frequency_modulation import frequency_modulate_signal
 import utils_functions as UF
 
 
