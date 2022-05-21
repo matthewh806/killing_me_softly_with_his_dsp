@@ -1,0 +1,6 @@
+*.python-version
+dist
+*.spec
+*.zip
+
+Cache/
