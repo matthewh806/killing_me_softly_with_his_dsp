@@ -34,6 +34,7 @@ def receiver(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='Sub command help')
+    subparsers.required = True
 
     transmitter_parser = subparsers.add_parser("transmitter", help='transmitter help')
     transmitter_parser.add_argument("base_audio", help="The path to the base audio file")
