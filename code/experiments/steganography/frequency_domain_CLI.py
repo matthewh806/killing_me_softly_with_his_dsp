@@ -1,8 +1,9 @@
 import frequency_domain
 import argparse
+import os
 
 '''
-This is a cript which defines the CLI interface for the Frequency Domain Steganography class
+This is a script which defines the CLI interface for the Frequency Domain Steganography class
 
 There are two modes which can be used:
     Transmitter - This takes in two audio files as input. 
@@ -17,6 +18,10 @@ There are two modes which can be used:
                 containing both the base audio data and the hidden message.
 
                 It outputs a new audio file containing the recovered secret message
+
+    Supplying the parameter -p or --save-plots will save (in the directory containing the application)
+    plots of the various signals and their spectrums & spectrograms in png format and generated using
+    pyplot
 '''
 
 def transmitter(args):
@@ -24,15 +29,24 @@ def transmitter(args):
     transmitter.perform()
     transmitter.write(args.output_path)
 
+    if args.save_plots:
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        transmitter.save_plots(current_dir)
+
 
 def receiver(args):
-    transmitter = frequency_domain.Receiver(args.input_audio, order=48, bpf_lowcutoff=18500.0, bpf_highcutoff=21500.0)
-    transmitter.perform(modulation_index=1, carrier_frequency = 20000.0)
-    transmitter.write(args.output_path)
+    receiver = frequency_domain.Receiver(args.input_audio, order=48, bpf_lowcutoff=18500.0, bpf_highcutoff=21500.0)
+    receiver.perform(modulation_index=1, carrier_frequency = 20000.0)
+    receiver.write(args.output_path)
+
+    if args.save_plots:
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        receiver.save_plots(current_dir)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--save-plots", action='store_true')
     subparsers = parser.add_subparsers(help='Sub command help')
     subparsers.required = True
 
