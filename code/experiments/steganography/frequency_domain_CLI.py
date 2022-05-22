@@ -1,6 +1,8 @@
+from tokenize import String
 import frequency_domain
 import argparse
 import os
+import logging
 
 '''
 This is a script which defines the CLI interface for the Frequency Domain Steganography class
@@ -29,9 +31,12 @@ There are two modes which can be used:
     as they have been tuned to the specific use cases. 
     Frequency values are always specified in Hz
 
-    Supplying the parameter -p or --save-plots will save (in the directory containing the application)
+    Supplying the parameter -p or --save-plots will save (in the directory containing the output wav)
     plots of the various signals and their spectrums & spectrograms in png format and generated using
     pyplot
+
+    Supplying the parameter --log allows setting the level of output from the application to STDOUT. 
+    The possible options are: debug, info, warning, error, critical
 '''
 
 def transmitter(args):
@@ -40,8 +45,8 @@ def transmitter(args):
     transmitter.write(args.output_path)
 
     if args.save_plots:
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        transmitter.save_plots(current_dir)
+        output_directory = os.path.dirname(args.output_path)
+        transmitter.save_plots(output_directory)
 
 
 def receiver(args):
@@ -50,13 +55,14 @@ def receiver(args):
     receiver.write(args.output_path)
 
     if args.save_plots:
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        receiver.save_plots(current_dir)
+        output_directory = os.path.dirname(args.output_path)
+        receiver.save_plots(output_directory)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--save-plots", action='store_true')
+    parser.add_argument("--log", default="INFO", help="Set the logging level to be used for stdout")
     subparsers = parser.add_subparsers(help='Sub command help')
     subparsers.required = True
 
@@ -83,5 +89,11 @@ if __name__ == "__main__":
     receiver_parser.set_defaults(func=receiver)
 
     args = parser.parse_args()
+
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.log)
+    logging.basicConfig(level=numeric_level)
+
     args.func(args)
     

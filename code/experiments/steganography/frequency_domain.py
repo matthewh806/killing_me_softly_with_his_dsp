@@ -8,7 +8,7 @@ from filters.bandpass import butter_bandpass_filter
 from filters.lowpass import butter_lowpass_filter 
 from FM.frequency_modulation import frequency_modulate_signal
 import utils_functions as UF
-
+import logging
 
 """
 Note: Only handle mono files for the time being
@@ -30,7 +30,7 @@ def load_audio(file_path):
 
     """
     sample_rate, data, num_channels = UF.wavread(file_path)
-    print(f"number of channels = {num_channels}")
+    logging.info("Loading file: %s, number of channels: %i, sample rate: %f", file_path, num_channels, sample_rate)
 
     if num_channels > 1:
         raise ValueError("Base file should be mono!")
@@ -80,8 +80,6 @@ class Transmitter:
         self.frequency_shifted_message_signal = []
         self.combined_signal = []
 
-        self.perform()
-
     def set_base_lowpass_cutoff(freq):
         pass
 
@@ -123,6 +121,9 @@ class Transmitter:
 
         """
         
+        logging.info("Performing frequency modulation: low pass frequency: %f, band pass frequencies: (%f, %f), order: %f, carrier frequency: %f, modulation index: %i",
+                        self.lpf_cuttoff, self.bpf_lowcutoff, self.bpf_highcutoff, self.filter_order, carrier_frequency, modulation_index)
+
          # Low pass filter the base signal
         self.filtered_base_signal = butter_lowpass_filter(self.base_data, self.lpf_cuttoff, self.sample_rate, order=self.filter_order)
        
@@ -137,7 +138,7 @@ class Transmitter:
         message_num_samples = len(self.frequency_shifted_message_signal)
         if message_num_samples < base_num_samples:
             pad_size = base_num_samples - message_num_samples
-            print("Padding message signal with: ", pad_size, " zeros")
+            logging.debug("Padding message signal with: %i zeros", pad_size)
             self.frequency_shifted_message_signal = np.pad(self.frequency_shifted_message_signal, (0, pad_size))
         elif message_num_samples > base_num_samples:
             # TODO: Warn and truncate
@@ -217,7 +218,6 @@ class Receiver:
         self.filter_order = order
 
         self.recovered_message_signal = []
-        self.perform()
 
 
     def save_plots(self, output_directory):
@@ -240,6 +240,9 @@ class Receiver:
             - The result should be an approximation of the original message
 
         """
+
+        logging.info("Performing frequency demodulation: band pass frequencies: (%f, %f), order: %f, carrier frequency: %f, modulation index: %i",
+                        self.bpf_lowcutoff, self.bpf_highcutoff, self.filter_order, carrier_frequency, modulation_index)
         
         bandpassed_signal = butter_bandpass_filter(self.combined_data, self.bpf_lowcutoff, self.bpf_highcutoff, self.sample_rate, order=self.filter_order)
 
