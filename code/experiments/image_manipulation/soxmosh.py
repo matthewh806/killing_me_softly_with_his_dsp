@@ -28,56 +28,104 @@ TEMP_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "temp")
 # image formats, so this is just a hack to allow it to process bitmap files.
 sox.core.VALID_FORMATS.append("bmp")
 
-def separate_header(input_path, header_path, body_path):
+class ImageHandler():
     '''
-    Separates the header and the body from a bmp file. 
-    The address of the start of the body is indicated by the data at index 0xa
+    Class for handling images ready to be transformed via pysox.
 
-    Stores them as two separate temporary bmp files in the temp directory
+    This is basically just a convenience class and offers a nicer
+    encapsualtion than having to set up all the temporary files
+    elsewhere. 
+
+    The init method performs the step of storing the header and the actual
+    image data separately
+
+    Note: Call resize and attach_header after processing to ensure your
+    image is viewable again
     '''
+    def __init__(self, input_path):
+        '''
+        Takes a path to the input image, this doesn't have to be in bmp 
+        format since any other format will be converted to this.
 
-    with open(input_path, "rb") as file:
-        bmp = file.read()
-        end_of_header_address = bmp[0xA]
-        head, body = bmp[:end_of_header_address], bmp[end_of_header_address:]
+        This constructor will also create the temporary directory needed
+        to store intermediate bmp images (separating the header from the body to
+        avoid data corruption) and call the method to actually do the separation
 
-    with open(header_path, 'wb') as header_file:
-        header_file.write(head)
+        Note: Once your image operations are complete it is necessary to call 
+        attach_header to fix the image again ready for display
+        '''
 
-    with open(body_path, 'wb') as body_file:
-        body_file.write(body)
+        self.input_path = input_path
+        if pathlib.Path(self.input_path).suffix != ".bmp":
+            converted_path = os.path.splitext(self.input_path)[0] + ".bmp"
+            Image.open(self.input_path).save(converted_path)
+            self.input_path = converted_path
 
-    return len(body)
+        input_file_name = pathlib.Path(self.input_path).stem
+
+        self.temp_directory = tempfile.TemporaryDirectory()
+        self.header_path = os.path.join(
+            self.temp_directory.name, input_file_name + "_header.bmp")
+        self.body_path = os.path.join(
+            self.temp_directory.name, input_file_name + "_body.bmp")
+        self.temp_body_path = os.path.join(
+            self.temp_directory.name, input_file_name + "temp_body.bmp")
+        self.body_length = self.separate_header()
+
+    def __del__(self):
+        self.temp_directory.cleanup()
+
+    def separate_header(self):
+        '''
+        Separates the header and the body from a bmp file. 
+        The address of the start of the body is indicated by the data at index 0xa
+
+        Stores them as two separate temporary bmp files in the temp directory
+        '''
+
+        with open(self.input_path, "rb") as file:
+            bmp = file.read()
+            end_of_header_address = bmp[0xA]
+            head, body = bmp[:end_of_header_address], bmp[end_of_header_address:]
+
+        with open(self.header_path, 'wb') as header_file:
+            header_file.write(head)
+
+        with open(self.body_path, 'wb') as body_file:
+            body_file.write(body)
+
+        self.length = len(body)
+        return self.length
 
 
-def attach_header(header_path, body_path, output_path):
-    '''
-    Rettach the header and the body into one single bmp image
-    '''
+    def attach_header(self, output_path):
+        '''
+        Rettach the header and the body into one single bmp image stored at 'output_path'
+        '''
 
-    with open(header_path, 'rb') as header_file, open(body_path, 'rb') as body_path:
-        header = header_file.read()
-        body = body_path.read()
+        with open(self.header_path, 'rb') as header_file, open(self.temp_body_path, 'rb') as body_file:
+            header = header_file.read()
+            body = body_file.read()
 
-    with open(output_path, 'wb') as output_file:
-        output_file.write(header + body)
+        with open(output_path, 'wb') as output_file:
+            output_file.write(header + body)
 
 
-def resize(body_path, length):
-    '''
-    Resize the body of the image image so that its the same size as expected by the header 
-    Note: This is the same length as the original input files body
+    def resize(self):
+        '''
+        Resize the body of the image image so that its the same size as expected by the header 
+        Note: This is the same length as the original input files body
 
-    The method will either truncate if its larger or add empty dummy bytes if smaller
-    '''
+        The method will either truncate if its larger or add empty dummy bytes if smaller
+        '''
 
-    with open(body_path, "rb+") as body_file:
-        body = body_file.read()
-        body = body[:length]
+        with open(self.temp_body_path, "rb+") as body_file:
+            body = body_file.read()
+            body = body[:self.length]
 
-        body = body + bytes(length - len(body))
-        body_file.seek(0)
-        body_file.write(body)
+            body = body + bytes(self.length - len(body))
+            body_file.seek(0)
+            body_file.write(body)
 
 
 class SoxMosh:
@@ -90,14 +138,11 @@ class SoxMosh:
     of effects in a dictionary structure to apply (see example json in input_json directory)
     '''
 
-    def __init__(self, input_path, output_path):
-        if pathlib.Path(input_path).suffix != ".bmp":
-            converted_path = os.path.splitext(input_path)[0] + ".bmp"
-            Image.open(input_path).save(converted_path)
-            input_path = converted_path
+    def __init__(self, input_path, output_path, sample_rate=48000):
+        self.image_handler = ImageHandler(input_path)
 
-        self.input_path = input_path
         self.output_path = output_path
+        self.sample_rate = sample_rate
         self.tfm = sox.Transformer()
 
     def databend_image(self, effects_list=None):
@@ -124,31 +169,21 @@ class SoxMosh:
         '''
 
         self.tfm.set_input_format(file_type="raw", encoding="u-law",
-                                  channels=1, rate=48000)
+                                  channels=1, rate=self.sample_rate)
         self.tfm.set_output_format(
-            file_type="raw", encoding="u-law", channels=1, rate=48000)
+            file_type="raw", encoding="u-law", channels=1, rate=self.sample_rate)
 
         if effects_list:
             for effect in effects_list:
                 (name, params) = list(effect.items())[0]
                 self._get_transform_method(name)(**params)
 
-        input_file_name = pathlib.Path(self.input_path).stem
+        
+        
+        self.tfm.build_file(self.image_handler.body_path, self.image_handler.temp_body_path)
 
-        with tempfile.TemporaryDirectory() as temp_directory:
-            header_path = os.path.join(
-                temp_directory, input_file_name + "_header.bmp")
-            body_path = os.path.join(
-                temp_directory, input_file_name + "_body.bmp")
-            temp_body_path = os.path.join(
-                temp_directory, input_file_name + "temp_body.bmp")
-            body_length = separate_header(
-                self.input_path, header_path, body_path)
-
-            self.tfm.build_file(body_path, temp_body_path)
-
-            resize(temp_body_path, body_length)
-            attach_header(header_path, temp_body_path, self.output_path)
+        self.image_handler.resize()
+        self.image_handler.attach_header(self.output_path)
 
         self.tfm.clear_effects()
 
