@@ -1,6 +1,7 @@
 from soxmosh import SoxMosh
 import argparse
 import json
+import logging
 
 '''
 This is a script which defines the CLI interface for the soxmosh class
@@ -29,7 +30,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "output_image", help="The path to where the output image will be saved")
     parser.add_argument("effects", help="The path to the effects json file")
+    parser.add_argument("--log", default="INFO", help="Set the logging level to be used for stdout")
     args = parser.parse_args()
+
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.log)
+    logging.basicConfig(level=numeric_level)
 
     main(input_image_path=args.input_image,
          output_image_path=args.output_image, effects_data_path=args.effects)
