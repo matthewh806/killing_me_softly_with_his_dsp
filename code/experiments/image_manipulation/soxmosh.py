@@ -3,6 +3,7 @@ import os
 from PIL import Image
 import pathlib
 import tempfile
+import logging
 
 '''
 A script for data moshing images using the pysox library
@@ -124,6 +125,7 @@ class ImageHandler():
             body = body[:self.length]
 
             body = body + bytes(self.length - len(body))
+            logging.debug("Resizing image: Original size=%i, new size=%i", self.length, len(body))
             body_file.seek(0)
             body_file.write(body)
 
