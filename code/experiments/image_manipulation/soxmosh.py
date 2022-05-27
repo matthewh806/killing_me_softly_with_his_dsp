@@ -22,7 +22,6 @@ TODO:
 '''
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-TEMP_DIRECTORY = os.path.join(CURRENT_DIRECTORY, "temp")
 
 # The VALID_FORMATS list is generated  by calling sox -h and parsing the AUDIO FILE FORMATS
 # section. As the library is intended specifically for audio it obviously doesn't include 
@@ -130,6 +129,15 @@ class ImageHandler():
             body_file.write(body)
 
 
+def make_gif(output_path, frame_paths):
+    num_frames = len(frame_paths)
+    logging.info("Creating gif of %i frames", len(frame_paths))
+
+    # convert frames to images
+    frame_images = [Image.open(frame_path) for frame_path in frame_paths]
+    frame_images[0].save(output_path, save_all=True, append_images=frame_images[1:])
+
+
 class SoxMosh:
     '''
     Databend an input image using sox transformers
@@ -140,14 +148,13 @@ class SoxMosh:
     of effects in a dictionary structure to apply (see example json in input_json directory)
     '''
 
-    def __init__(self, input_path, output_path, sample_rate=48000):
+    def __init__(self, input_path, sample_rate=48000):
         self.image_handler = ImageHandler(input_path)
 
-        self.output_path = output_path
         self.sample_rate = sample_rate
         self.tfm = sox.Transformer()
 
-    def databend_image(self, effects_list=None):
+    def databend_image(self, output_path, effects_list=None):
         '''
         effects_list is a python list with the expected format:
 
@@ -180,14 +187,25 @@ class SoxMosh:
                 (name, params) = list(effect.items())[0]
                 self._get_transform_method(name)(**params)
 
-        
-        
         self.tfm.build_file(self.image_handler.body_path, self.image_handler.temp_body_path)
 
         self.image_handler.resize()
-        self.image_handler.attach_header(self.output_path)
+        self.image_handler.attach_header(output_path)
 
         self.tfm.clear_effects()
+
+
+    def databend_to_gif(self, output_path, effects_sequence):
+        # Intermediary path
+        output_file_name = pathlib.Path(output_path).stem
+        frame_paths = []
+        for i, effects in enumerate(effects_sequence):
+            frame_output_path = os.path.join(self.image_handler.temp_directory.name, output_file_name + "_" + "{index}".format(index=i).zfill(4))
+            frame_paths.append(frame_output_path)
+            self.databend_image(frame_output_path, [effects])
+
+        # combine to gif
+        make_gif(output_path, frame_paths)
 
     def _get_transform_method(self, method_string):
         '''
@@ -213,8 +231,8 @@ if __name__ == "__main__":
         CURRENT_DIRECTORY, "input_images/perfect_blue_city.bmp")
     output_path = os.path.join(
         CURRENT_DIRECTORY, "output_images/perfect_blue_city_moshed.bmp")
-    sox_mosh = SoxMosh(input_path, output_path)
+    sox_mosh = SoxMosh(input_path)
 
     effects_list = [
         {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [60], "decays": [0.5]}}]
-    sox_mosh.databend_image(effects_list)
+    sox_mosh.databend_image(output_path, effects_list)
