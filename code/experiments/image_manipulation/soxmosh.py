@@ -4,7 +4,8 @@ from PIL import Image
 import pathlib
 import tempfile
 import logging
-
+import math
+import random
 '''
 A script for data moshing images using the pysox library
 
@@ -27,6 +28,35 @@ CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 # section. As the library is intended specifically for audio it obviously doesn't include 
 # image formats, so this is just a hack to allow it to process bitmap files.
 sox.core.VALID_FORMATS.append("bmp")
+
+class AnimationUtils():
+    '''
+    A set of static methods for generating different curves / points for animation purposes
+
+    Note: The positive methods are just conveniences for keeping the value +ve since a lot
+    of the pysox effects are expected to be > 0. Check the relevant documentation parameters
+    to see what the expected range is and then modify accordingly
+
+    TODO: Add way more functions here, gaussian distributions, specific curves, triangles, ramps
+            square waves etc etc
+    '''
+
+    @staticmethod
+    def generate_positive_sine_wave(proportion):
+        '''
+        Returns a value in the range [0, 1] of a sine wave
+        Note the phase is shifted such that the first point generate_positive_sine_wav(0) returns 0
+
+        proportion is the % along the sine wave, for an N point wave this should be i/N where i goes from 0 to 19
+        '''
+        return (math.sin(proportion * 2 * math.pi - math.pi/2) + 1)/2
+
+    @staticmethod
+    def generate_uniform_random(min, max):
+        '''
+        Generate a value in a specified range using a uniform distribution
+        '''
+        return random.uniform(min, max)
 
 class ImageHandler():
     '''
