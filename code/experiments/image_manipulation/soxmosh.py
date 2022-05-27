@@ -129,13 +129,19 @@ class ImageHandler():
             body_file.write(body)
 
 
-def make_gif(output_path, frame_paths):
-    num_frames = len(frame_paths)
-    logging.info("Creating gif of %i frames", len(frame_paths))
+    def make_gif(self, output_path, frame_paths, duration=30):
+        '''
+        Convert a bunch of frames into an animated looping gif
 
-    # convert frames to images
-    frame_images = [Image.open(frame_path) for frame_path in frame_paths]
-    frame_images[0].save(output_path, save_all=True, append_images=frame_images[1:])
+        output_path is the eventual location where the gif will be saved
+        frame_paths is an array of paths to the individual frames
+        duration is the length of each frame in milliseconds
+        '''
+        logging.info("Creating gif of %i frames", len(frame_paths))
+
+        # convert frames to images
+        frame_images = [Image.open(frame_path) for frame_path in frame_paths]
+        frame_images[0].save(output_path, format='GIF', save_all=True, append_images=frame_images[1:], duration=duration, loop=0, optimize=True)
 
 
 class SoxMosh:
@@ -195,17 +201,47 @@ class SoxMosh:
         self.tfm.clear_effects()
 
 
-    def databend_to_gif(self, output_path, effects_sequence):
+    def databend_to_gif(self, output_path, effects_sequence, duration=30):
+        '''
+        Create an animated gif by applying a sequence of effects
+
+        effects_sequence is expected to be a list of a list of effects, each of which will be used to create
+        an intermediate image using databend_image, this collection of images is then combined into a gif of
+        length duration
+
+        effects_sequence is a list of operations to perform frame by frame:
+
+        e.g. The following would create a gif of two frames of echos, first frame is echoed by 5ms and
+        the second by 10ms
+        [
+            [
+                {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [5], "decays": [0.5]}},
+                {"phaser": {"gain_in": 0.8, "delay": 5}}
+            ],
+            [
+                {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [10], "decays": [0.5]}}
+            ]
+        ]
+
+        This is not such an effective way to create a gif as we have to specify each frame manually.
+        Its much more effective to use a loop to vary a parameter and build the list that way:
+
+        [[{"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [0.5*i], "decays": [0.5]}}] for i in range(1, 10)]
+        '''
         # Intermediary path
+        logging.info("Databending image %s to gif", self.image_handler.input_path)
+
         output_file_name = pathlib.Path(output_path).stem
         frame_paths = []
         for i, effects in enumerate(effects_sequence):
             frame_output_path = os.path.join(self.image_handler.temp_directory.name, output_file_name + "_" + "{index}".format(index=i).zfill(4))
             frame_paths.append(frame_output_path)
-            self.databend_image(frame_output_path, [effects])
+            self.databend_image(frame_output_path, effects)
 
         # combine to gif
-        make_gif(output_path, frame_paths)
+        self.image_handler.make_gif(output_path, frame_paths, duration)
+
+        logging.info("Finished creating gif: %s", output_path)
 
     def _get_transform_method(self, method_string):
         '''
