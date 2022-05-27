@@ -20,6 +20,7 @@ cp "$CURRENT_PATH/../README.md" $OUTPUT_PATH
 cp "$CURRENT_PATH/../input_images/perfect_blue_face.bmp" $OUTPUT_PATH
 cp "$CURRENT_PATH/../input_json/example_effects.json" $OUTPUT_PATH
 cp "$CURRENT_PATH/../instructions.txt" $OUTPUT_PATH
+cp "$CURRENT_PATH/../changelog.txt" $OUTPUT_PATH
 
 echo '\033[0;34m' "Zipping package ready for distribution"
 echo '\033[0m'
