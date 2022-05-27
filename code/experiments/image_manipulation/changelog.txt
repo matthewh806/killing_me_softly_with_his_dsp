@@ -1,0 +1,19 @@
+SoxMosh
+# Changelog
+
+## [Unreleased]
+- GUI / web interface
+- Apply effects to specific regions of the image
+- Support gifs / videos
+
+[v0.0.2] 25-05-2022
+### Added
+- Basic logging facilities
+- Support to specify sample rate as part of the CLI
+
+[v0.0.1] 19-05-2022
+### Added
+- Initial work
+- Basic implementation of pysox image transformer
+- Command line interface
+
