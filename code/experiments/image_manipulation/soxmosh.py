@@ -30,6 +30,13 @@ CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 sox.core.VALID_FORMATS.append("bmp")
 
 
+class Square():
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
 class AnimationUtils():
     '''
     A set of static methods for generating different curves / points for animation purposes
@@ -101,9 +108,15 @@ class ImageHandler():
             self.temp_directory.name, input_file_name + "_header.bmp")
         self.body_path = os.path.join(
             self.temp_directory.name, input_file_name + "_body.bmp")
+        self.body_region_path = os.path.join(
+            self.temp_directory.name, input_file_name + "_body_region.bmp")
         self.temp_body_path = os.path.join(
-            self.temp_directory.name, input_file_name + "temp_body.bmp")
+            self.temp_directory.name, input_file_name + "_temp_body.bmp")
+        self.temp_body_region_path = os.path.join(
+            self.temp_directory.name, input_file_name + "_temp_body_region.bmp"
+        )
         self.body_length = self.separate_header()
+        self.set_region(0, self.body_length - 1)
 
     def __del__(self):
         self.temp_directory.cleanup()
@@ -160,6 +173,37 @@ class ImageHandler():
             body_file.seek(0)
             body_file.write(body)
 
+    def set_region(self, start, end):
+        self.body_region = (start, end)
+
+        with open(self.body_path, 'rb') as body_file:
+            body = body_file.read()
+
+        assert(start < len(body))
+        assert(end < len(body))
+
+        with open(self.body_region_path, 'wb') as body_region_file:
+            body_region_file.write(body[start:end])
+
+    def reconstruct_image(self, output_path):
+        '''
+        '''
+        # Reconstruct frankenstein body out of all the different regions
+        # Reattach the header
+
+        with open(self.body_path, 'rb') as body_file, open(self.temp_body_region_path, 'rb') as region_body_file:
+            body_data = bytearray(body_file.read())
+            region_body = bytearray(region_body_file.read())
+
+            # copy region body parts back into temp body and save temp body
+            body_data[self.body_region[0]: self.body_region[1]] = region_body
+
+            with open(self.temp_body_path, 'wb') as temp_body_file:
+                temp_body_file.write(bytes(body_data))
+
+        self.resize()
+        self.attach_header(output_path)
+
     def make_gif(self, output_path, frame_paths, duration=30):
         '''
         Convert a bunch of frames into an animated looping gif
@@ -192,7 +236,7 @@ class SoxMosh:
         self.sample_rate = sample_rate
         self.tfm = sox.Transformer()
 
-    def databend_image(self, output_path, effects_list=None):
+    def databend_image(self, output_path, effects_list=None, region=None):
         '''
         effects_list is a python list with the expected format:
 
@@ -228,11 +272,12 @@ class SoxMosh:
                 (name, params) = list(effect.items())[0]
                 self._get_transform_method(name)(**params)
 
-        self.tfm.build_file(self.image_handler.body_path,
-                            self.image_handler.temp_body_path)
+        self.image_handler.set_region(0, 8000000)
 
-        self.image_handler.resize()
-        self.image_handler.attach_header(output_path)
+        self.tfm.build_file(self.image_handler.body_region_path,
+                            self.image_handler.temp_body_region_path)
+
+        self.image_handler.reconstruct_image(output_path)
 
         self.tfm.clear_effects()
 
@@ -309,5 +354,5 @@ if __name__ == "__main__":
     sox_mosh = SoxMosh(input_path)
 
     effects_list = [
-        {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [60], "decays": [0.5]}}]
+        {"overdrive" : {"gain_db":10, "colour":7.0}}]
     sox_mosh.databend_image(output_path, effects_list)
