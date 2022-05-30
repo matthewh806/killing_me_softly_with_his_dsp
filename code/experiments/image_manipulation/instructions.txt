@@ -19,5 +19,9 @@ which will output an edited bitmap image to "perfect_face_moshed.bmp" in the sam
 The sample rate to use for the image transformations can optionally be specified with 
 the --sample-rate parameter. If this is not provided the default of 44100 Hz will be used
 
+Supply the parameter --gif to make an animated gif (note this requires a slightly different 
+json structure - see examples). The optional parameter supplied with --gif specifies the
+individual image frame times (in ms) for the animation
+
 For a full list of the transormations / effects that can be applied see:
 https://pysox.readthedocs.io/en/latest/api.html
