@@ -262,10 +262,12 @@ class SoxMosh:
         Its much more effective to use a loop to vary a parameter and build the list that way:
 
         [[{"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [0.5*i], "decays": [0.5]}}] for i in range(1, 10)]
+
+        duration specifies the inividual frame time in ms
         '''
         # Intermediary path
-        logging.info("Databending image %s to gif",
-                     self.image_handler.input_path)
+        logging.info("Databending image %s to gif with frame duration=%i ms",
+                     self.image_handler.input_path, duration)
 
         output_file_name = pathlib.Path(output_path).stem
         frame_paths = []
