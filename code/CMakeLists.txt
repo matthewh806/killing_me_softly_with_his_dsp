@@ -6,11 +6,16 @@ set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "" FORCE)
  set(CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
+set(JUCE_COPY_PLUGIN_AFTER_BUILD ON)
 
 project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.2)
 
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
+
+if(UNIX AND NOT APPLE)
+    set_property(TARGET rubberband PROPERTY CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+endif()
 
 find_library(AUBIO NAMES aubio)
 
@@ -77,3 +82,4 @@ set(UtilsSources
 source_group("Source/UtilsSources" FILES ${UtilsSources})
 
 add_subdirectory(applications)
+add_subdirectory(playground)

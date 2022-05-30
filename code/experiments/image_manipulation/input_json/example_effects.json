@@ -1,0 +1,17 @@
+{
+   "effects":
+   [
+      {
+         "overdrive" : {"gain_db":10, "colour":7.0}
+      },
+      {
+         "phaser": {}
+      },
+      {
+         "bandreject": {"frequency":300, "width_q": 0.7}
+      },
+      {
+         "phaser": {"gain_in": 0.8, "delay": 5}
+      }
+   ]   
+}

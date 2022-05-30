@@ -1,0 +1,27 @@
+SoxMosh
+
+A python tool for applying audio effects (delay, reverb, filtering) to images using the pysox library
+
+The program is command line only (at the moment!), to run it use the following pattern:
+
+    ./soxmosh_cli input_image output_image effects
+
+where input_image & output_image are paths to a an image on disk (preferably bitmap) and effects is 
+a path to a json structure containing the effects / parameters to apply (see the example bundled in the zip
+for an idea of how to structure it)
+
+Using the provided image & effects file call:
+
+    ./soxmosh_cli perfect_blue_face.bmp perfect_face_moshed.bmp example_effects.json
+
+which will output an edited bitmap image to "perfect_face_moshed.bmp" in the same directory. 
+
+The sample rate to use for the image transformations can optionally be specified with 
+the --sample-rate parameter. If this is not provided the default of 44100 Hz will be used
+
+Supply the parameter --gif to make an animated gif (note this requires a slightly different 
+json structure - see examples). The optional parameter supplied with --gif specifies the
+individual image frame times (in ms) for the animation
+
+For a full list of the transormations / effects that can be applied see:
+https://pysox.readthedocs.io/en/latest/api.html

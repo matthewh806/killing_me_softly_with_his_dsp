@@ -1,0 +1,6 @@
+{
+    "effects":
+    [
+        {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [60], "decays": [0.5]}}
+    ]
+}

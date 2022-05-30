@@ -1,0 +1,1 @@
+sox -t ul -c 1 -r 48k input_images/perfect_blue_city.bmp -t ul output_images/perfect_blue_city_out.bmp trim 0 100s : echo 0.8 0.88 60 0.5

@@ -1,0 +1,22 @@
+Cache
+# Changelog
+
+## [Unreleased]
+- GUI / web interface
+- Fix demodulation stage
+- Fix the size of the generated wav output files
+- Add support for stereo files
+- Add support for different sampling rates
+
+[v0.0.2] 22-05-2022
+### Added
+- Additional command line options (frequency cutoffs, filter order etc)
+- Functionality for plotting signals / spectrums / spectrograms
+- functionality for 
+
+[v0.0.1] 21-05-2022
+### Added
+- Initial work
+- Basic prototype of Transmission / Receiver architecture
+- Command line interface
+

@@ -1,0 +1,74 @@
+Cache
+
+A python tool for performing frequency modulated steganography. This allows you
+to hide a secret message "in plain sight" within another "base" audio signal 
+(such as a piece of music). 
+
+This tool manipulates the fact that for an average adult the frequency range
+of hearing is around 20 Hz - 15/17 kHz. The secret message signal is shifted outside
+this region so that on audio playback while the sound is present, it cannot be heard.
+
+There is also functionality to do the reverse operation and recover the secret message
+
+The program is command line only for now, it has two useage patterns:
+
+    Transmitter 
+
+    ./frequency_domain_CLI transmitter base_audio secret_audio output_path
+
+    This is the forward operation, which hides secret_audio inside base_audio and 
+    stores the combined result in output_path
+
+    Note: The 3 supplied parameters are all paths to MONO audio files on disk,
+          with an assumed sample rate of 44.1 kHz. 
+          Its not necessary for output_path to point to an existing file, it will 
+          be automatically created
+
+
+    Receiver
+
+    ./frequency_domain_CLI receiver input_audio output_path
+
+    This is the reverse operation, which retrieves a previously obfuscated
+    hidden message from input_audio and stores the recovered result in
+    output_path
+
+    Note: The 2 parameters are all paths to MONO audio files on disk with
+          an assumed sample rate of 44.1 kHz
+
+The zip file contains some test audio to work with:
+
+    daniel_guitar_mono_trimmed.wav: is a recording of a friend of mine playing guitar
+    secret_message.wav: is a low quality recording of myself saying something I heard in an old metal gear solid daniel_guitar_mono_trimmed
+
+    Run: ./frequency_domain_CLI transmitter daniel_guitar_mono_trimmed.wav secret_message.wav output.wav
+    This will hide "secret message" inside the guitar recording and store the result in output.wav
+
+    If you listen to the output.wav you shouldn't really notice any difference compared to the base guitar recording 
+    file. This means the secret message has been successfully hidden
+
+    Run: ./frequency_domain_CLI receiver output.wav recovered.wav
+    This will retrieve the hidden message and store it in recovered.wav
+
+    If you listen to the recovered.wav you should hear an even lower (and much quieter!) version of 
+    what we originally put in to the Transmitter
+
+Optional command line parameters:
+
+      -p / --save-plots: will save (in the directory containing the application)
+      --log: set the log level of the application (debug, info, warning, error, critical)
+      plots of the various signals and their spectrums & spectrograms in png format and generated using
+      pyplot
+
+      -bpfl / --bandpass-lowcutoff-frequency: The low cutoff frequency of the bandpass filter to apply to a signal (Hz)
+      -bpfh / --bandpass-highcutoff-frequency: The high cutoff frequency of the bandpass filter to apply to a signal (Hz)
+      -lpf / --low-pass-frequency: The low pass filter cutoff frequency to apply to a signal (Hz)
+      -o / --filter-order: The order of the filters
+      -cf / --carrier-frequency: The center frequency used for frequency modulation of signals (Hz). The signal that this is applied to
+                                 will have its frequency shifted such that the new center point corresponds to carrier-frequency
+                                 Note: This operation will cause the shifted signal to have a spectral peak at this new frequency
+                                       and several side bands which are determined by the modulation index (--mi / --modulation-index) supplied
+      -mi / --modulation-index: The modulation index to use for frequency (de-)modulation 
+                                (This is defined as the ratio of frequency deviation to the modulating frequency)
+                                This parameter will affect the amplitude and spacing of sidebands produced around the carrier frequency when
+                                FM has been performed.
