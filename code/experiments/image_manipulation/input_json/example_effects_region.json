@@ -1,0 +1,20 @@
+{
+   "effects":
+   [
+      {
+         "overdrive" : {"gain_db":10, "colour":7.0}, "region": {"start": 0.0, "end": 8000000}
+      },
+      {
+         "phaser": {}, "region": {"start": 1000000, "end": 1400000}
+      },
+      {
+         "bandreject": {"frequency":300, "width_q": 0.7}, "region": {"start": 1300000, "end": 18000000}
+      },
+      {
+         "phaser": {"gain_in": 0.8, "delay": 5}, "region": {"start": 1400000, "end": 2100000}
+      },
+      {
+         "echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [60], "decays": [0.5]}, "region": {"start": 14000000, "end": 18000000}
+      }
+   ]   
+}

@@ -1,3 +1,4 @@
+from collections import namedtuple
 import sox
 import os
 from PIL import Image
@@ -66,7 +67,7 @@ class AnimationUtils():
         '''
         return random.uniform(min, max)
 
-
+RegionTuple = namedtuple("RegionTuple", ['start', 'end', 'unmoshed_path', 'moshed_path'])
 class ImageHandler():
     '''
     Class for handling images ready to be transformed via pysox.
@@ -108,15 +109,16 @@ class ImageHandler():
             self.temp_directory.name, input_file_name + "_header.bmp")
         self.body_path = os.path.join(
             self.temp_directory.name, input_file_name + "_body.bmp")
-        self.body_region_path = os.path.join(
-            self.temp_directory.name, input_file_name + "_body_region.bmp")
+        # self.body_region_path = os.path.join(
+        #     self.temp_directory.name, input_file_name + "_body_region.bmp")
         self.temp_body_path = os.path.join(
             self.temp_directory.name, input_file_name + "_temp_body.bmp")
-        self.temp_body_region_path = os.path.join(
-            self.temp_directory.name, input_file_name + "_temp_body_region.bmp"
-        )
+        # self.temp_body_region_path = os.path.join(
+        #     self.temp_directory.name, input_file_name + "_temp_body_region.bmp"
+
+        self.regions = []
         self.body_length = self.separate_header()
-        self.set_region(0, self.body_length - 1)
+        #self.set_region(0, self.body_length - 1)
 
     def __del__(self):
         self.temp_directory.cleanup()
@@ -174,16 +176,19 @@ class ImageHandler():
             body_file.write(body)
 
     def set_region(self, start, end):
-        self.body_region = (start, end)
-
         with open(self.body_path, 'rb') as body_file:
             body = body_file.read()
 
         assert(start < len(body))
         assert(end < len(body))
 
-        with open(self.body_region_path, 'wb') as body_region_file:
-            body_region_file.write(body[start:end])
+        unmoshed_temp_file = tempfile.NamedTemporaryFile(suffix='.bmp', dir=self.temp_directory.name, delete=False)
+        moshed_temp_file = tempfile.NamedTemporaryFile(suffix='.bmp', dir=self.temp_directory.name, delete=False)
+        region = RegionTuple(start=int(start), end=int(end), unmoshed_path=unmoshed_temp_file.name, moshed_path=moshed_temp_file.name)
+        self.regions.append(region)
+
+        with open(region.unmoshed_path, 'wb') as body_region_file:
+            body_region_file.write(body[region.start:region.end])
 
     def reconstruct_image(self, output_path):
         '''
@@ -191,12 +196,15 @@ class ImageHandler():
         # Reconstruct frankenstein body out of all the different regions
         # Reattach the header
 
-        with open(self.body_path, 'rb') as body_file, open(self.temp_body_region_path, 'rb') as region_body_file:
+        with open(self.body_path, 'rb') as body_file:
             body_data = bytearray(body_file.read())
-            region_body = bytearray(region_body_file.read())
 
-            # copy region body parts back into temp body and save temp body
-            body_data[self.body_region[0]: self.body_region[1]] = region_body
+            for region in self.regions:
+                with open(region.moshed_path, 'rb') as region_file:
+                    region_body = bytearray(region_file.read())
+
+                # copy region body parts back into temp body and save temp body
+                body_data[region.start: region.end] = region_body
 
             with open(self.temp_body_path, 'wb') as temp_body_file:
                 temp_body_file.write(bytes(body_data))
@@ -269,13 +277,18 @@ class SoxMosh:
 
         if effects_list:
             for effect in effects_list:
-                (name, params) = list(effect.items())[0]
+                effects_dict = list(effect.items())
+                (name, params) = effects_dict[0]
                 self._get_transform_method(name)(**params)
+                
+                if len(effects_dict) > 1:
+                    (_, region_info) = effects_dict[1]
+                    logging.info("Setting region: %i, %i", region_info["start"], region_info["end"])
+                    self.image_handler.set_region(region_info["start"], region_info["end"])
 
-        self.image_handler.set_region(0, 8000000)
-
-        self.tfm.build_file(self.image_handler.body_region_path,
-                            self.image_handler.temp_body_region_path)
+                region = self.image_handler.regions[-1]
+                self.tfm.build_file(region.unmoshed_path,
+                                    region.moshed_path)
 
         self.image_handler.reconstruct_image(output_path)
 
