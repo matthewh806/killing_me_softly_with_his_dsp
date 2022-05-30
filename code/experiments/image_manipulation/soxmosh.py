@@ -25,9 +25,10 @@ TODO:
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
 # The VALID_FORMATS list is generated  by calling sox -h and parsing the AUDIO FILE FORMATS
-# section. As the library is intended specifically for audio it obviously doesn't include 
+# section. As the library is intended specifically for audio it obviously doesn't include
 # image formats, so this is just a hack to allow it to process bitmap files.
 sox.core.VALID_FORMATS.append("bmp")
+
 
 class AnimationUtils():
     '''
@@ -58,6 +59,7 @@ class AnimationUtils():
         '''
         return random.uniform(min, max)
 
+
 class ImageHandler():
     '''
     Class for handling images ready to be transformed via pysox.
@@ -72,6 +74,7 @@ class ImageHandler():
     Note: Call resize and attach_header after processing to ensure your
     image is viewable again
     '''
+
     def __init__(self, input_path):
         '''
         Takes a path to the input image, this doesn't have to be in bmp 
@@ -127,7 +130,6 @@ class ImageHandler():
         self.length = len(body)
         return self.length
 
-
     def attach_header(self, output_path):
         '''
         Rettach the header and the body into one single bmp image stored at 'output_path'
@@ -139,7 +141,6 @@ class ImageHandler():
 
         with open(output_path, 'wb') as output_file:
             output_file.write(header + body)
-
 
     def resize(self):
         '''
@@ -154,10 +155,10 @@ class ImageHandler():
             body = body[:self.length]
 
             body = body + bytes(self.length - len(body))
-            logging.debug("Resizing image: Original size=%i, new size=%i", self.length, len(body))
+            logging.debug(
+                "Resizing image: Original size=%i, new size=%i", self.length, len(body))
             body_file.seek(0)
             body_file.write(body)
-
 
     def make_gif(self, output_path, frame_paths, duration=30):
         '''
@@ -171,7 +172,8 @@ class ImageHandler():
 
         # convert frames to images
         frame_images = [Image.open(frame_path) for frame_path in frame_paths]
-        frame_images[0].save(output_path, format='GIF', save_all=True, append_images=frame_images[1:], duration=duration, loop=0, optimize=True)
+        frame_images[0].save(output_path, format='GIF', save_all=True,
+                             append_images=frame_images[1:], duration=duration, loop=0, optimize=True)
 
 
 class SoxMosh:
@@ -213,6 +215,9 @@ class SoxMosh:
         {"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays":[60], "decays":[0.5]}}
         '''
 
+        logging.info("Databending image %s",
+                     self.image_handler.input_path)
+
         self.tfm.set_input_format(file_type="raw", encoding="u-law",
                                   channels=1, rate=self.sample_rate)
         self.tfm.set_output_format(
@@ -223,13 +228,13 @@ class SoxMosh:
                 (name, params) = list(effect.items())[0]
                 self._get_transform_method(name)(**params)
 
-        self.tfm.build_file(self.image_handler.body_path, self.image_handler.temp_body_path)
+        self.tfm.build_file(self.image_handler.body_path,
+                            self.image_handler.temp_body_path)
 
         self.image_handler.resize()
         self.image_handler.attach_header(output_path)
 
         self.tfm.clear_effects()
-
 
     def databend_to_gif(self, output_path, effects_sequence, duration=30):
         '''
@@ -259,12 +264,14 @@ class SoxMosh:
         [[{"echos": {"gain_in": 0.2, "gain_out": 0.88, "delays": [0.5*i], "decays": [0.5]}}] for i in range(1, 10)]
         '''
         # Intermediary path
-        logging.info("Databending image %s to gif", self.image_handler.input_path)
+        logging.info("Databending image %s to gif",
+                     self.image_handler.input_path)
 
         output_file_name = pathlib.Path(output_path).stem
         frame_paths = []
         for i, effects in enumerate(effects_sequence):
-            frame_output_path = os.path.join(self.image_handler.temp_directory.name, output_file_name + "_" + "{index}".format(index=i).zfill(4))
+            frame_output_path = os.path.join(
+                self.image_handler.temp_directory.name, output_file_name + "_" + "{index}".format(index=i).zfill(4))
             frame_paths.append(frame_output_path)
             self.databend_image(frame_output_path, effects)
 
