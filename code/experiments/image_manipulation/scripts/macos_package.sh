@@ -1,7 +1,7 @@
 #!/bin/sh
 
 APP_NAME="SoxMosh"
-APP_VERSION="0.0.2"
+APP_VERSION="0.0.3"
 CURRENT_PATH="$( cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_PATH="$CURRENT_PATH/../dist"
 OUTPUT_PATH="$CURRENT_PATH/../$APP_NAME"

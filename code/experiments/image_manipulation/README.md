@@ -84,15 +84,23 @@ sox_most.databend_image()
 `soxmosh_cli.py` is an alternative and simpler way to call the code. 
 
 ```
-usage: soxmosh_cli.py [-h] input_image output_image effects
+usage: soxmosh_cli.py [-h] [--sample-rate SAMPLE_RATE] [--gif [GIF]]
+                      [--log LOG]
+                      input_image output_image effects
 
 positional arguments:
-  input_image   The path to the input image to be datamoshed
-  output_image  The path to where the output image will be saved
-  effects       The path to the effects json file
+  input_image           The path to the input image to be datamoshed
+  output_image          The path to where the output image will be saved
+  effects               The path to the effects json file
 
 optional arguments:
-  -h, --help    show this help message and exit
+  -h, --help            show this help message and exit
+  --sample-rate SAMPLE_RATE
+                        The sample rate to use for the effects
+  --gif [GIF]           Generate a gif made of frames of individual moshed
+                        images. The value supplied corresponds to the
+                        individual frame time in ms
+  --log LOG             Set the logging level to be used for stdout
 ```
 
 The `effects` parameter should be structured like:
@@ -120,6 +128,52 @@ The `effects` parameter should be structured like:
 This will apply an overdrive, phaser, bandreject & another effect in that order. 
 See `input_json` directory for more examples. 
 
+The sample rate to use for the image transformations can optionally be specified with 
+the `--sample-rate` parameter. If this is not provided the default of 44100 Hz will be used
+
+Supply the parameter `--gif` to make an animated gif (note this requires a slightly different 
+json structure - see examples). The optional parameter supplied with `--gif` specifies the
+individual image frame times (in ms) for the animation
+
+Note: That if you use the gif parameter the json formatted effects structure is slightly different
+
+```
+{
+	"effects": [
+		[{
+			"echos": {
+				"gain_in": 0.2,
+				"gain_out": 0.88,
+				"delays": [0.1]
+			},
+         {
+            "phaser": {}
+         },
+         ...
+		}],
+		[{
+			"echos": {
+				"gain_in": 0.2,
+				"gain_out": 0.88,
+				"delays": [0.5894348370484647]
+			}
+		}],
+		[{
+			"echos": {
+				"gain_in": 0.2,
+				"gain_out": 0.88,
+				"delays": [2.0098300562505265]
+			}
+		}],
+      ...
+   ]
+}
+```
+
+This structure has an additional layer of nesting to allow for specifying transformations on a frame by frame basis. 
+Each inner array will apply all the effects contained within it to the current frame. 
+There will be as many frames of data in the output gif as there are elements in the `"effects": []` array
+
 ## Usage
 
 See the [pysox Transformer documentation](https://pysox.readthedocs.io/en/latest/api.html#) for a full list of the effects which can be applied. All of the effect parameters can be expressed with "keyword": param inside the effect dictionary. Any which are omitted will simpy use the default values. 
@@ -129,6 +183,6 @@ The code works directly with bmp images - other formats may be provided, but the
 ## Future work
 
 - Specify an area of the image to apply an effect to - currently its applied to the whole image
-- Add a GUI to view the transmoformations in real time
+- Add a GUI to view the transformations in real time
 - Transform GIFs / Video
 - Web interface
