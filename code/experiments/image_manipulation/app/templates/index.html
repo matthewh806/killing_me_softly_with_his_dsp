@@ -9,8 +9,12 @@
         <h2>Input Image</h2>
         <img src="{{input_path}}" width="500px">
 
-        <form action="mosh_image" method="post">
-            <button name="moshBtn" type="submit">Mosh Image</button>
+        <form id="mosh_form" action="mosh_image" method="post">
+            <p>
+                {{ form.effects.label }}<br>
+                {{ form.effects(rows=8, cols=50) }}
+            </p>
+            <p>{{ form.submit() }}</p>
         </form>
 
         <h2>Output Image</h2>
