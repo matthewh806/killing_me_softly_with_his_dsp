@@ -9,12 +9,20 @@
         <h2>Input Image</h2>
         <img src="{{input_path}}" width="500px">
 
+        <form id="upload_form" enctype="multipart/form-data" action="upload" method="post">
+            <p>
+                {{ upload_form.hidden_tag() }}
+                {{ upload_form.image }}
+            </p>
+                {{ upload_form.submit() }}
+        </form>
+
         <form id="mosh_form" action="mosh_image" method="post">
             <p>
-                {{ form.effects.label }}<br>
-                {{ form.effects(rows=8, cols=50) }}
+                {{ mosh_form.effects.label }}<br>
+                {{ mosh_form.effects(rows=8, cols=50) }}
             </p>
-            <p>{{ form.submit() }}</p>
+            <p>{{ mosh_form.submit() }}</p>
         </form>
 
         <h2>Output Image</h2>
