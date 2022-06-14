@@ -5,6 +5,10 @@
     </head>
     <body>
         <h1>Soxmosh webapp</h1>
+        <p>
+            A small web utility for manipulating images by applying audio effects to them using the (py)SoX library.<br><br>
+            For a full description of the tool and how it works see the main <a href="http://theofficeofunspecifiedservices.com/software/SoxMosh/index.html">SoxMosh</a> page
+        </p>
 
         <h2>Input Image</h2>
         <img src="{{input_path}}" width="500px">
@@ -22,6 +26,7 @@
                 {{ mosh_form.effects.label }}<br>
                 {{ mosh_form.effects(rows=8, cols=50) }}
             </p>
+            <p>For a full list of the available effects please see the <a href="https://pysox.readthedocs.io/en/latest/api.html#">pysox documentation</a></p>
             <p>{{ mosh_form.submit() }}</p>
         </form>
 
