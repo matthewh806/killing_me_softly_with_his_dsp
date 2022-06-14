@@ -26,6 +26,10 @@
                 {{ mosh_form.effects.label }}<br>
                 {{ mosh_form.effects(rows=8, cols=50) }}
             </p>
+            <p>
+                {{ mosh_form.rendergif.label }}
+                {{ mosh_form.rendergif }}
+            </p>
             <p>For a full list of the available effects please see the <a href="https://pysox.readthedocs.io/en/latest/api.html#">pysox documentation</a></p>
             <p>{{ mosh_form.submit() }}</p>
         </form>
