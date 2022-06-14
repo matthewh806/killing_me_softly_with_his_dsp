@@ -13,5 +13,7 @@ input_json/*
 dist/
 build/
 
+venv
+
 SoxMosh/
 *.zip
