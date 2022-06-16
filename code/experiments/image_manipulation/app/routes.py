@@ -1,6 +1,6 @@
 from app import app
 from app.forms import MoshForm, UploadForm
-from flask import render_template, url_for, redirect, request, session
+from flask import render_template, url_for, redirect, request, session, current_app
 from werkzeug.utils import secure_filename
 from soxmosh import SoxMosh
 import os
@@ -43,7 +43,6 @@ def mosh_image():
     
     if request.method == 'POST':
         effects_json = json.loads(request.form['effects'])
-        sox_mosh = SoxMosh(input_path)
 
         if mosh_form.rendergif.data:
             pre, _ = os.path.splitext(output_path)
@@ -51,9 +50,9 @@ def mosh_image():
 
             url_pre, _ = os.path.splitext(output_url)
             output_url = url_pre + ".gif"
-
-            sox_mosh.databend_to_gif(output_path, effects_json)
+            job = current_app.task_queue.enqueue('app.tasks.generate_gif_task', input_path, output_path, effects_json)
         else:
+            sox_mosh = SoxMosh(input_path)
             sox_mosh.databend_image(output_path, effects_json)
 
         return render_template('index.html', input_path=input_url, output_path=output_url, upload_form=upload_form, mosh_form=mosh_form)
