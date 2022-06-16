@@ -34,7 +34,9 @@
             <p>{{ mosh_form.submit() }}</p>
         </form>
 
-        <h2>Output Image</h2>
-        <img src="{{output_path}}" width="500px">
+        {% if output_path %}
+            <h2>Output Image</h2>
+            <img src="{{output_path}}" width="500px">
+        {% endif %}
     </body>
 </html>
