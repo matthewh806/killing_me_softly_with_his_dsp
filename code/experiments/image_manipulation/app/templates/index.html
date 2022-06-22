@@ -21,6 +21,18 @@
                 {{ upload_form.submit() }}
         </form>
 
+        <form id="echo_form" action="add_effect" method="post">
+            <p>
+                <b>Echo: </b> {{ echo_form.effect_name }}
+                {{ echo_form.gain_in.label }} {{ echo_form.gain_in }} 
+                {{ echo_form.gain_out.label }} {{ echo_form.gain_out }} 
+                {{ echo_form.n_echos.label }} {{ echo_form.n_echos }}
+                {{ echo_form.delays.label }} {{ echo_form.delays(rows=1, cols=10) }}
+                {{ echo_form.decays.label }} {{ echo_form.decays(rows=1, cols=10) }}
+                {{ echo_form.submit() }}
+            </p>
+        </form>
+
         <form id="mosh_form" action="mosh_image" method="post">
             <p>
                 {{ mosh_form.effects.label }}<br>
