@@ -38,6 +38,9 @@ class ReverbForm(EffectForm):
     pre_delay = FloatField("Pre Delay (ms)", default=0.0)
     wet_gain = FloatField("Wet Gain (dB)", default=0.0)
 
+class ClearForm(FlaskForm):
+    submit = SubmitField("Clear Effects")
+
 class MoshForm(FlaskForm):
     effects = TextAreaField('effects')
     rendergif = BooleanField("Create GIF", default=False)
