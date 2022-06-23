@@ -3,6 +3,10 @@
 *.tif
 *.png
 *.gif
+*.jpg
+*.jpeg
+
+!app/static/uploads/perfect_blue_face.bmp
 
 input_json/*
 !input_json/example_effect.json

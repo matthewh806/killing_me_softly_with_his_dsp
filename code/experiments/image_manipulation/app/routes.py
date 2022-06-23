@@ -19,9 +19,9 @@ def index():
 
     if 'upload_filename' in session:
         input_url = url_for('static', filename='uploads/' + session['upload_filename'])
-        
     else:
-        input_url = url_for('static', filename='perfect_blue_face.bmp')
+        session['upload_filename'] = 'perfect_blue_face.bmp'
+        input_url = url_for('static', filename='uploads/' + session['upload_filename'])
 
     output_url = ""
     if 'output_filename' in session:
@@ -35,7 +35,7 @@ def index():
     reverb_form = ReverbForm(effect_name='reverb')
     clear_form = ClearForm()
     mosh_form = MoshForm()
-    print(session)
+
     if not 'effects_json' in session:
         mosh_form.effects.data = DEFAULT_EFFECTS
         session['effects_json'] = DEFAULT_EFFECTS
@@ -59,9 +59,7 @@ def mosh_image():
     mosh_form = MoshForm()
 
     if 'upload_filename' in session:
-        input_path = os.path.join(CURRENT_DIRECTORY, 'static/uploads/' + session['upload_filename'])
-    else:
-        input_path = os.path.join(CURRENT_DIRECTORY, 'static/perfect_blue_face.bmp')
+        input_path = os.path.join(app.config['UPLOAD_FOLDER'], session['upload_filename'])
           
     if request.method == 'POST':
         effects_json = json.loads(request.form['effects']) if not request.form['effects'] == '' else {}
