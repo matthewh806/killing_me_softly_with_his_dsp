@@ -1,5 +1,5 @@
 from app import app
-from app.forms import MoshForm, UploadForm, EchoForm
+from app.forms import MoshForm, UploadForm, CompandForm, EchoForm, OverdriveForm, PhaserForm, ReverbForm
 from flask import render_template, url_for, redirect, request, session, current_app
 from werkzeug.utils import secure_filename
 from soxmosh import SoxMosh
@@ -33,7 +33,11 @@ def index():
         output_url = url_for('static', filename='output/' + session['output_filename'])
 
     upload_form = UploadForm()
+    compand_form = CompandForm(effect_name='compand')
     echo_form = EchoForm(effect_name='echos')
+    overdrive_form = OverdriveForm(effect_name='overdrive')
+    phaser_form = PhaserForm(effect_name='phaser')
+    reverb_form = ReverbForm(effect_name='reverb')
     mosh_form = MoshForm()
 
     if 'effects_json' in session and not session['effects_json'] == '':
@@ -42,7 +46,15 @@ def index():
         mosh_form.effects.data = DEFAULT_EFFECTS
         session['effects_json'] = mosh_form.effects.data
 
-    return render_template('index.html', input_path=input_url, output_path=output_url, upload_form=upload_form, echo_form=echo_form, mosh_form=mosh_form)
+    return render_template('index.html', input_path=input_url, 
+                            output_path=output_url, 
+                            upload_form=upload_form, 
+                            compand_form=compand_form,
+                            echo_form=echo_form,
+                            overdrive_form=overdrive_form,
+                            phaser_form=phaser_form,
+                            reverb_form=reverb_form,
+                            mosh_form=mosh_form)
 
 
 @app.route("/mosh_image", methods=['GET','POST'])
@@ -94,8 +106,16 @@ def add_effect():
     effect_name = effect_dict.pop('effect_name', None)
 
     form = None
-    if effect_name == 'echos':
+    if effect_name == 'compand':
+        form = CompandForm()
+    elif effect_name == "echos":
         form = EchoForm()
+    elif effect_name == "overdrive":
+        form = OverdriveForm()
+    elif effect_name == "phaser":
+        form = PhaserForm()
+    elif effect_name == "reverb":
+        form = ReverbForm()
 
     effect_dict = {}
     ignore_fields = ["effect_name", "submit", "csrf_token"]
