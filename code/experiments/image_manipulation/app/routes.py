@@ -1,12 +1,9 @@
 from app import app
-from app.forms import MoshForm, UploadForm, CompandForm, EchoForm, OverdriveForm, PhaserForm, ReverbForm
+from app.forms import MoshForm, UploadForm, CompandForm, EchoForm, OverdriveForm, PhaserForm, ReverbForm, ClearForm
 from flask import render_template, url_for, redirect, request, session, current_app
 from werkzeug.utils import secure_filename
-from soxmosh import SoxMosh
 import os
 import json
-import wtforms_json
-
 from rq.job import Job
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
@@ -15,8 +12,6 @@ DEFAULT_FILE = os.path.join(CURRENT_DIRECTORY, "static/perfect_blue_face.bmp")
 ALLOWED_EXTENSIONS = {'bmp', 'png'}
 
 DEFAULT_EFFECTS = '[{"echos": {"gain_in": 0.8, "gain_out": 0.5, "delays": [60], "decays": [0.5]}}]'
-
-wtforms_json.init()
 
 @app.route('/')
 @app.route('/index')
@@ -38,13 +33,14 @@ def index():
     overdrive_form = OverdriveForm(effect_name='overdrive')
     phaser_form = PhaserForm(effect_name='phaser')
     reverb_form = ReverbForm(effect_name='reverb')
+    clear_form = ClearForm()
     mosh_form = MoshForm()
-
-    if 'effects_json' in session and not session['effects_json'] == '':
-        mosh_form.effects.data = session['effects_json']
-    else:
+    print(session)
+    if not 'effects_json' in session:
         mosh_form.effects.data = DEFAULT_EFFECTS
-        session['effects_json'] = mosh_form.effects.data
+        session['effects_json'] = DEFAULT_EFFECTS
+    else:
+        mosh_form.effects.data = session['effects_json']
 
     return render_template('index.html', input_path=input_url, 
                             output_path=output_url, 
@@ -54,6 +50,7 @@ def index():
                             overdrive_form=overdrive_form,
                             phaser_form=phaser_form,
                             reverb_form=reverb_form,
+                            clear_form=clear_form,
                             mosh_form=mosh_form)
 
 
@@ -138,13 +135,19 @@ def add_effect():
     effect_json = {}
     effect_json[effect_name] = effect_dict
 
-    effects_json_str = session['effects_json'] if 'effects_json' in session else []
+    effects_json_str = session['effects_json'] if ('effects_json' in session and not session['effects_json'] == '') else '[]'
     effects_json_array = json.loads(effects_json_str)
     effects_json_array.append(effect_json)
-    
     session['effects_json'] = json.dumps(effects_json_array)
+
     return redirect(url_for('index'))
 
+@app.route('/clear_effects', methods=['POST'])
+def clear_effects():
+    if 'effects_json' in session:
+        session['effects_json'] = ''
+
+    return redirect(url_for('index'))
 
 @app.route('/result/<string:id>')
 def result(id):

@@ -75,6 +75,10 @@
             </p>
         </form>
 
+        <form id="clear_form" action="clear_effects" method="post">
+            {{ clear_form.submit() }}
+        </form>
+
         <form id="mosh_form" action="mosh_image" method="post">
             <p>
                 {{ mosh_form.effects.label }}<br>
