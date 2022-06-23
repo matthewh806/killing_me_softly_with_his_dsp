@@ -64,7 +64,7 @@ def mosh_image():
         input_path = os.path.join(CURRENT_DIRECTORY, 'static/perfect_blue_face.bmp')
           
     if request.method == 'POST':
-        effects_json = json.loads(request.form['effects'])
+        effects_json = json.loads(request.form['effects']) if not request.form['effects'] == '' else {}
 
         if mosh_form.rendergif.data:
             pre, _ = os.path.splitext(session['upload_filename'])
