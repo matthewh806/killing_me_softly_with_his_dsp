@@ -1,0 +1,11 @@
+input[type=text] {
+    width: 3em;
+}
+
+input[type=number] {
+    width: 3em;
+}
+
+input[type=submit] {
+    width: 8em;
+}
