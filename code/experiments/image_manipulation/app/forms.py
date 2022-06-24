@@ -42,7 +42,7 @@ class ClearForm(FlaskForm):
     submit = SubmitField("Clear Effects")
 
 class MoshForm(FlaskForm):
-    effects = TextAreaField('effects')
+    effects = TextAreaField('Effects List')
     rendergif = BooleanField("Create GIF", default=False)
     submit = SubmitField('Mosh Image')
 
