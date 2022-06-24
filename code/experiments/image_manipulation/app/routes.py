@@ -63,6 +63,7 @@ def mosh_image():
           
     if request.method == 'POST':
         effects_json = json.loads(request.form['effects']) if not request.form['effects'] == '' else {}
+        session['effects_json'] = request.form['effects']
 
         if mosh_form.rendergif.data:
             pre, _ = os.path.splitext(session['upload_filename'])
