@@ -38,6 +38,28 @@ def generateTriangleSignal(frequency=220.0, length=1.0, fs=44100.0):
 
     return np.array(signal)
 
+def generateSquareSignal(frequency=220.0, length=1.0, fs=44100.0):
+    num_samples = int(length*fs)
+    signal = []
+    for i in range(num_samples):
+        t=i/fs
+        signal.append(2 * (2 * math.floor(frequency*t) - math.floor(2*frequency*t)) + 1)
+
+    return np.array(signal)
+
+def generateSawtoothSignal(frequency=220.0, length=1.0, fs=44100.0):
+    p = 1/frequency
+    num_samples = int(length*fs)
+    signal = []
+    for i in range(num_samples):
+        t=i/fs
+        signal.append(2 * (2 * (t/p - math.floor(t/p + 1/2))))
+
+    return np.array(signal)
+
+def generateRandomSignal():
+    pass
+
 def generateRampEnvelope(minimum_amplitude = 0.0, maximum_amplitude = 1.0, signal_length = 1.0, sample_rate = 44100.0):
     return np.linspace(minimum_amplitude, maximum_amplitude, int(1 / signal_length * sample_rate))
 
