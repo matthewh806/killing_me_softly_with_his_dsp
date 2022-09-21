@@ -1,1 +1,1 @@
-__all__ = ["SineOscillator"]
+__all__ = ["SineOscillator", "SquareOscillator"]
