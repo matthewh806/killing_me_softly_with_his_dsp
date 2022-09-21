@@ -1,8 +1,8 @@
-import itertools
 import pyaudio
 import numpy as np
 import time
 from threading import Timer
+from synthesis.oscillator import SineOscillator
 
 FRAMES_PER_BUFFER=1024
 class RealtimePlayer:
@@ -26,10 +26,12 @@ class RealtimePlayer:
 
     def start_processing_non_blocking(self, sound_array, sample_rate=44100.0, get_next_block_callback=None):
         '''
-        Start streaming the audio contained in sound_array using the provided
-        sample rate
+        Open the pyaudio stream ready for audio output. 
+        get_next_block_callback is called eachtime the pyaudio stream_callback is called (this is determined by the rate
+        parameter, which in this case is just sample_rate) it should return a buffer of size FRAMES_PER_BUFFER
 
-        Use on_complete_callback to be notified of when the audio playback has completed.
+        If sample_rate is 44100 Hz then get_next_block_callback is called 44100 times per second and should fill 
+        FRAMES_PER_BUFFER worth of data
 
         In order to terminate the before the end processing call stop_processing()
         Note this process is non-blocking meaning it will be called on a different thread 
@@ -73,15 +75,10 @@ class RealtimePlayer:
 
         if self.stream is None:
             return False
-
-        if not self.stream.is_stopped():
-            self.stream.stop_stream()
             
         self.stream.close()
         self.stream = None
-
         self.cycle_count = 0
-        self.sound_source = np.array([], dtype=np.float32)
 
 
     def _pyaudio_callback(self, in_data, frame_count, time_info, status):
@@ -89,7 +86,7 @@ class RealtimePlayer:
         outdata = np.zeros(FRAMES_PER_BUFFER)
 
         if(self.get_next_block_callback != None):
-            outdata = self.get_next_block_callback()
+            outdata = self.get_next_block_callback(FRAMES_PER_BUFFER)
 
         audio_data = np.float32(outdata) 
         self.cycle_count += 1
@@ -103,34 +100,29 @@ class RealtimePlayer:
         print("Stopping processing")
         self.stop_processing()
 
-def get_sine_oscillator(freq, sample_rate):
-    increment = (2*np.pi*freq)/sample_rate
-    return (np.sin(v) for v in itertools.count(start=0, step=increment))
-
-class SineOscillator():
-    def __init__(self, freq, sample_rate):
-        self.freq = freq
-        self.sample_rate = sample_rate
-        self.osc = self._get_oscillator()
-    
-    def _get_oscillator(self):
-        increment = (2*np.pi*self.freq)/self.sample_rate
-        return (np.sin(v) for v in itertools.count(start=0, step=increment))
-
-    def getNextBlockCallback(self):
-        return [next(self.osc) for i in range(FRAMES_PER_BUFFER)]
-
 if __name__ == "__main__":
     import utils_functions as UF
     import time
+    import signal
+    import sys
 
     sample_rate = 44100
+    osc=SineOscillator(220, 1.0, sample_rate)
 
-    osc=SineOscillator(440, sample_rate)
-    def getNextBlockCallback(self):
-        return [next(self.oscillator) for i in range(FRAMES_PER_BUFFER)]
-    
     sound_player = RealtimePlayer()
+
+    def signal_handler(sig, frame):
+        print("Closing any open streams")
+        if sound_player.processing():
+            sound_player.stop_processing()
+
+        sound_player.paudio.terminate()
+        sys.exit()
+
+    signal.signal(signal.SIGINT, signal_handler)
+    print("Press Ctrl+C to terminate")
+    # signal.pause()
+
     sound_player.start_processing_non_blocking([], sample_rate, osc.getNextBlockCallback)
 
     while sound_player.processing():
