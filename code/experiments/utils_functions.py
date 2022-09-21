@@ -57,6 +57,9 @@ def generateSawtoothSignal(frequency=220.0, length=1.0, fs=44100.0):
 
     return np.array(signal)
 
+def generateInverseSawtoothSignal(frequency=220.0, length=1.0, fs=44100.0):
+    return -1*generateSawtoothSignal(frequency, length, fs)
+
 def generateRandomSignal():
     pass
 
