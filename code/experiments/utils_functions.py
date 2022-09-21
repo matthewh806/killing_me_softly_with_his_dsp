@@ -3,6 +3,7 @@ import os
 import copy
 from scipy.io.wavfile import read, write
 import matplotlib.pyplot as plt
+import math
 
 def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
     '''
@@ -14,6 +15,28 @@ def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
     samples = np.arange(length * fs) / fs
     signal = np.sin(2 * np.pi * frequency * samples)
     return signal
+
+def triangleFn(t, p):
+    '''
+    Triangle wave function spanning range [-1,1]
+    for time t and period p
+
+    x(t) = 2 * | 2(t/p - flr(t/p + 1/2)) | - 1
+    (note: period is just 1/frequency)
+    '''
+    return 2 * abs(2 * (t/p - math.floor(t/p + 1/2))) -  1
+
+def generateTriangleSignal(frequency=220.0, length=1.0, fs=44100.0):
+    period = 1/frequency
+
+    num_samples = int(length * fs)
+    signal = []
+    for i in range(num_samples):
+        t=i/fs
+        val = triangleFn(t, period)
+        signal.append(val)
+
+    return np.array(signal)
 
 def generateRampEnvelope(minimum_amplitude = 0.0, maximum_amplitude = 1.0, signal_length = 1.0, sample_rate = 44100.0):
     return np.linspace(minimum_amplitude, maximum_amplitude, int(1 / signal_length * sample_rate))
