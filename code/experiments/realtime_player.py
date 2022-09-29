@@ -3,6 +3,7 @@ import numpy as np
 import time
 from threading import Timer
 from synthesis.oscillator import SineOscillator
+import signal
 
 FRAMES_PER_BUFFER=1024
 class RealtimePlayer:
@@ -100,15 +101,8 @@ class RealtimePlayer:
         print("Stopping processing")
         self.stop_processing()
 
-if __name__ == "__main__":
-    import utils_functions as UF
-    import time
-    import signal
-    import sys
 
-    sample_rate = 44100
-    osc=SineOscillator(220, 1.0, sample_rate)
-
+def stream_audio(callback_method, sample_rate=44100):
     sound_player = RealtimePlayer()
 
     def signal_handler(sig, frame):
@@ -121,11 +115,18 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, signal_handler)
     print("Press Ctrl+C to terminate")
-    # signal.pause()
 
-    sound_player.start_processing_non_blocking([], sample_rate, osc.getNextBlockCallback)
+    sound_player.start_processing_non_blocking([], sample_rate, callback_method)
 
     while sound_player.processing():
         time.sleep(0.1)
 
     print("Finished playing")
+
+if __name__ == "__main__":
+    import utils_functions as UF
+    import time
+    import sys
+
+    osc=SineOscillator(440, 1.0)
+    stream_audio(osc.getNextBlockCallback)
