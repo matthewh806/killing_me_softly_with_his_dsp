@@ -104,11 +104,18 @@ def wavwrite(y, sample_rate, filepath):
 
     write(filepath, sample_rate, y)
 
-def signal_plot(nrows, ncols, n, time_data, amplitude_data, title="Signal"):
+def signal_plot(nrows, ncols, n, *xy, title="Signal"):
     plt.subplot(nrows, ncols, n)
-    plt.plot(time_data, amplitude_data)
+    
+    plt.plot(*xy)
+    # if len(xy) == 2:
+        
+    # else:
+    #     plt.plot(xy)
+
     plt.legend()
     plt.title(title)
+    plt.grid()
     plt.xlabel("Time [s]")
     plt.ylabel("Amplitude")
 
