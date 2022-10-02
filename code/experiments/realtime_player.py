@@ -4,6 +4,7 @@ import time
 from threading import Timer
 from synthesis.oscillator import SineOscillator
 import signal
+import sys
 
 FRAMES_PER_BUFFER=1024
 class RealtimePlayer:
@@ -117,11 +118,6 @@ def stream_audio(callback_method, sample_rate=44100):
     print("Press Ctrl+C to terminate")
 
     sound_player.start_processing_non_blocking([], sample_rate, callback_method)
-
-    while sound_player.processing():
-        time.sleep(0.1)
-
-    print("Finished playing")
 
 if __name__ == "__main__":
     import utils_functions as UF
