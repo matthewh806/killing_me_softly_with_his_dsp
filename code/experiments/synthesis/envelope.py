@@ -80,10 +80,9 @@ class  ADSREnvelope:
         self.val = next(self.stepper)
         return self.val 
 
-
 if __name__ == "__main__":
 
-    def get_adsr_envelope(a=0.5,  d=0.3, sl=0.7, r=0.2, sd=0.4, sr=44100):
+    def _get_adsr_envelope(a=0.5,  d=0.3, sl=0.7, r=0.2, sd=0.4, sr=44100):
         # sd = sustain duration
         adsr_generator = ADSREnvelope(a, d, sl, r, sr); iter(adsr_generator)
 
@@ -96,7 +95,7 @@ if __name__ == "__main__":
 
         return adsr_envelope
 
-    env = get_adsr_envelope()
+    env = _get_adsr_envelope()
     import matplotlib.pyplot as plt
 
     fig = plt.figure(figsize=(25, 6.25))
