@@ -3,13 +3,14 @@ import math
 import numpy as  np
 
 class Oscillator(ABC):
-    def __init__(self, freq=440, amp=1, phase=0, sample_rate=44100):
+    def __init__(self, freq=440, amp=1, phase=0, sample_rate=44100, wave_range=(-1,1)):
 
         # Fixed, unchanging initialised values
         self._freq = freq
         self._amp = amp
         self._phase = phase
         self.sample_rate = sample_rate
+        self._wave_range = wave_range
 
         # Properties that will be changed
         self._f = freq
@@ -66,6 +67,14 @@ class Oscillator(ABC):
         '''
         return [next(self._iter) for i in range(num_samples)]
 
+    @staticmethod
+    def squish_val(val, min_val, max_val=1):
+        '''
+        Maps from range (-1,1) to new range
+        '''
+
+        return (((val + 1) / 2) * (max_val - min_val)) + min_val
+
     def _post_freq_set(self):
         pass
 
@@ -108,6 +117,10 @@ class SineOscillator(Oscillator):
     def __next__(self):
         val = np.sin(self._i + self._p)
         self._i += self._step
+
+        if self._wave_range is not (-1,1):
+            val = self.squish_val(val, *self._wave_range)
+
         return val * self._a
 
 class SquareOscillator(Oscillator):
@@ -118,6 +131,10 @@ class SquareOscillator(Oscillator):
     def __next__(self):
         val = 2 * (2 * math.floor(self._f*self._i) - math.floor(2*self._f*self._i)) + 1
         self._i += + self._step
+
+        if self._wave_range is not (-1,1):
+            val = self.squish_val(val, *self._wave_range)
+            
         return val * self._a
 
 if __name__ == "__main__":
@@ -134,5 +151,5 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     times = np.linspace(0, len(sqr_signal), len(sqr_signal))
-    UF.signal_plot(1,1,1, times, sine_signal)
+    UF.signal_plot(1,1,1, sine_signal)
     plt.show()
