@@ -1,4 +1,4 @@
-import oscillator
+from oscillator import SineOscillator, SquareOscillator
 
 class  WaveAdder:
     def __init__(self, *oscillators):
@@ -16,9 +16,9 @@ class  WaveAdder:
         return [next(self) for i in range(num_samples)]
 
 if __name__ == "__main__":
-    sine_osc = oscillator.SineOscillator(440)
-    sin_osc_2 = oscillator.SineOscillator(220)
-    sqr_osc = oscillator.SquareOscillator(560)
+    sine_osc = SineOscillator(440)
+    sin_osc_2 = SineOscillator(220)
+    sqr_osc = SquareOscillator(560)
 
     waveAdder = WaveAdder(sine_osc, sin_osc_2, sqr_osc); iter(waveAdder)
     waveSumSignal = waveAdder.getNextBlockCallback(1024)
