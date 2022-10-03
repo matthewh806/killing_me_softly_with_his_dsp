@@ -8,6 +8,12 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+def identity_transfer_function(x):
+    '''
+    Return the wave untouched
+    '''
+    return x
+
 class WaveShaper():
     '''
     Distort the shape of an incoming waveform (oscillator) by feeding it
@@ -21,7 +27,7 @@ class WaveShaper():
     i.e. take in a value x and transform it into some y(x)
     '''
 
-    def __init__(self, oscillator, transfer_function):
+    def __init__(self, oscillator, transfer_function=identity_transfer_function):
         self.oscillator = oscillator
         self.transfer_function = transfer_function
 
@@ -37,15 +43,7 @@ class WaveShaper():
 
         return self.transfer_function(val)
 
-if __name__ == "__main__":
-    
-    def identity_transfer_function(x):
-        return x
-
-    def clipping_transfer_function(x, min_out, max_out):
-        return max(min_out, min(x, max_out))
-
-    def plot_waveshaper_signal(osc, transfer_function=identity_transfer_function, title="Waveshaped Signal"):
+def plot_waveshaper_signal(osc, transfer_function=identity_transfer_function, title="Waveshaped Signal"):
         gen = WaveShaper(osc, transfer_function)
         iter(gen)
 
@@ -56,6 +54,11 @@ if __name__ == "__main__":
 
         return signal
 
+if __name__ == "__main__":
+
+    def clipping_transfer_function(x, min_out, max_out):
+        return max(min_out, min(x, max_out))
+
     plot_waveshaper_signal(SineOscillator(20), title="Identity fn")
     plot_waveshaper_signal(SineOscillator(20), lambda x: x*x, title="Square fn")
     plot_waveshaper_signal(SineOscillator(20), lambda x: x/2, title="Half fn")
@@ -64,4 +67,3 @@ if __name__ == "__main__":
     from realtime_player import stream_audio
     clipped_shaper = WaveShaper(SineOscillator(200), lambda x: clipping_transfer_function(x, -0.9, 0.9))
     stream_audio(clipped_shaper.getNextBlockCallback)
-çç
