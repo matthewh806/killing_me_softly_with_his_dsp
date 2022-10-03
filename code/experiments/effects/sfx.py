@@ -19,3 +19,20 @@ class Bitcrusher:
 
     def _get_quantisation_level(self):
         return 2.0 / (pow(2.0, self.bit_depth) - 1.0)
+
+def identity_transfer_function(x):
+    '''
+    Return the wave untouched
+    '''
+    return x
+
+def clipping_transfer_function(x, min_out, max_out):
+        return max(min_out, min(x, max_out))
+
+class Waveshaper:
+
+    def __init__(self, transfer_fn=identity_transfer_function):
+        self.transfer_fn = transfer_fn
+
+    def __call__(self, val):
+        return self.transfer_fn(val)
