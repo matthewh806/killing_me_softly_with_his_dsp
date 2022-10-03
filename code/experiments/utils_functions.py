@@ -108,30 +108,37 @@ def signal_plot(nrows, ncols, n, *xy, title="Signal"):
     plt.subplot(nrows, ncols, n)
     
     plt.plot(*xy)
-    # if len(xy) == 2:
-        
-    # else:
-    #     plt.plot(xy)
-
     plt.legend()
     plt.title(title)
     plt.grid()
     plt.xlabel("Time [s]")
     plt.ylabel("Amplitude")
 
+def fft_plot_data(signal, fslice=slice(0,100), sample_rate=44100):
+    fd = np.fft.fft(signal)
+    fd_mag = np.abs(fd)
+    x = np.linspace(0, sample_rate, len(signal))
+    y = fd_mag * 2 / sample_rate
 
-def magnitude_spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
+    return x[fslice], y[fslice]
+
+def magnitude_spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum", xticks=None, yticks=None):
     plt.subplot(nrows, ncols, n)
     plt.plot(frequency_data, amplitude_data)
     plt.title(title)
+    plt.grid()
     plt.xlabel("Frequency [Hz]")
     plt.ylabel("Amplitude")
+
+    if xticks is not None: plt.xticks(xticks)
+    if yticks is not None: plt.yticks(yticks)
 
 
 def spectrum_plot(nrows, ncols, n, frequency_data, amplitude_data, title="Spectrum"):
     plt.subplot(nrows, ncols, n)
     plt.plot(frequency_data, amplitude_data)
     plt.title(title)
+    plt.grid()
     plt.xlabel("Frequency [Hz]")
     plt.ylabel("Amplitude (dB)")
     plt.ylim([-100, np.amax(amplitude_data)])
@@ -142,6 +149,22 @@ def specgram_plot(nrows, ncols, n, input_signal, sample_rate, title="Specgram"):
     plt.specgram(input_signal, NFFT=256, Fs=sample_rate)
     plt.xlabel("Time [s]")
     plt.ylabel("Frequency [Hz]")
+
+
+def plot_sigspectrum(signal, fslice=slice(0, 100), sample_rate=44100, figsize=(25,9), sig_title="Signal", spec_title="Spectrum", xsticks=None, ysticks=None):
+    '''
+    A simple convenience plotter for displaying both
+    a signal & spectrum together in one figure
+
+    The FFT of the signal is calculated internally by this method
+
+    xsticks & ysticks are tick value lists for the spectrum plot
+    '''
+    plt.figure(figsize=figsize)
+    signal_plot(2, 1, 1, signal, title=sig_title)
+    fx, fy = fft_plot_data(signal, fslice=fslice)
+    magnitude_spectrum_plot(2,1,2,fx,fy, title=spec_title, xticks=xsticks)
+    plt.show()
 
 
 def next_power_of_2(x):
