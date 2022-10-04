@@ -59,21 +59,25 @@ class Waveshaper:
 class SimpleDelay:
 
     def __init__(self, time, fdbk, wet_dry_ratio = 0.5, max_delay = 2.0, sample_rate=44100):
-        self.delay_samples = int(time * sample_rate)
-        self.max_delay_samples = int(max_delay * sample_rate)
-        self.delay_buffer = np.zeros(self.max_delay_samples)
+        self.delay_fract_samples = time * sample_rate
+        self.delay_buffer = np.zeros(int(max_delay * sample_rate))
+        self.max_delay_samples = len(self.delay_buffer)
         self.fdbk = fdbk
         self.wet_dry_ratio = wet_dry_ratio
         self.sample_rate = sample_rate
-
         self.write_pos = 0
 
     def __call__(self, val):
-        read_pos = self.write_pos - self.delay_samples
+        # Read lower and upper sample positions
+        read_pos = self.write_pos - self.delay_fract_samples
         if read_pos < 0:
             read_pos += self.max_delay_samples
 
-        delayed_val = self.delay_buffer[read_pos]
+        y1 = self.delay_buffer[int(read_pos)]
+        y2 = self.delay_buffer[int((read_pos + 1) % self.max_delay_samples)]
+        frac_val = self.delay_fract_samples - int(self.delay_fract_samples)
+        delayed_val = frac_val * y2 + (1.0 - frac_val) * y1
+
         self.delay_buffer[self.write_pos] = val + self.fdbk * delayed_val
         self.write_pos = (self.write_pos + 1) % self.max_delay_samples
         return (1.0 - self.wet_dry_ratio) * val + self.wet_dry_ratio * delayed_val 
@@ -82,7 +86,7 @@ class SimpleDelay:
 if __name__ == "__main__":
     
     sample_rate = 44100
-    simple_delay = SimpleDelay(0.5, 0.9, 0.5, max_delay=2.0)
+    simple_delay = SimpleDelay(2.0, 0.6, 0.5, max_delay=2.0)
 
     for i in range(20):
         val = i % 2
