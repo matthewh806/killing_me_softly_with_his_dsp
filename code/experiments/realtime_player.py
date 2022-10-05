@@ -119,6 +119,8 @@ def stream_audio(callback_method, sample_rate=44100):
 
     sound_player.start_processing_non_blocking([], sample_rate, callback_method)
 
+    return sound_player
+
 if __name__ == "__main__":
     import utils_functions as UF
     import time
