@@ -1,4 +1,11 @@
 import PySimpleGUI as sg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib
+matplotlib.use('TkAgg')
+import numpy as np
+import gc
+import matplotlib.pyplot as plt
+
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../synthesis'))
@@ -6,11 +13,29 @@ from synthesis.oscillator import SineOscillator, SquareOscillator
 import utils_functions as UF
 import realtime_player
 
+'''
+This is a simple test to investigate how to make a simple GUI with
+plotting using the PySimplyGUI library. 
+
+TODO:
+    - plotting / audio rendering are done on the same thread & can
+      result in big spikes in  the plots
+    - Check for memory leaks
+    - Improve matplotlib replotting?
+'''
+
+def draw_canvas_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
+
 class OscillatorGUI():
 
     def __init__(self, osc):
         self.osc = osc
         self.player = None
+        self.plot_signal = np.zeros(44100)
         iter(self.osc)
 
         sg.theme('DarkAmber')
@@ -32,15 +57,32 @@ class OscillatorGUI():
                     sg.Slider(range=(0, 1), default_value = osc.phase, size=(30,20), orientation = "horizontal", key="-PHASE-", enable_events = True), 
                     sg.Text('')
                 ],
+                [sg.Canvas(key="-CANVAS-", size=(600,400))],
                 [sg.Button('Plot')]
         ]
 
-        self.window = sg.Window("Basic Oscillator", layout)
+        self.window = sg.Window("Basic Oscillator", layout, finalize=True)
+        self.plot_signal = self.osc.getNextBlockCallback(44100)
+        self.canvas = self.plot_figure()
 
     def poll_events(self):
         event, values = self.window.read()
-        print(event, values)
         return event, values
+
+    def plot_figure(self):
+        self.plot_signal = self.osc.getNextBlockCallback(44100)
+        self.fig = UF.get_sigspectrum(self.plot_signal, fslice=slice(0, 1000), figsize=(6,4))
+        return draw_canvas_figure(self.window['-CANVAS-'].TKCanvas, self.fig)
+
+    def update_figure(self):
+        self.fig.clear()
+        plt.close(self.fig)
+        plt.close('all')
+
+        self.canvas.get_tk_widget().forget()
+        self.canvas = self.plot_figure()
+
+        print(plt.get_fignums())
 
     def run_gui(self):
         while True:
@@ -55,16 +97,18 @@ class OscillatorGUI():
             
             if event == "-AMP-":
                 self.osc.amp = values['-AMP-']/100.0
+                self.update_figure()
 
             if event == "-FREQ-":
                 self.osc.freq = values['-FREQ-']
+                self.update_figure()
             
             if event == "-PHASE-":
                 self.osc.phase = values['-PHASE-']
+                self.update_figure()
 
             if event == 'Plot':
-                signal = self.osc.getNextBlockCallback(44100)
-                UF.plot_sigspectrum(signal, fslice=slice(0, 1000))
+                self.update_figure()
 
             if event == 'Play':
                 if self.player is not None:
