@@ -151,6 +151,31 @@ def specgram_plot(nrows, ncols, n, input_signal, sample_rate, title="Specgram"):
     plt.ylabel("Frequency [Hz]")
 
 
+def get_sigspectrum(signal, fslice=slice(0, 100), sample_rate=44100, figsize=(25,9), sig_title="Signal", spec_title="Spectrum", xsticks=None, ysticks=None):
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=figsize)
+
+    sig_ax = axes[0]
+    sig_ax.plot(signal)
+    sig_ax.legend()
+    sig_ax.set_title(sig_title)
+    sig_ax.grid()
+    sig_ax.set_xlabel("Time [s]")
+    sig_ax.set_ylabel("Amplitude")
+
+    fx, fy = fft_plot_data(signal, fslice=fslice)
+
+    spec_ax = axes[1]
+    spec_ax.plot(fx, fy)
+    spec_ax.set_title(spec_title)
+    spec_ax.grid()
+    spec_ax.set_xlabel("Frequency [Hz]")
+    spec_ax.set_ylabel("Amplitude")
+
+    if xsticks is not None: spec_ax.set_xticks(xsticks)
+    if ysticks is not None: spec_ax.set_yticks(ysticks)
+
+    return fig
+
 def plot_sigspectrum(signal, fslice=slice(0, 100), sample_rate=44100, figsize=(25,9), sig_title="Signal", spec_title="Spectrum", xsticks=None, ysticks=None):
     '''
     A simple convenience plotter for displaying both
@@ -160,10 +185,7 @@ def plot_sigspectrum(signal, fslice=slice(0, 100), sample_rate=44100, figsize=(2
 
     xsticks & ysticks are tick value lists for the spectrum plot
     '''
-    plt.figure(figsize=figsize)
-    signal_plot(2, 1, 1, signal, title=sig_title)
-    fx, fy = fft_plot_data(signal, fslice=fslice)
-    magnitude_spectrum_plot(2,1,2,fx,fy, title=spec_title, xticks=xsticks)
+    get_sigspectrum(signal, fslice, sample_rate, figsize, sig_title, spec_title, xsticks, ysticks)
     plt.show()
 
 
