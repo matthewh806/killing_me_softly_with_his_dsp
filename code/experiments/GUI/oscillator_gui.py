@@ -75,14 +75,18 @@ class OscillatorGUI():
         return draw_canvas_figure(self.window['-CANVAS-'].TKCanvas, self.fig)
 
     def update_figure(self):
-        self.fig.clear()
-        plt.close(self.fig)
-        plt.close('all')
 
-        self.canvas.get_tk_widget().forget()
-        self.canvas = self.plot_figure()
+        axes = self.fig.axes
+        self.plot_signal = self.osc.getNextBlockCallback(44100)
+        sig_lines = axes[0].get_lines()
+        sig_lines[0].set_ydata(self.plot_signal)
 
-        print(plt.get_fignums())
+        spec_lines = axes[1].get_lines()
+        fx, fy = UF.fft_plot_data(self.plot_signal, fslice=slice(0, 1000))
+        spec_lines[0].set_xdata(fx)
+        spec_lines[0].set_ydata(fy)
+
+        self.fig.canvas.draw_idle()
 
     def run_gui(self):
         while True:
