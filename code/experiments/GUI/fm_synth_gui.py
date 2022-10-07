@@ -6,6 +6,7 @@ matplotlib.use('TkAgg')
 import numpy as np
 import gc
 import matplotlib.pyplot as plt
+import time
 
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
@@ -72,8 +73,8 @@ class FMSynthGUI():
         self.window = sg.Window("FM Synth", layout, finalize=True)
         self.canvas = self.plot_figure()
 
-    def poll_events(self):
-        event, values = self.window.read()
+    def poll_events(self, timeout=None):
+        event, values = self.window.read(timeout)
         return event, values
 
     def plot_figure(self):
@@ -95,10 +96,23 @@ class FMSynthGUI():
         spec_lines[0].set_ydata(fy)
 
         self.fig.canvas.draw_idle()
+        self.replot = False
 
     def run_gui(self):
+
+        start_time = time.time()
+        time_limit = 1
+
         while True:
-            event, values = self.poll_events()
+            event, values = self.poll_events(timeout=10)
+
+            current_time = time.time()
+            elapsed_time = current_time - start_time
+
+            if elapsed_time > time_limit:
+                start_time = current_time
+                if self.replot:
+                    self.update_figure()
 
             if event == sg.WIN_CLOSED or event == 'Exit':
                 if self.player is not None:
@@ -108,30 +122,30 @@ class FMSynthGUI():
             
             if event == "-C-AMP-":
                 self.synth.oscillator.amp = values['-C-AMP-']/100.0
-                self.update_figure()
+                self.replot = True
             
             if event == "-M-AMP-":
                 self.synth.modulators[0].amp = values['-M-AMP-']/100.0
-                self.update_figure()
+                self.replot = True
 
             if event == "-C-FREQ-":
                 self.synth.oscillator.freq = values['-C-FREQ-']
-                self.update_figure()
+                self.replot = True
 
             if event == "-M-FREQ-":
                 self.synth.modulators[0].freq = values['-M-FREQ-']
-                self.update_figure()
+                self.replot = True
             
             if event == "-C-PHASE-":
                 self.synth.oscillator.phase = values['-C-PHASE-']
-                self.update_figure()
+                self.replot = True
             
             if event == "-M-PHASE-":
-                self.synth.oscillator.phase = values['-M-PHASE-']
-                self.update_figure()
+                self.synth.modulators[0].phase = values['-M-PHASE-']
+                self.replot = True
 
             if event == 'Plot':
-                self.update_figure()
+                self.replot = True
 
             if event == 'Play':
                 if self.player is not None:
@@ -143,9 +157,6 @@ class FMSynthGUI():
             if event == 'Stop' and self.player is not None:
                 self.player.stop_processing()
                 self.player = None
-
-            if self.replot:
-                self.redraw_figure()
 
         self.window.close()
 
