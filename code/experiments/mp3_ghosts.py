@@ -35,7 +35,7 @@ logging.basicConfig()
 logger = logging.getLogger('mp3_ghosts')
 logger.setLevel(level=logging.DEBUG)
 
-def generate_ghosts(input_path, output_path, start=0, end=-1, fft_size=2048, window="hamming", window_size=129, overlap=4):
+def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft_size=2048, window="hamming", window_size=129, overlap=4):
     '''
     Generate the ghosts of an mp3
 
@@ -52,6 +52,7 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, fft_size=2048, win
         output_path: location to store the output ghost mp3 file
         start: start slice position (ms) within the input file
         end: end slice position (ms) within the input file
+        bitrate: the bitrate to use for wav->mp3 conversion (kbps)
         fft_size: the size of the FFT sample buffer (should be a power of 2)
         window; the type of window to use in the STFT (string)
         window_size: the size of the window to use in the STFT
@@ -87,7 +88,7 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, fft_size=2048, win
     input_slice_data = np.float32(np.array(input_slice.get_array_of_samples())) / (2**15 - 1)
 
     temp_file = tempfile.NamedTemporaryFile(suffix='.mp3')
-    input_slice.export(temp_file, format="mp3")
+    input_slice.export(temp_file, format="mp3", bitrate=bitrate)
 
     compressed_slice = AudioSegment.from_mp3(temp_file)
     compressed_data = np.float32(np.array(compressed_slice.get_array_of_samples())) / (2**15 - 1)
@@ -114,13 +115,15 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, fft_size=2048, win
     pX_comp = np.unwrap(np.angle(ys_c))
 
     # 3. Subtract the spectra
-    mX_residual = mX_orig - mX_comp
+    residual_spectra = ys_i - ys_c
+
+    # Just for plotting
+    mX_residual = 20 * np.log10(np.abs(residual_spectra)) 
     pX_residual = pX_orig - pX_comp
 
     # 4. Resynthesize ghost spectra 
     # (what to use for phase? subtraction? regen?)
-    residualY = 10**(mX_residual / 20) * np.exp(1j*pX_residual)
-    (t_out, x_out) = istft(residualY, fs=original_wav.frame_rate, window=window, nperseg=M, noverlap=overlap, nfft=N, input_onesided=True)
+    (t_out, x_out) = istft(residual_spectra, fs=original_wav.frame_rate, window=window, nperseg=M, noverlap=noverlap, nfft=N, input_onesided=True)
 
     # 6. Save ghost mp3
     y = np.int16(x_out * 2 ** 15)
@@ -186,33 +189,18 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, fft_size=2048, win
     plt.tight_layout()
     plt.show()
 
-    # JUNK
-    # ys_residual = ys_o - ys_c
-    # mx_residual = 20 * np.log10(np.abs(ys_residual))
-    # plt.pcolormesh(times_o, freqs_o, mx_residual)
-    # plt.xlabel('Time (s)')
-    # plt.ylabel('Frequency (Hz)')
-    # plt.show()
-
-    # # resynthesize residual spectra (what to use for phase? subtraction? regen?)
-    # # residualY = 10**(mx_residual / 20) * np.exp(1j*pX_orig)
-    # (t_out, x_out) = istft(ys_residual, fs=original_wav.frame_rate, window=window, nperseg=M, noverlap=overlap, nfft=N, input_onesided=True)
-    # plt.plot(t_out, x_out)
-    # plt.xlabel('Time (s)')
-    # plt.ylabel('Amplitude')
-    # plt.show()
-
 if __name__ == "__main__":
     print("Boo")
-    input_file=os.path.join(CUR_DIR, "../audio/sax-phrase.wav")
+    input_file=os.path.join(CUR_DIR, "sounds/raga_hop.wav")
 
     import pathlib
     infile = pathlib.Path(input_file).stem
-    output_path=os.path.join(CUR_DIR, "../audio/output/{}_ghost.mp3".format(infile))
+    output_path=os.path.join(CUR_DIR, "sounds/output_sounds/{}_ghost.mp3".format(infile))
 
     N=2048
-    M=255
+    M=511
     window="hamming"
-    overlap=4
+    overlap=2
+    bitrate="8"
 
-    generate_ghosts(input_file, output_path, start=0.75 * 1000, end=1.25 * 1000, fft_size=N, window=window, window_size=M, overlap=overlap)
+    generate_ghosts(input_file, output_path, fft_size=N, window=window, window_size=M, overlap=overlap, bitrate=bitrate)
