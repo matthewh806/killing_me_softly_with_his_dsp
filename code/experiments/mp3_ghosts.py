@@ -35,7 +35,7 @@ logging.basicConfig()
 logger = logging.getLogger('mp3_ghosts')
 logger.setLevel(level=logging.DEBUG)
 
-def generate_ghosts(input_path, output_path, start=0, end=-1):
+def generate_ghosts(input_path, output_path, start=0, end=-1, fft_size=2048, window="hamming", window_size=129, overlap=4):
     '''
     Generate the ghosts of an mp3
 
@@ -52,6 +52,10 @@ def generate_ghosts(input_path, output_path, start=0, end=-1):
         output_path: location to store the output ghost mp3 file
         start: start slice position (ms) within the input file
         end: end slice position (ms) within the input file
+        fft_size: the size of the FFT sample buffer (should be a power of 2)
+        window; the type of window to use in the STFT (string)
+        window_size: the size of the window to use in the STFT
+        overlap: The overlap factor of the windows
 
     Output:
         The resulting ghost file is saved at output_path in mp3 format
@@ -90,23 +94,22 @@ def generate_ghosts(input_path, output_path, start=0, end=-1):
     compressed_data = compressed_data[:len(input_slice.get_array_of_samples())] # force same size
 
     # 2. Perform STFTs of both original and compressed signal
-    N=2048  # fft size
-    M=128  # window size
-    window = "hamming"
-    overlap=4
+    N=fft_size      # fft size
+    M=window_size   # window size
+    noverlap=window_size//overlap
 
     logger.info("-----------FFT INFO-------------")
     logger.info("FFT size: %i", N)
     logger.info("Window size: %i", M)
     logger.info("Window type: %s", window)
-    logger.info("Overlap: %i", overlap)
+    logger.info("Overlap factor: %i, samples: %i", overlap, noverlap)
     logger.info("--------------------------------")
 
-    (freqs_i, times_i, ys_i) = stft(input_slice_data, fs=original_wav.frame_rate, window=window, nfft=N, nperseg=M, noverlap=overlap, return_onesided=True)
+    (freqs_i, times_i, ys_i) = stft(input_slice_data, fs=original_wav.frame_rate, window=window, nfft=N, nperseg=M, noverlap=noverlap, return_onesided=True)
     mX_orig = 20 * np.log10(np.abs(ys_i))
     pX_orig = np.unwrap(np.angle(ys_i))
 
-    (freqs_c, times_c, ys_c) = stft(compressed_data, fs=original_wav.frame_rate, window=window, nfft=N, nperseg=M, noverlap=overlap, return_onesided=True)
+    (freqs_c, times_c, ys_c) = stft(compressed_data, fs=original_wav.frame_rate, window=window, nfft=N, nperseg=M, noverlap=noverlap, return_onesided=True)
     mX_comp = 20 * np.log10(np.abs(ys_c))
     pX_comp = np.unwrap(np.angle(ys_c))
 
@@ -207,4 +210,9 @@ if __name__ == "__main__":
     infile = pathlib.Path(input_file).stem
     output_path=os.path.join(CUR_DIR, "../audio/output/{}_ghost.mp3".format(infile))
 
-    generate_ghosts(input_file, output_path, start=0.75 * 1000, end=1.25 * 1000)
+    N=2048
+    M=255
+    window="hamming"
+    overlap=4
+
+    generate_ghosts(input_file, output_path, start=0.75 * 1000, end=1.25 * 1000, fft_size=N, window=window, window_size=M, overlap=overlap)
