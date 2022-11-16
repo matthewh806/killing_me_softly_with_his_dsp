@@ -28,6 +28,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 import tempfile
+import pathlib
 
 CUR_DIR=os.path.dirname(os.path.realpath(__file__))
 
@@ -35,7 +36,66 @@ logging.basicConfig()
 logger = logging.getLogger('mp3_ghosts')
 logger.setLevel(level=logging.DEBUG)
 
-def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft_size=2048, window="hamming", window_size=129, overlap=4):
+
+def cartesian_spectra_subtract_resynth(orig_spectra, compressed_spectra, fs=44100, window="hamming", fft_size=2048, window_size=129, noverlap=32):
+    '''
+    Does a direct subtraction of the two spectra in cartesian complex coordinates
+    (a+ib) - (c+id) = (a-c) + i(b - d)
+
+    Thus the magnitudes and phases are not treated separately
+    '''
+    # 3. Subtract the spectra
+    residual_spectra = orig_spectra - compressed_spectra
+
+    # 4. Resynthesize ghost spectra 
+    # (what to use for phase? subtraction? regen?)
+    return istft(residual_spectra, fs=fs, window=window, nperseg=window_size, noverlap=noverlap, nfft=fft_size, input_onesided=True)
+
+
+def polar_spectra_subtract_resynth(orig_spectra, compressed_spectra, fs=44100, window="hamming", fft_size=2048, window_size=129, noverlap=32):
+    '''
+    Converts the spectra into polar coordinates so that the (linear) magnitudes and phases can be subtracted individually
+    '''
+
+    mX_orig = np.abs(orig_spectra)
+    pX_orig = np.unwrap(np.angle(orig_spectra))
+
+    mX_comp = np.abs(compressed_spectra)
+    pX_comp = np.unwrap(np.angle(compressed_spectra))
+
+    mX_resid = mX_orig - mX_comp
+    pX_resid = pX_orig - pX_comp
+
+    residual_spectra = mX_resid * np.exp(1j*pX_resid)
+    return istft(residual_spectra, fs=fs, window=window, nperseg=window_size, noverlap=noverlap, nfft=fft_size, input_onesided=True)
+
+def masking_difference_threshold(orig_spectra, compressed_spectra, fs=44100, window="hamming", fft_size=2048, window_size=129, noverlap=32, threshold=0.0007):
+    '''
+    The idea here is to calculate the spectral difference between the original and the compressed audio data and
+    where the difference is < a threshold value we zero the bins in (a copy of...) the original spectrum
+    '''
+
+    mX_orig = np.abs(orig_spectra)
+    pX_orig = np.unwrap(np.angle(orig_spectra))
+
+    mX_comp = np.abs(compressed_spectra)
+    pX_comp = np.unwrap(np.angle(compressed_spectra))
+
+    mX_resid = mX_orig - mX_comp
+    pX_resid = pX_orig - pX_comp
+
+    mX_out = np.copy(mX_orig)
+    pX_out = np.copy(pX_orig)
+
+    zero_bins = np.where(mX_resid<threshold)
+    mX_out[zero_bins] = np.finfo(float).eps 
+    pX_out[zero_bins] = np.finfo(float).eps
+
+    out_spectra = np.abs(mX_out) * np.exp(1j*pX_out)
+    return istft(out_spectra, fs=fs, window=window, nperseg=window_size, noverlap=noverlap, nfft=fft_size, input_onesided=True)
+
+
+def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft_size=2048, window="hamming", window_size=129, overlap=4, haunting_strategy=cartesian_spectra_subtract_resynth):
     '''
     Generate the ghosts of an mp3
 
@@ -57,6 +117,15 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
         window; the type of window to use in the STFT (string)
         window_size: the size of the window to use in the STFT
         overlap: The overlap factor of the windows
+        haunting_strategy:  Supply a method which handles the subtraction of the
+                            compressed spectra from the original and resynthesises
+                            the residual in order to form the ghost signal
+
+                            check the default method for param arguments:
+                           
+                                    cartesian_spectra_subtract_resynth(...)
+                            
+                            There are quite a few unfortunately
 
     Output:
         The resulting ghost file is saved at output_path in mp3 format
@@ -114,24 +183,22 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
     mX_comp = 20 * np.log10(np.abs(ys_c))
     pX_comp = np.unwrap(np.angle(ys_c))
 
-    # 3. Subtract the spectra
-    residual_spectra = ys_i - ys_c
+    # 3 & 4 subtract and resynthesis to get the ghost
+    (_, ghost_signal) = haunting_strategy(ys_i, ys_c, fs=original_wav.frame_rate, window=window, fft_size=N, window_size=M, noverlap=noverlap)
 
     # Just for plotting
-    mX_residual = 20 * np.log10(np.abs(residual_spectra)) 
+    (freqs_c, times_c, ys_g) = stft(ghost_signal, fs=original_wav.frame_rate, window=window, nfft=N, nperseg=M, noverlap=noverlap, return_onesided=True)
+    mX_residual = 20 * np.log10(np.abs(ys_g)) 
     pX_residual = pX_orig - pX_comp
 
-    # 4. Resynthesize ghost spectra 
-    # (what to use for phase? subtraction? regen?)
-    (t_out, x_out) = istft(residual_spectra, fs=original_wav.frame_rate, window=window, nperseg=M, noverlap=noverlap, nfft=N, input_onesided=True)
-
     # 6. Save ghost mp3
-    y = np.int16(x_out * 2 ** 15)
+    y = np.int16(ghost_signal * 2 ** 15)
     ghost_slice = AudioSegment(y.tobytes(), frame_rate=original_wav.frame_rate, sample_width=2, channels=1)
     ghost_slice.export(output_path, format="mp3")
 
     # 5. plot everything
     plt.figure(1, figsize=(15, 9))
+    plt.suptitle('File: {}, FFT size: {}, window size: {}, window: {}, overlap: {}'.format(pathlib.Path(input_file).stem, fft_size, window_size, window, overlap))
     times=np.linspace(start / 1000.0, end / 1000.0, num=len(input_slice_data))
 
     # Uncompressed
@@ -170,7 +237,7 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
 
     # Ghost
     plt.subplot(3,3,7)
-    plt.plot(times, x_out[:len(input_slice_data)])
+    plt.plot(times, ghost_signal[:len(input_slice_data)])
     plt.xlabel('Time (s)')
     plt.ylabel('Amplitude')
     plt.title("Ghost Signal")
@@ -191,16 +258,19 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
 
 if __name__ == "__main__":
     print("Boo")
-    input_file=os.path.join(CUR_DIR, "sounds/raga_hop.wav")
+    input_file=os.path.join(CUR_DIR, "sounds/speech-female.wav")
 
-    import pathlib
     infile = pathlib.Path(input_file).stem
     output_path=os.path.join(CUR_DIR, "sounds/output_sounds/{}_ghost.mp3".format(infile))
 
-    N=2048
-    M=511
+    N=8192
+    M=4097
     window="hamming"
     overlap=2
     bitrate="8"
+    threshold=0.0007
 
-    generate_ghosts(input_file, output_path, fft_size=N, window=window, window_size=M, overlap=overlap, bitrate=bitrate)
+    def masking_difference_treshold_wrapper(orig_spectra, compressed_spectra, fs, window, fft_size, window_size, noverlap):
+        return masking_difference_threshold(orig_spectra, compressed_spectra, fs, window, fft_size, window_size, noverlap, threshold)
+
+    generate_ghosts(input_file, output_path, fft_size=N, window=window, window_size=M, overlap=overlap, bitrate=bitrate, haunting_strategy=masking_difference_treshold_wrapper)
