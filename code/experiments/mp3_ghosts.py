@@ -198,7 +198,7 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
 
     # 5. plot everything
     plt.figure(1, figsize=(15, 9))
-    plt.suptitle('File: {}, FFT size: {}, window size: {}, window: {}, overlap: {}'.format(pathlib.Path(input_file).stem, fft_size, window_size, window, overlap))
+    plt.suptitle('File: {}, FFT size: {}, window size: {}, window: {}, overlap: {}'.format(pathlib.Path(input_path).stem, fft_size, window_size, window, overlap))
     times=np.linspace(start / 1000.0, end / 1000.0, num=len(input_slice_data))
 
     # Uncompressed
