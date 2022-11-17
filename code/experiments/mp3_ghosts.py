@@ -20,6 +20,7 @@ Steps:
         5. Specify compression amount
         6. CLI
         7. Add a time domain phase inversion approach (wont be good quality, but for experimental purposes)
+        8. Why are the spectral subtraction methods so noisy...?
 '''
 
 from pydub import AudioSegment
@@ -162,6 +163,11 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
     temp_file = tempfile.NamedTemporaryFile(suffix='.mp3')
     input_slice.export(temp_file, format="mp3", bitrate=bitrate)
 
+    logger.info("---------COMPRESSION INFO---------")
+    logger.info("Saving temp. compressed mp3 at %s", temp_file.name)
+    logger.info("Compression rate: %sbps", bitrate)
+    logger.info("----------------------------------")
+
     compressed_slice = AudioSegment.from_mp3(temp_file)
     compressed_data = np.float32(np.array(compressed_slice.get_array_of_samples())) / (2**15 - 1)
     compressed_data = compressed_data[:len(input_slice.get_array_of_samples())] # force same size
@@ -204,6 +210,12 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
     plt.suptitle('File: {}, FFT size: {}, window size: {}, window: {}, overlap: {}'.format(pathlib.Path(input_path).stem, fft_size, window_size, window, overlap))
     times=np.linspace(start / 1000.0, end / 1000.0, num=len(input_slice_data))
 
+    # Get consistent colour ranges
+    # vmin = min(mX_orig.min(), mX_comp.min(), mX_residual.min())
+    # vmax = min(mX_orig.max(), mX_comp.max(), mX_residual.max())
+    vmin=-80
+    vmax=-40
+
     # Uncompressed
     plt.subplot(3,3,1)
     plt.xlabel('Time (s)')
@@ -211,7 +223,8 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
     plt.title('Uncompressed Signal')
     plt.plot(times, input_slice_data)
     plt.subplot(3,3,2)
-    plt.pcolormesh(times_i, freqs_i, mX_orig, shading='auto')
+    plt.pcolormesh(times_i, freqs_i, mX_orig, shading='auto', vmin=vmin, vmax=vmax)
+    plt.colorbar()
     plt.xlabel('Time (s)')
     plt.ylabel('Frequency (Hz)')
     plt.title('Uncompressed Magnitude Spectrum')
@@ -228,7 +241,8 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
     plt.ylabel('Amplitude')    
     plt.title('Compressed Signal')
     plt.subplot(3,3,5)
-    plt.pcolormesh(times_c, freqs_c, mX_comp, shading='auto')
+    plt.pcolormesh(times_c, freqs_c, mX_comp, shading='auto', vmin=vmin, vmax=vmax)
+    plt.colorbar()
     plt.xlabel('Time (s)')
     plt.ylabel('Frequency (Hz)')
     plt.title('Compressed Frequency Spectrum')
@@ -245,7 +259,8 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
     plt.ylabel('Amplitude')
     plt.title("Ghost Signal")
     plt.subplot(3,3,8)
-    plt.pcolormesh(times_i, freqs_i, mX_residual, shading='auto')
+    plt.pcolormesh(times_i, freqs_i, mX_residual, shading='auto', vmin=vmin, vmax=vmax)
+    plt.colorbar()
     plt.xlabel('Time (s)')
     plt.ylabel('Frequency (Hz)')
     plt.title('Ghost Magnitude Spectrum')
