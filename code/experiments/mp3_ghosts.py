@@ -19,6 +19,7 @@ Steps:
         4. Expose FFT params as arguments, 
         5. Specify compression amount
         6. CLI
+        7. Add a time domain phase inversion approach (wont be good quality, but for experimental purposes)
 '''
 
 from pydub import AudioSegment
@@ -95,7 +96,7 @@ def masking_difference_threshold(orig_spectra, compressed_spectra, fs=44100, win
     return istft(out_spectra, fs=fs, window=window, nperseg=window_size, noverlap=noverlap, nfft=fft_size, input_onesided=True)
 
 
-def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft_size=2048, window="hamming", window_size=129, overlap=4, haunting_strategy=cartesian_spectra_subtract_resynth):
+def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft_size=2048, window="hamming", window_size=129, overlap=4, haunting_strategy=cartesian_spectra_subtract_resynth, plot_output=None, show_plot=True):
     '''
     Generate the ghosts of an mp3
 
@@ -126,6 +127,8 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
                                     cartesian_spectra_subtract_resynth(...)
                             
                             There are quite a few unfortunately
+        plot_output: path to plot save location (by default doesn't save)
+        show_plot: turn this off if you're batch processing to avoid blocking (bool)
 
     Output:
         The resulting ghost file is saved at output_path in mp3 format
@@ -254,7 +257,14 @@ def generate_ghosts(input_path, output_path, start=0, end=-1, bitrate='320', fft
     plt.title('Ghost Phase Spectrum')
 
     plt.tight_layout()
-    plt.show()
+
+    if show_plot:
+        plt.show()
+
+    if plot_output:
+        plt.savefig(plot_output)
+
+    plt.close()
 
 if __name__ == "__main__":
     print("Boo")
