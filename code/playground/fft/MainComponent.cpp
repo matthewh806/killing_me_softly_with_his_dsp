@@ -104,11 +104,12 @@ void MainComponent::openButtonClicked()
         changeState(Stopping);
     }
     
-    juce::FileChooser chooser ("Select a Wave file to play...",
-                               {},
-                               "*.wav");
-
-    if (chooser.browseForFileToOpen())
+    std::unique_ptr<juce::FileChooser> myChooser = std::make_unique<juce::FileChooser>("Select a Wave file to play...",
+                                                                                     File::getSpecialLocation(juce::File::userHomeDirectory),
+                                                                                     "*.wav");
+    
+    auto folderChooserFlags = FileBrowserComponent::openMode;
+    myChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
     {
         auto file = chooser.getResult();
         auto reader = std::unique_ptr<juce::AudioFormatReader>(mFormatManager.createReaderFor (file));
@@ -123,7 +124,7 @@ void MainComponent::openButtonClicked()
             mPlayButton.setEnabled(true);
             mPerformFFTButton.setEnabled(true);
         }
-    }
+    });
 }
 
 void MainComponent::playButtonClicked(juce::PositionableAudioSource* audioSource)
