@@ -5,7 +5,7 @@
 #pragma once
 
 #include "public.sdk/source/vst/vstaudioeffect.h"
-#include "revmodel.hpp"
+#include "../../dependencies/freeverb/revmodel.hpp"
 
 namespace OUS {
 

@@ -19,17 +19,6 @@ smtg_add_vst3plugin(MattVerb
     controller.h
     controller.cpp
     entry.cpp
-
-    delayline.hpp
-    delayline.cpp
-    allpass.hpp
-    allpass.cpp
-    comb.hpp
-    comb.cpp
-    denormals.h
-    revmodel.hpp
-    revmodel.cpp
-    tuning.h
 )
 
 #- VSTGUI Wanted ----
@@ -50,6 +39,7 @@ endif()
 target_link_libraries(MattVerb
     PRIVATE
         sdk
+        freeverb
 )
 
 if(SMTG_MAC)
