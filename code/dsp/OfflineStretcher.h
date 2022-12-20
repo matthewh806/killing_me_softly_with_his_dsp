@@ -7,8 +7,10 @@
 class OfflineStretchProcessor : public juce::ThreadWithProgressWindow
 {
 public:
-    OfflineStretchProcessor(TemporaryFile& file, juce::AudioSampleBuffer& stretchSrc, float stretchFactor, float pitchFactor, double sampleRate);
+    OfflineStretchProcessor(TemporaryFile& file, juce::AudioSampleBuffer& stretchSrc, float stretchFactor, float pitchFactor, double sampleRate, std::function<void()> onThreadComplete = nullptr);
     void run() override;
+    
+    void threadComplete (bool userPressedCancel) override;
     
 private:
     juce::TemporaryFile& mFile;
@@ -19,4 +21,6 @@ private:
     
     std::unique_ptr<RubberBand::RubberBandStretcher> mRubberBandStretcher;
     juce::AudioSampleBuffer mStretchedBuffer;
+    
+    std::function<void()> mOnThreadComplete;
 };

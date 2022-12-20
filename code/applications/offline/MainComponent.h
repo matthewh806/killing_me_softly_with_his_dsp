@@ -42,6 +42,8 @@ private:
     void changeState(TransportState newState);
 
     void changeListenerCallback (juce::ChangeBroadcaster* source) override;
+    
+    void stretchComplete();
 
     //==============================================================================
     juce::TextButton mOpenButton;
