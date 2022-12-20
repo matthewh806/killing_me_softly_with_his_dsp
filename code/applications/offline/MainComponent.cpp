@@ -122,12 +122,12 @@ void MainComponent::openButtonClicked()
         changeState(Stopping);
     }
     
-    std::unique_ptr<juce::FileChooser> myChooser = std::make_unique<juce::FileChooser>("Select a Wave file to play...",
-                                                                                     File::getSpecialLocation(juce::File::userHomeDirectory),
-                                                                                     "*.wav");
+    mFileChooser = std::make_unique<juce::FileChooser>("Select a Wav file to play...",
+                                                       File::getSpecialLocation(juce::File::userHomeDirectory),
+                                                       "*.wav");
     
-    auto folderChooserFlags = FileBrowserComponent::openMode;
-    myChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
+    auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
     {
         auto file(chooser.getResult());
         auto reader = std::unique_ptr<juce::AudioFormatReader>(mFormatManager.createReaderFor (file));
@@ -143,11 +143,11 @@ void MainComponent::openButtonClicked()
 
 void MainComponent::saveButtonClicked()
 {
-    std::unique_ptr<juce::FileChooser> myChooser = std::make_unique<juce::FileChooser>("Please choose a destination for the file...",
-                                                                                       File::getSpecialLocation(juce::File::userHomeDirectory),
-                                                                                       "*.wav");
-    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories;
-    myChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
+    mFileChooser = std::make_unique<juce::FileChooser>("Please choose a destination for the file...",
+                                                       File::getSpecialLocation(juce::File::userHomeDirectory),
+                                                       "*.wav");
+    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
     {
         auto file(chooser.getResult());
         if(!mStretchedFile.getFile().copyFileTo(file))
@@ -219,13 +219,18 @@ void MainComponent::performOfflineStretch()
     auto const stretchFactor = static_cast<float>(mStretchFactorSlider.getValue());
     auto const pitchFactor = static_cast<float>(mPitchShiftSlider.getValue());
     
-    OfflineStretchProcessor stretchTask(mStretchedFile, mFileBuffer, stretchFactor, pitchFactor, static_cast<double>(mSampleRate));
+    mStretchTask = std::make_unique<OfflineStretchProcessor>(mStretchedFile,
+                                                             mFileBuffer,
+                                                             stretchFactor,
+                                                             pitchFactor,
+                                                             static_cast<double>(mSampleRate),
+                                                             [this]() { stretchComplete(); });
     
     changeState(Stopping);
     mPlayButton.setEnabled(false);
     mStretchButton.setEnabled(false);
     
-    stretchTask.launchThread();
+    mStretchTask->launchThread();
 }
 
 void MainComponent::stretchComplete()
