@@ -129,49 +129,48 @@ void SampleManager::clearFreeBuffers()
     }
 }
 
-bool SampleManager::performTimestretch(float stretchFactor, float pitchFactor, std::function<void()> callback)
+void SampleManager::performTimestretch(float stretchFactor, float pitchFactor, std::function<void()> callback)
 {
+    mCallback = callback;
+    
     // act on the ORIGINAL file
     if(!mActiveFileBuffer)
     {
         std::cout << "Nothing in the buffer the stretch...\n";
-        return false;
+        return;
     }
     
     std::cout << "Performing stretch: factor " << stretchFactor << "x, pitch " << pitchFactor << "\n";
     OfflineStretchProcessor stretchTask(mTempStretchedFile,
                                         *mActiveFileBuffer->getForwardAudioSampleBuffer(),
                                         stretchFactor, pitchFactor,
-                                        mSampleSampleRate);
-    
-    if(stretchTask.runThread())
-    {
-        std::cout << "Stretch complete. Temp file: " <<  mTempStretchedFile.getFile().getFullPathName() << "\n";
-        std::unique_ptr<AudioFormatReader> reader { mFormatManager.createReaderFor(mTempStretchedFile.getFile()) };
+                                        mSampleSampleRate,
+                                        [this]() { onTimestretchComplete(); });
+    stretchTask.launchThread();
+}
 
-        if(reader != nullptr)
+void SampleManager::onTimestretchComplete()
+{
+    std::cout << "Stretch complete. Temp file: " <<  mTempStretchedFile.getFile().getFullPathName() << "\n";
+    std::unique_ptr<AudioFormatReader> reader { mFormatManager.createReaderFor(mTempStretchedFile.getFile()) };
+
+    if(reader != nullptr)
+    {
+        // get length
+        mBufferNumSamples = static_cast<size_t>(reader->lengthInSamples);
+        mBufferDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
+        std::cout << "New duration: " << mBufferDuration << "\n";
+        
+        // TODO: clear existing?
+        ReferenceCountedForwardAndReverseBuffer::Ptr newActiveBuffer = new ReferenceCountedForwardAndReverseBuffer(mSampleFileName + "stretched", reader.get());
+        jassert(newActiveBuffer != nullptr);
+                    
+        mActiveBuffer = newActiveBuffer;
+        mBuffers.add(mActiveBuffer);
+        
+        if(mCallback != nullptr)
         {
-            // get length
-            mBufferNumSamples = static_cast<size_t>(reader->lengthInSamples);
-            mBufferDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
-            std::cout << "New duration: " << mBufferDuration << "\n";
-            
-            // TODO: clear existing?
-            ReferenceCountedForwardAndReverseBuffer::Ptr newActiveBuffer = new ReferenceCountedForwardAndReverseBuffer(mSampleFileName + "stretched", reader.get());
-            jassert(newActiveBuffer != nullptr);
-                        
-            mActiveBuffer = newActiveBuffer;
-            mBuffers.add(mActiveBuffer);
-            
-            if(callback)
-            {
-                callback();
-            }
-            
-            return true;
+            mCallback();
         }
     }
-    
-    std::cerr << "Something went wrong with stretching...\n";
-    return false;
 }
