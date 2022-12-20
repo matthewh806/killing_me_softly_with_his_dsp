@@ -64,5 +64,7 @@ private:
     juce::ReferenceCountedArray<ReferenceCountedForwardAndReverseBuffer> mFileBuffers;
     ReferenceCountedForwardAndReverseBuffer::Ptr mActiveFileBuffer;
     
+    std::unique_ptr<OfflineStretchProcessor> mStretchTask = nullptr;
+    
     std::function<void()> mCallback = nullptr;
 };

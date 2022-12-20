@@ -141,12 +141,12 @@ void SampleManager::performTimestretch(float stretchFactor, float pitchFactor, s
     }
     
     std::cout << "Performing stretch: factor " << stretchFactor << "x, pitch " << pitchFactor << "\n";
-    OfflineStretchProcessor stretchTask(mTempStretchedFile,
-                                        *mActiveFileBuffer->getForwardAudioSampleBuffer(),
-                                        stretchFactor, pitchFactor,
-                                        mSampleSampleRate,
-                                        [this]() { onTimestretchComplete(); });
-    stretchTask.launchThread();
+    mStretchTask=std::make_unique<OfflineStretchProcessor>(mTempStretchedFile,
+                                                              *mActiveFileBuffer->getForwardAudioSampleBuffer(),
+                                                              stretchFactor, pitchFactor,
+                                                              mSampleSampleRate,
+                                                              [this]() { onTimestretchComplete(); });
+    mStretchTask->launchThread();
 }
 
 void SampleManager::onTimestretchComplete()

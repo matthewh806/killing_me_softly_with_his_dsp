@@ -538,15 +538,14 @@ void BreakbeatContentComponent::newFileOpened(juce::String& filePath)
 
 void BreakbeatContentComponent::setFileOutputPath()
 {
-    std::unique_ptr<juce::FileChooser> myChooser = std::make_unique<juce::FileChooser>("Please select the location you'd like to record to...",                                                                                                                      juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+    mFileChooser = std::make_unique<juce::FileChooser>("Please select the location you'd like to record to...",                                                                                                           juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
                                                                                        "*.wav");
     
-    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories;
-    myChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
+    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
     {
         auto file(chooser.getResult());
         mRecordedFile = chooser.getResult();
-
     });
 }
 
