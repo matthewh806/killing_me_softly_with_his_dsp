@@ -1,11 +1,12 @@
 #include "OfflineStretcher.h"
 
-OfflineStretchProcessor::OfflineStretchProcessor(TemporaryFile& file, juce::AudioSampleBuffer& stretchSrc, float stretchFactor, float pitchFactor, double sampleRate)
+OfflineStretchProcessor::OfflineStretchProcessor(TemporaryFile& file, juce::AudioSampleBuffer& stretchSrc, float stretchFactor, float pitchFactor, double sampleRate, std::function<void()> onThreadComplete)
 : juce::ThreadWithProgressWindow("Offline stretcher", true, false)
 , mFile(file)
 , mStretchSrc(stretchSrc)
 , mStretchFactor(stretchFactor)
 , mPitchShiftFactor(pitchFactor)
+, mOnThreadComplete(onThreadComplete)
 {
     std::unique_ptr<RubberBand::RubberBandStretcher> newBand (new RubberBand::RubberBandStretcher(static_cast<size_t>(sampleRate), static_cast<size_t>(2)));
     mRubberBandStretcher.reset(newBand.release());
@@ -186,5 +187,13 @@ void OfflineStretchProcessor::run()
         {
             writer->writeFromAudioSampleBuffer (mStretchedBuffer, 0, mStretchedBuffer.getNumSamples());
         }
+    }
+}
+
+void OfflineStretchProcessor::threadComplete (bool userPressedCancel)
+{
+    if(mOnThreadComplete != nullptr)
+    {
+        mOnThreadComplete();
     }
 }
