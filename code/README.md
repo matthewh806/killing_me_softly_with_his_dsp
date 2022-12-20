@@ -142,6 +142,12 @@ This was mainly done as a learning exercise. I'd never tried to implement an arc
 
 It works... but how do I know if its really working correctly? There are some nasty sound artifacts, pops etc due to (I think) very short envelope times.
 
+##### Matt Verb
+
+This is a VST3 implementation of the [freeverb](https://github.com/sinshu/freeverb) library built using the Steinberg VST3SDK (i.e. no Juce!)
+The plugin example provided in the original freeverb repo is build using the VST SDK, so I wanted to try updating it for VST3. I've also added the ability to
+add in predelay to the reverbed signal. 
+
 ## Experiments
 
 This directory is just for quick and useful python scripts for testing out dsp ideas or looking at how certain transformations affect a signal graphically.
