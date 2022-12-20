@@ -68,6 +68,8 @@ private:
     bool mOutputAvailable = false;
     
     juce::AudioSampleBuffer mReconstructedAudioBuffer;
+    
+    std::unique_ptr<juce::FileChooser> mFileChooser = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
