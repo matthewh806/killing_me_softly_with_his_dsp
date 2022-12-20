@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-set(vst3sdk_SOURCE_DIR /Users/harris/Work/software/VST_SDK/VST3_SDK)
+set(vst3sdk_SOURCE_DIR ../../dependencies/vst3sdk)
 if(NOT vst3sdk_SOURCE_DIR)
     message(FATAL_ERROR "Path to VST3 SDK is empty!")
 endif()
