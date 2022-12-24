@@ -43,7 +43,8 @@ public:
     juce::AudioSampleBuffer* getActiveBuffer();
     void clearFreeBuffers();
     
-    bool performTimestretch(float stretchFactor, float pitchFactor = 1.0f, std::function<void()> callback = nullptr);
+    void performTimestretch(float stretchFactor, float pitchFactor = 1.0f, std::function<void()> callback = nullptr);
+    void onTimestretchComplete();
     
 private:
     juce::AudioFormatManager& mFormatManager;
@@ -62,4 +63,8 @@ private:
     
     juce::ReferenceCountedArray<ReferenceCountedForwardAndReverseBuffer> mFileBuffers;
     ReferenceCountedForwardAndReverseBuffer::Ptr mActiveFileBuffer;
+    
+    std::unique_ptr<OfflineStretchProcessor> mStretchTask = nullptr;
+    
+    std::function<void()> mCallback = nullptr;
 };

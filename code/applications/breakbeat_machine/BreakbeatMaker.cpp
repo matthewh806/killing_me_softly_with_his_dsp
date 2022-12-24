@@ -538,35 +538,38 @@ void BreakbeatContentComponent::newFileOpened(juce::String& filePath)
 
 void BreakbeatContentComponent::setFileOutputPath()
 {
-    juce::FileChooser fileChooser ("Please select the location you'd like to record to...", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.wav");
+    mFileChooser = std::make_unique<juce::FileChooser>("Please select the location you'd like to record to...",                                                                                                           juce::File::getSpecialLocation(juce::File::userDocumentsDirectory),
+                                                                                       "*.wav");
     
-    if(fileChooser.browseForFileToSave(true))
+    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
     {
-        mRecordedFile = fileChooser.getResult();
-    }
+        auto file(chooser.getResult());
+        mRecordedFile = chooser.getResult();
+    });
 }
 
 void BreakbeatContentComponent::exportAudioSlices()
 {
-    // TODO: Check its not already exporting; cleanup
-    juce::FileChooser fileChooser("Export slices to file(s)...", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.wav");
-    if(!fileChooser.browseForFileToSave(true))
-    {
-        return;
-    }
-    
-    auto file = fileChooser.getResult();
-    try
-    {
-//        auto* readBuffer = mAudioSource.getCurrentBuffer();
-//        auto fileName = file.getFileNameWithoutExtension();
-//        auto path = file.getParentDirectory().getFullPathName();
-//        mSliceExporter.startExport(readBuffer, fileName, path, mAudioSource.getSliceSize(), mAudioSource.getNumSlices(), 2, 44100.0, 32);
-    }
-    catch (std::exception e)
-    {
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Failed to export slices", e.what());
-    }
+    // TODO: REIMPLEMENT THIS
+//    juce::FileChooser fileChooser("Export slices to file(s)...", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.wav");
+//    if(!fileChooser.browseForFileToSave(true))
+//    {
+//        return;
+//    }
+//
+//    auto file = fileChooser.getResult();
+//    try
+//    {
+////        auto* readBuffer = mAudioSource.getCurrentBuffer();
+////        auto fileName = file.getFileNameWithoutExtension();
+////        auto path = file.getParentDirectory().getFullPathName();
+////        mSliceExporter.startExport(readBuffer, fileName, path, mAudioSource.getSliceSize(), mAudioSource.getNumSlices(), 2, 44100.0, 32);
+//    }
+//    catch (std::exception e)
+//    {
+//        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Failed to export slices", e.what());
+//    }
 }
 
 void BreakbeatContentComponent::changeState(TransportState state)
@@ -628,8 +631,11 @@ void BreakbeatContentComponent::checkForPathToOpen()
     }
     else
     {
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
-                                          juce::translate("Load sample failed!"), error);
+        juce::AlertWindow::showAsync(MessageBoxOptions()
+                                     .withIconType (MessageBoxIconType::WarningIcon)
+                                     .withTitle ("Load sample failed!")
+                                     .withMessage (error)
+                                     .withButton ("OK"), nullptr);
         return;
     }
     

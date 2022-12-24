@@ -20,9 +20,6 @@
 
 ## Ideas for applications
 
-### Reverb
-Reverb is great, everyone loves it, I am no exception. But I don't really understand how it works - so have a go at implementing one to understanding
-
 ### Distortion
 Because why not?
 

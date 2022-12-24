@@ -165,6 +165,8 @@ private:
     float mRetriggerSampleThreshold = 0.7f;
     
     juce::File mRecordedFile {juce::File::getSpecialLocation(juce::File::SpecialLocationType::tempDirectory).getChildFile("toous").getChildFile("temp_recording.wav")};
+    
+    std::unique_ptr<juce::FileChooser> mFileChooser = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BreakbeatContentComponent)
 };

@@ -42,6 +42,8 @@ private:
     void changeState(TransportState newState);
 
     void changeListenerCallback (juce::ChangeBroadcaster* source) override;
+    
+    void stretchComplete();
 
     //==============================================================================
     juce::TextButton mOpenButton;
@@ -66,6 +68,9 @@ private:
 
     int mBlockSize;
     int mSampleRate;
+    
+    std::unique_ptr<OfflineStretchProcessor> mStretchTask = nullptr;
+    std::unique_ptr<juce::FileChooser> mFileChooser = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

@@ -1,17 +1,20 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.19)
 
 set(CMAKE_XCODE_GENERATE_SCHEME true)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "" FORCE)
- set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 set(JUCE_COPY_PLUGIN_AFTER_BUILD ON)
+set(SMTG_RUN_VST_VALIDATOR OFF)
 
 project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.2)
 
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
+add_subdirectory(dependencies/vst3sdk)
+add_subdirectory(dependencies/freeverb)
 
 if(UNIX AND NOT APPLE)
     set_property(TARGET rubberband PROPERTY CMAKE_POSITION_INDEPENDENT_CODE TRUE)

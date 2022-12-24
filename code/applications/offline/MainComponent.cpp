@@ -122,35 +122,39 @@ void MainComponent::openButtonClicked()
         changeState(Stopping);
     }
     
-    juce::FileChooser chooser ("Select a Wave file to play...",
-                               {},
-                               "*.wav");
-
-    if (chooser.browseForFileToOpen())
+    mFileChooser = std::make_unique<juce::FileChooser>("Select a Wav file to play...",
+                                                       File::getSpecialLocation(juce::File::userHomeDirectory),
+                                                       "*.wav");
+    
+    auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
     {
-        auto file = chooser.getResult();
+        auto file(chooser.getResult());
         auto reader = std::unique_ptr<juce::AudioFormatReader>(mFormatManager.createReaderFor (file));
         if (reader != nullptr)
         {
             mFileBuffer.setSize(static_cast<int>(reader->numChannels), static_cast<int>(reader->lengthInSamples));
             reader->read(&mFileBuffer, 0, static_cast<int>(reader->lengthInSamples), 0, true, true);
-            
+
             performOfflineStretch();
         }
-    }
+    });
 }
 
 void MainComponent::saveButtonClicked()
 {
-    juce::FileChooser chooser("Please choose a destination for the file...", {}, "*.wav");
-    if(chooser.browseForFileToSave(true))
+    mFileChooser = std::make_unique<juce::FileChooser>("Please choose a destination for the file...",
+                                                       File::getSpecialLocation(juce::File::userHomeDirectory),
+                                                       "*.wav");
+    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](const juce::FileChooser& chooser)
     {
-        auto file = chooser.getResult();
+        auto file(chooser.getResult());
         if(!mStretchedFile.getFile().copyFileTo(file))
         {
             std::cerr << "Saving file to " << file.getFullPathName() << " failed!\n";
         }
-    }
+    });
 }
 
 void MainComponent::playButtonClicked()
@@ -215,25 +219,32 @@ void MainComponent::performOfflineStretch()
     auto const stretchFactor = static_cast<float>(mStretchFactorSlider.getValue());
     auto const pitchFactor = static_cast<float>(mPitchShiftSlider.getValue());
     
-    OfflineStretchProcessor stretchTask(mStretchedFile, mFileBuffer, stretchFactor, pitchFactor, static_cast<double>(mSampleRate));
+    mStretchTask = std::make_unique<OfflineStretchProcessor>(mStretchedFile,
+                                                             mFileBuffer,
+                                                             stretchFactor,
+                                                             pitchFactor,
+                                                             static_cast<double>(mSampleRate),
+                                                             [this]() { stretchComplete(); });
     
     changeState(Stopping);
     mPlayButton.setEnabled(false);
     mStretchButton.setEnabled(false);
+    
+    mStretchTask->launchThread();
+}
 
-    if (stretchTask.runThread())
+void MainComponent::stretchComplete()
+{
+    std::cout << "Written to: " << mStretchedFile.getFile().getFullPathName() << "\n";
+
+    auto reader = std::unique_ptr<juce::AudioFormatReader>(mFormatManager.createReaderFor (mStretchedFile.getFile()));
+    if (reader != nullptr)
     {
-        std::cout << "Written to: " << mStretchedFile.getFile().getFullPathName() << "\n";
-        
-        auto reader = std::unique_ptr<juce::AudioFormatReader>(mFormatManager.createReaderFor (mStretchedFile.getFile()));
-        if (reader != nullptr)
-        {
-            mPlayButton.setEnabled (true);
-            mStretchButton.setEnabled(true);
-         
-            auto newSource = std::make_unique<juce::AudioFormatReaderSource> (reader.release(), true);
-            mTransportSource.setSource(newSource.get(), 0, nullptr, mSampleRate);
-            mReaderSource.reset(newSource.release());
-        }
+        mPlayButton.setEnabled (true);
+        mStretchButton.setEnabled(true);
+
+        auto newSource = std::make_unique<juce::AudioFormatReaderSource> (reader.release(), true);
+        mTransportSource.setSource(newSource.get(), 0, nullptr, mSampleRate);
+        mReaderSource.reset(newSource.release());
     }
 }
