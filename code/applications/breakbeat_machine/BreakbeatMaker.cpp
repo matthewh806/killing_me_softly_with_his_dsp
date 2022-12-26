@@ -80,7 +80,7 @@ void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
         mThumbnail.drawChannels(g, thumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
     }
     
-    if(mSlicePositions.size() == 0)
+    if(mSlicePositions.size() <= 1)
     {
         return;
     }
@@ -96,7 +96,6 @@ void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
         // draw the slice handle
         Path trianglePath;
         trianglePath.addTriangle(sliceX - 8.0f, thumbnailBounds.getY(), sliceX, thumbnailBounds.getY() - 16.0f, sliceX + 8.0f, thumbnailBounds.getY());
-//          trianglePath.applyTransform(AffineTransform::rotation(MathConstants<float>::halfPi));
         g.fillPath(trianglePath);
     }
     
