@@ -81,7 +81,7 @@ private:
         
         juce::AudioThumbnail& getThumbnail();
         
-        void setSlicePositions(std::vector<size_t> const& slicePositions, size_t activeSliceIndex);
+        void setSlicePositions(std::vector<SliceManager::Slice> const& slicePositions, size_t activeSliceIndex);
         void setActiveSlice(size_t sliceIndex);
         
         void clear();
@@ -90,6 +90,7 @@ private:
         void resized() override;
         void paint(juce::Graphics& g) override;
         void mouseDoubleClick(juce::MouseEvent const& event) override;
+        void mouseUp(juce::MouseEvent const& event) override;
         
         // juce::FileDragAndDropTarget
         bool isInterestedInFileDrag (const StringArray& files) override;
@@ -99,6 +100,7 @@ private:
         void handleAsyncUpdate() override;
         
         std::function<void(int)> onWaveformDoubleClicked = nullptr;
+        std::function<void(int)> onSliceMarkerRightClicked = nullptr;
         
     private:
         BreakbeatContentComponent& mParentComponent;

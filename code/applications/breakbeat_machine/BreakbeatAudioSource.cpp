@@ -90,8 +90,8 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
     auto const outputStart = bufferToFill.startSample;
     
     auto slice = mSliceManager.getCurrentSlice();
-    auto sliceStartPosition = std::get<0>(slice);
-    auto sliceEndPosition = std::get<1>(slice);
+    auto sliceStartPosition = std::get<1>(slice);
+    auto sliceEndPosition = std::get<2>(slice);
     auto const sliceChangeThreshold = mSampleChangeThreshold.load();
     auto const sliceReverseThreshold = mReverseSampleThreshold.load();
 //    auto const sliceRetriggerThreshold = mRetriggerSampleThreshold.load();
@@ -113,8 +113,8 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
         if(willChange)
         {
             slice = mSliceManager.setRandomSlice();
-            sliceStartPosition = std::get<0>(slice);
-            sliceEndPosition = std::get<1>(slice);
+            sliceStartPosition = std::get<1>(slice);
+            sliceEndPosition = std::get<2>(slice);
             
 //            auto retriggerPerc = Random::getSystemRandom().nextFloat();
 //            auto sliceSize = sliceSampleSize;

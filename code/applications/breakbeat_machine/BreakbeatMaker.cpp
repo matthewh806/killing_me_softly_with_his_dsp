@@ -35,14 +35,14 @@ void BreakbeatContentComponent::WaveformComponent::clear()
     mThumbnail.clear();
 }
 
-void BreakbeatContentComponent::WaveformComponent::setSlicePositions(std::vector<size_t> const& slicePositions, size_t activeSliceIndex)
+void BreakbeatContentComponent::WaveformComponent::setSlicePositions(std::vector<SliceManager::Slice> const& slices, size_t activeSliceIndex)
 {
     mSlicePositions.clear();
-    mSlicePositions.resize(slicePositions.size());
+    mSlicePositions.resize(slices.size());
     
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
-        mSlicePositions[i] = slicePositions[i];
+        mSlicePositions[i] = std::get<1>(slices[i]);
     }
     
     mActiveSliceIndex = activeSliceIndex;
@@ -63,7 +63,7 @@ void BreakbeatContentComponent::WaveformComponent::resized()
 
 void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
 {
-    juce::Rectangle<int> thumbnailBounds (0, 0, getWidth(), getHeight());
+    juce::Rectangle<int> thumbnailBounds (0, 20, getWidth(), getHeight());
     
     if(mThumbnail.getNumChannels() == 0)
     {
@@ -90,7 +90,14 @@ void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
         auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / mThumbnail.getTotalLength();
-        g.drawVerticalLine(thumbnailBounds.getX() + static_cast<int>(thumbnailBounds.getWidth() * startRatio), thumbnailBounds.getY(), thumbnailBounds.getBottom());
+        auto const sliceX = thumbnailBounds.getX() + static_cast<int>(thumbnailBounds.getWidth() * startRatio);
+        g.drawVerticalLine(sliceX, thumbnailBounds.getY(), thumbnailBounds.getBottom());
+        
+        // draw the slice handle
+        Path trianglePath;
+        trianglePath.addTriangle(sliceX - 8.0f, thumbnailBounds.getY(), sliceX, thumbnailBounds.getY() - 16.0f, sliceX + 8.0f, thumbnailBounds.getY());
+//          trianglePath.applyTransform(AffineTransform::rotation(MathConstants<float>::halfPi));
+        g.fillPath(trianglePath);
     }
     
     // paint active slice range;
@@ -122,6 +129,35 @@ void BreakbeatContentComponent::WaveformComponent::mouseDoubleClick(juce::MouseE
     if(onWaveformDoubleClicked != nullptr)
     {
         onWaveformDoubleClicked(event.x);
+    }
+}
+
+void BreakbeatContentComponent::WaveformComponent::mouseUp(juce::MouseEvent const& event)
+{
+    if(event.mods.isRightButtonDown())
+    {
+        if(event.y > 20)
+        {
+            // we know its not on a marker triangle
+            return;
+        }
+        
+        // check all slices to check if its in the triangle bounds
+        for(size_t i = 0; i < mSlicePositions.size(); ++i)
+        {
+            auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / mThumbnail.getTotalLength();
+            auto const sliceX = static_cast<int>(getWidth() * startRatio);
+            
+            if(event.x > sliceX - 8 && event.x < sliceX + 8)
+            {
+                if(onSliceMarkerRightClicked != nullptr)
+                {
+                    onSliceMarkerRightClicked(sliceX);
+                }
+                
+                break;
+            }
+        }
     }
 }
 
@@ -296,6 +332,24 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         if(mAudioSource.getSliceManager().getSliceMethod() != SliceManager::Method::manual)
         {
             mSliceTypeCombobox.comboBox.setSelectedItemIndex(static_cast<int>(SliceManager::Method::manual));
+        }
+    };
+    
+    mWaveformComponent.onSliceMarkerRightClicked = [this](int xPos)
+    {
+        // convert to slice position and set
+        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
+        auto const waveformSize = mWaveformComponent.getWidth();
+        
+        // convert width of 16 pixels to samples
+        auto const sampleToleranceWidth = static_cast<int>(16 / static_cast<double>(waveformSize) * bufferLength);
+        
+        // convert to sample pos
+        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * bufferLength);
+        auto* slice = mAudioSource.getSliceManager().getSliceAtSamplePosition(samplePosition, sampleToleranceWidth);
+        if(slice != nullptr)
+        {
+            mAudioSource.getSliceManager().deleteSlice(std::get<0>(*slice));
         }
     };
     
@@ -505,6 +559,9 @@ void BreakbeatContentComponent::changeListenerCallback(juce::ChangeBroadcaster* 
         // update the waveform
         auto const& slices = mAudioSource.getSliceManager().getSlices();
         auto const activeSlice = mAudioSource.getSliceManager().getCurrentSliceIndex();
+        
+        std::cout << "Number of slices: " << slices.size() << "\n";
+        
         mWaveformComponent.setSlicePositions(slices, activeSlice);
     }
 }
