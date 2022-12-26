@@ -78,6 +78,8 @@ public:
         {
             mRecentFiles.restoreFromString(xml->getStringAttribute("recentFiles"));
         }
+        
+        mRecentFiles.removeNonExistentFiles();
     }
 
     std::unique_ptr<MainWindow> mMainWindow;

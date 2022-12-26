@@ -695,6 +695,7 @@ void BreakbeatContentComponent::checkForPathToOpen()
         return;
     }
     
+    mRecentFiles.addFile(juce::File(pathToOpen));
     triggerAsyncUpdate();
 }
 
