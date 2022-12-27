@@ -60,6 +60,9 @@ public:
     void newFileOpened(String& filePath);
     void setFileOutputPath();
     void exportAudioSlices();
+    
+    void fromXml(juce::XmlElement const& xml);
+    std::unique_ptr<juce::XmlElement> toXml();
 
 private:
     enum class TransportState

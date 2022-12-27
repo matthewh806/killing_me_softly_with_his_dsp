@@ -207,7 +207,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mSliceTypeCombobox.comboBox.addItem("Div", 1);
     mSliceTypeCombobox.comboBox.addItem("Transient", 2);
     mSliceTypeCombobox.comboBox.addItem("Manual", 3);
-    mSliceTypeCombobox.comboBox.setSelectedId(1);
+    mSliceTypeCombobox.comboBox.setSelectedId(3);
     mSliceTypeCombobox.comboBox.onChange = [this]()
     {
         auto const idx = mSliceTypeCombobox.comboBox.getSelectedItemIndex();
@@ -709,4 +709,14 @@ void BreakbeatContentComponent::updateWaveform()
     mWaveformComponent.clear();
     mWaveformComponent.getThumbnail().reset(2, mAudioSource.getSliceManager().getSampleSampleRate());
     mWaveformComponent.getThumbnail().addBlock(0, *mAudioSource.getSliceManager().getActiveBuffer(), 0, static_cast<int>(mAudioSource.getSliceManager().getBufferNumSamples()));
+}
+
+void BreakbeatContentComponent::fromXml(juce::XmlElement const& xml)
+{
+    mAudioSource.getSliceManager().fromXml(xml);
+}
+
+std::unique_ptr<juce::XmlElement> BreakbeatContentComponent::toXml()
+{
+    return mAudioSource.getSliceManager().toXml();
 }

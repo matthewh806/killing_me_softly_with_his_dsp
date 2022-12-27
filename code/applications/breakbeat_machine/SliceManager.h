@@ -45,6 +45,9 @@ public:
     
     void performSlice();
     
+    void fromXml(juce::XmlElement const& xml);
+    std::unique_ptr<juce::XmlElement> toXml() const;
+    
 private:
     
     size_t mCurrentSliceIndex {0};

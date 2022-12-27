@@ -223,3 +223,44 @@ void SliceManager::performSlice()
     
     sendChangeMessage();
 }
+
+void SliceManager::fromXml(juce::XmlElement const& xml)
+{
+    assert(xml.hasTagName("SliceManager::Slices"));
+    
+    for(auto* child : xml.getChildIterator())
+    {
+        if(!child->hasTagName("slice"))
+        {
+            continue;
+        }
+        
+        auto uuid = juce::Uuid(child->getStringAttribute("uuid", juce::Uuid().toString()));
+        auto start = static_cast<size_t>(child->getIntAttribute("start"));
+        auto end = static_cast<size_t>(child->getIntAttribute("end"));
+        mSlices.push_back({uuid, start, end});
+    }
+    
+    setSliceMethod(manual);
+    sendChangeMessage();
+}
+
+std::unique_ptr<juce::XmlElement> SliceManager::toXml() const
+{
+    auto sliceList = std::make_unique<juce::XmlElement>("SliceManager::Slices");
+    if(sliceList == nullptr)
+    {
+        return nullptr;
+    }
+    
+    for(auto const& slice : mSlices)
+    {
+        auto sliceXml = new juce::XmlElement("slice");
+        sliceXml->setAttribute("uuid", std::get<0>(slice).toString());
+        sliceXml->setAttribute("start", static_cast<int>(std::get<1>(slice)));
+        sliceXml->setAttribute("end", static_cast<int>(std::get<2>(slice)));
+        sliceList->addChildElement(sliceXml);
+    }
+    
+    return sliceList;
+}
