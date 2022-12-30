@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<html>
+    <head>
+        <title>SoxMosh webapp</title>
+    </head>
+    <body>
+        <h1>Soxmosh webapp</h1>
+        <p>
+            A small web utility for manipulating images by applying audio effects to them using the (py)SoX library.<br><br>
+            For a full description of the tool and how it works see the main <a href="http://theofficeofunspecifiedservices.com/software/SoxMosh/index.html">SoxMosh</a> page
+        </p>
+
+        <h2>Input Image</h2>
+        <img src="{{input_path}}" width="500px">
+
+        <form id="upload_form" enctype="multipart/form-data" action="upload" method="post">
+            <p>
+                {{ upload_form.hidden_tag() }}
+                {{ upload_form.image }}
+            </p>
+                {{ upload_form.submit() }}
+        </form>
+
+        <button type="button" class="collapsible"><b>Effects</b></button>
+        <div class="effects">
+            <form id="compand_form" action="add_effect" method="post">
+                <p>
+                    <b>Compress: </b> {{ compand_form.effect_name }}
+                    {{ compand_form.attack_time.label }} {{ compand_form.attack_time }}
+                    {{ compand_form.decay_time.label }} {{ compand_form.decay_time }}
+                    {{ echo_form.submit() }}
+                </p>
+            </form>
+            
+            <form id="echo_form" action="add_effect" method="post">
+                <p>
+                    <b>Echo: </b> {{ echo_form.effect_name }}
+                    {{ echo_form.gain_in.label }} {{ echo_form.gain_in }} 
+                    {{ echo_form.gain_out.label }} {{ echo_form.gain_out }} 
+                    {{ echo_form.n_echos.label }} {{ echo_form.n_echos }}
+                    {{ echo_form.delays.label }} {{ echo_form.delays(rows=1, cols=10) }}
+                    {{ echo_form.decays.label }} {{ echo_form.decays(rows=1, cols=10) }}
+                    {{ echo_form.submit() }}
+                </p>
+            </form>
+    
+            <form id="overdrive_form" action="add_effect" method="post">
+                <p>
+                    <b>Overdrive: </b> {{ overdrive_form.effect_name }}
+                    {{ overdrive_form.gain_db.label }} {{ overdrive_form.gain_db }}
+                    {{ overdrive_form.colour.label }} {{ overdrive_form.colour }}
+                    {{ overdrive_form.submit() }}
+                </p>
+            </form>
+    
+            <form id="phaser_form" action="add_effect" method="post">
+                <p>
+                    <b>Phaser: </b> {{ phaser_form.effect_name }}
+                    {{ phaser_form.gain_in.label }} {{ phaser_form.gain_in }}
+                    {{ phaser_form.gain_out.label }} {{ phaser_form.gain_out }}
+                    {{ phaser_form.delay.label }} {{ phaser_form.delay }}
+                    {{ phaser_form.decay.label }} {{ phaser_form.decay }}
+                    {{ phaser_form.speed.label }} {{ phaser_form.speed }}
+                    {{ phaser_form.submit() }}
+                </p>
+            </form>
+    
+            <form id="reverb_form" action="add_effect" method="post">
+                <p>
+                    <b>Reverb: </b> {{ reverb_form.effect_name }}
+                    {{ reverb_form.reverberance.label }} {{ reverb_form.reverberance }}
+                    {{ reverb_form.high_freq_damping.label }} {{ reverb_form.high_freq_damping }}
+                    {{ reverb_form.room_scale.label }} {{ reverb_form.room_scale }}
+                    {{ reverb_form.pre_delay.label }} {{ reverb_form.pre_delay }}
+                    {{ reverb_form.wet_gain.label }} {{ reverb_form.wet_gain }}
+                    {{ reverb_form.submit() }}
+                </p>
+            </form>
+        </div>
+
+        <form id="clear_form" action="clear_effects" method="post">
+            {{ clear_form.submit() }}
+        </form>
+
+        <form id="mosh_form" action="mosh_image" method="post">
+            <p>
+                <b>{{ mosh_form.effects.label }}:</b><br>
+                {{ mosh_form.effects(rows=8, cols=50) }}
+            </p>
+            <p>
+                {{ mosh_form.rendergif.label }}
+                {{ mosh_form.rendergif }}
+            </p>
+            <p>For a full list of the available effects please see the <a href="https://pysox.readthedocs.io/en/latest/api.html#">pysox documentation</a></p>
+            <p>{{ mosh_form.submit() }}</p>
+        </form>
+
+        {% if output_path %}
+            <h2>Output Image</h2>
+            <img src="{{output_path}}" width="500px">
+        {% endif %}
+
+        <script>
+            function checkCollapseState() 
+            {
+                state = localStorage.getItem("state");
+                if(state == "active")
+                {
+                    var coll = document.getElementsByClassName("collapsible")[0]
+                    coll.classList.add("active")
+                    var content = document.getElementsByClassName("effects")[0]
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            }
+            checkCollapseState();
+
+            var coll = document.getElementsByClassName("collapsible");
+            var i;
+            for (i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function() {
+                    this.classList.toggle("active");
+                    var content = this.nextElementSibling;
+                    if (content.style.maxHeight){
+                        content.style.maxHeight = null;
+                        state = localStorage.setItem("state", "hidden")
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        state = localStorage.setItem("state", "active")
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

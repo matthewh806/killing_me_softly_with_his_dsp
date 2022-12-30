@@ -271,11 +271,17 @@ class SoxMosh:
 
         output_file_name = pathlib.Path(output_path).stem
         frame_paths = []
-        for i, effects in enumerate(effects_sequence):
-            frame_output_path = os.path.join(
-                self.image_handler.temp_directory.name, output_file_name + "_" + "{index}".format(index=i).zfill(4))
-            frame_paths.append(frame_output_path)
-            self.databend_image(frame_output_path, effects)
+
+        if not len(effects_sequence) == 0:
+
+            for i, effects in enumerate(effects_sequence):
+                # TODO: This is a hacky way of checking for the correct json format IMPROVE!
+                if not isinstance(effects, list):
+                    effects = [effects]
+                frame_output_path = os.path.join(
+                    self.image_handler.temp_directory.name, output_file_name + "_" + "{index}".format(index=i).zfill(4))
+                frame_paths.append(frame_output_path)
+                self.databend_image(frame_output_path, effects)
 
         # combine to gif
         self.image_handler.make_gif(output_path, frame_paths, duration)
