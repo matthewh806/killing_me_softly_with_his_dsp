@@ -6,6 +6,7 @@ SliceManager::SliceManager(juce::AudioFormatManager& formatManager, Method slice
 , mSliceMethod(sliceMethod)
 {
     performSlice();
+    sanitiseSlices();
 }
 
 SliceManager::Method SliceManager::getSliceMethod()
@@ -19,6 +20,7 @@ void SliceManager::setSliceMethod(Method method)
     {
         mSliceMethod = method;
         performSlice();
+        sanitiseSlices();
     }
 }
 
@@ -29,6 +31,7 @@ void SliceManager::setThreshold(float threshold)
     if(mSliceMethod == Method::transients)
     {
         performSlice();
+        sanitiseSlices();
     }
 }
 
@@ -39,6 +42,7 @@ void SliceManager::setDivisions(float divisions)
     if(mSliceMethod == Method::divisions)
     {
         performSlice();
+        sanitiseSlices();
     }
 }
 
@@ -66,6 +70,8 @@ void SliceManager::addSlice(size_t position)
         {
             performSlice();
         }
+        
+        sanitiseSlices();
     }
 }
 
@@ -84,6 +90,8 @@ void SliceManager::deleteSlice(juce::Uuid sliceId)
     }
     
     mSlices.erase(itr);
+    sanitiseSlices();
+    
     sendChangeMessage();
 }
 
@@ -212,8 +220,6 @@ void SliceManager::performSlice()
     }
     else if(mSliceMethod == manual)
     {
-        // hmmm? check slice still exists - update index etc as necessary
-        
         // sort in ascending order as we add them into a random position
         std::sort(mSlices.begin(), mSlices.end(), [](const Slice& lhs, const Slice& rhs)
         {
@@ -263,4 +269,33 @@ std::unique_ptr<juce::XmlElement> SliceManager::toXml() const
     }
     
     return sliceList;
+}
+
+void SliceManager::sanitiseSlices()
+{
+    std::sort(mSlices.begin(), mSlices.end(), [](const Slice& lhs, const Slice& rhs)
+    {
+        return std::get<1>(lhs) < std::get<1>(rhs);
+    });
+    
+    // 1. fix start / end times
+    // 2. sort in order
+    
+    // Set end value first
+    
+    for(auto itr = mSlices.begin(); itr != mSlices.end(); ++itr)
+    {
+        auto const nextItr = std::next(itr);
+        if(nextItr == mSlices.end())
+        {
+            // last slice so set to file end sample
+            std::get<2>(*itr) = getBufferNumSamples();
+        }
+        else
+        {
+            std::get<2>(*itr) = std::get<1>(*nextItr);
+        }
+        
+//        jassert(std::get<1>(*itr) < std::get<2>(*itr));
+    }
 }

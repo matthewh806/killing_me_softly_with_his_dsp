@@ -247,6 +247,9 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
             mAudioSource.getSliceManager().performSlice();
             mAudioSource.setNextReadPosition(0);
             updateWaveform();
+            
+            // TODO: Handle this better
+            mAudioSource.getSliceManager().sanitiseSlices();
         });
     };
     
@@ -374,6 +377,9 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
             mAudioSource.setNextReadPosition(0);
             updateWaveform();
         });
+        
+        // TODO: Handle this better
+        mAudioSource.getSliceManager().sanitiseSlices();
     };
     
     addAndMakeVisible(mStopButton);
@@ -581,6 +587,9 @@ void BreakbeatContentComponent::handleAsyncUpdate()
         mAudioSource.setNextReadPosition(0);
         
         updateWaveform();
+        
+        // TODO: Handle this better
+        mAudioSource.getSliceManager().sanitiseSlices();
     });
     
     changeState(TransportState::Stopped);

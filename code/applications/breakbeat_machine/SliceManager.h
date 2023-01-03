@@ -48,6 +48,13 @@ public:
     void fromXml(juce::XmlElement const& xml);
     std::unique_ptr<juce::XmlElement> toXml() const;
     
+    /* Called after adding,
+     movind, deleting slices to ensure
+     all the ordering and positioning is
+     correct
+     */
+    void sanitiseSlices();
+    
 private:
     
     size_t mCurrentSliceIndex {0};
