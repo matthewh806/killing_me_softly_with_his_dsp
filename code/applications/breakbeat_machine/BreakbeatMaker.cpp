@@ -306,58 +306,58 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mSliceDivsorSlider.mLabels.add({0.0, "0"});
     mSliceDivsorSlider.mLabels.add({1.0, "256"});
     mSliceDivsorSlider.setRange(0.0, 8.0, 1.0);
-    mSliceDivsorSlider.setValue(1.0, dontSendNotification);
     mSliceDivsorSlider.onValueChange = [this]()
     {
         auto const divisor = static_cast<int>(std::pow(2, static_cast<int>(mSliceDivsorSlider.getValue())));
         mAudioSource.setBlockDivisionFactor(divisor);
         mWaveformComponent.setSlicePositions(mAudioSource.getSliceManager().getSlices(), 0);
     };
+    mSliceDivsorSlider.setValue(1.0, sendNotification);
     
     addChildComponent(mSliceTransientThresholdSlider);
     mSliceTransientThresholdSlider.mLabels.add({0.0, "0"});
     mSliceTransientThresholdSlider.mLabels.add({1.0, "1"});
     mSliceTransientThresholdSlider.setRange(0.0, 1.0, 0.1);
-    mSliceTransientThresholdSlider.setValue(0.3, dontSendNotification);
     mSliceTransientThresholdSlider.onValueChange = [this]()
     {
         auto const threshold = static_cast<float>(mSliceTransientThresholdSlider.getValue());
         mAudioSource.setTransientDetectionThreshold(threshold);
         mWaveformComponent.setSlicePositions(mAudioSource.getSliceManager().getSlices(), 0);
     };
+    mSliceTransientThresholdSlider.setValue(0.3, sendNotification);
     
     addAndMakeVisible(mChangeSampleProbabilitySlider);
     mChangeSampleProbabilitySlider.mLabels.add({0.0, "0%"});
     mChangeSampleProbabilitySlider.mLabels.add({1.0, "100%"});
     mChangeSampleProbabilitySlider.setRange(0.0, 1.0, 0.1);
-    mChangeSampleProbabilitySlider.setValue(0.3, juce::NotificationType::dontSendNotification);
     mChangeSampleProbabilitySlider.onValueChange = [this]()
     {
         mSampleChangeThreshold = 1.0f - static_cast<float>(mChangeSampleProbabilitySlider.getValue());
         mAudioSource.setSampleChangeThreshold(mSampleChangeThreshold);
     };
+    mChangeSampleProbabilitySlider.setValue(0.3, juce::NotificationType::sendNotification);
     
     addAndMakeVisible(mReverseSampleProbabilitySlider);
     mReverseSampleProbabilitySlider.mLabels.add({0.0, "0%"});
     mReverseSampleProbabilitySlider.mLabels.add({1.0, "100%"});
     mReverseSampleProbabilitySlider.setRange(0.0, 1.0, 0.1);
-    mReverseSampleProbabilitySlider.setValue(0.3, juce::NotificationType::dontSendNotification);
     mReverseSampleProbabilitySlider.onValueChange = [this]()
     {
         mReverseSampleThreshold = 1.0f - static_cast<float>(mReverseSampleProbabilitySlider.getValue());
         mAudioSource.setReverseSampleThreshold(mReverseSampleThreshold) ;
     };
+    mReverseSampleProbabilitySlider.setValue(0.3, juce::NotificationType::sendNotification);
     
     addAndMakeVisible(mRetriggerSampleProbabilitySlider);
     mRetriggerSampleProbabilitySlider.mLabels.add({0.0, "0%"});
     mRetriggerSampleProbabilitySlider.mLabels.add({1.0, "100%"});
     mRetriggerSampleProbabilitySlider.setRange(0.0, 1.0, 0.1);
-    mRetriggerSampleProbabilitySlider.setValue(0.3, juce::NotificationType::dontSendNotification);
     mRetriggerSampleProbabilitySlider.onValueChange = [this]()
     {
         mRetriggerSampleThreshold = 1.0f - static_cast<float>(mRetriggerSampleProbabilitySlider.getValue());
         mAudioSource.setRetriggerSampleThreshold(mRetriggerSampleThreshold);
     };
+    mRetriggerSampleProbabilitySlider.setValue(0.3, juce::NotificationType::sendNotification);
     
     addAndMakeVisible(mWaveformComponent);
     mWaveformComponent.onWaveformDoubleClicked = [this](int xPos)
