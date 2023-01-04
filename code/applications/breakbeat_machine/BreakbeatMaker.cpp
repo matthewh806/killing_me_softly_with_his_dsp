@@ -131,6 +131,31 @@ void BreakbeatContentComponent::WaveformComponent::mouseDoubleClick(juce::MouseE
     }
 }
 
+void BreakbeatContentComponent::WaveformComponent::mouseDown(juce::MouseEvent const& event)
+{
+    if(event.y > 20)
+    {
+        return;
+    }
+    
+    // TODO: Remove duplication with mouseUp method
+    for(size_t i = 0; i < mSlicePositions.size(); ++i)
+    {
+        auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / mThumbnail.getTotalLength();
+        auto const sliceX = static_cast<int>(getWidth() * startRatio);
+        
+        if(event.x > sliceX - 8 && event.x < sliceX + 8)
+        {
+            if(onSliceMarkerMouseDown != nullptr)
+            {
+                onSliceMarkerMouseDown(sliceX);
+            }
+            
+            break;
+        }
+    }
+}
+
 void BreakbeatContentComponent::WaveformComponent::mouseUp(juce::MouseEvent const& event)
 {
     if(event.mods.isRightButtonDown())
@@ -157,6 +182,20 @@ void BreakbeatContentComponent::WaveformComponent::mouseUp(juce::MouseEvent cons
                 break;
             }
         }
+    }
+    
+    if(onMouseUp != nullptr)
+    {
+        onMouseUp();
+    }
+}
+
+void BreakbeatContentComponent::WaveformComponent::mouseDrag(const MouseEvent& event)
+{
+    // increment position of the marker
+    if(onSliceMarkerDragged != nullptr)
+    {
+        onSliceMarkerDragged(event.position.x);
     }
 }
 
@@ -355,6 +394,55 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         }
     };
     
+    mWaveformComponent.onSliceMarkerMouseDown = [this](int xPos)
+    {
+        // convert to slice position and set
+        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
+        auto const waveformSize = mWaveformComponent.getWidth();
+        
+        // convert width of 16 pixels to samples
+        auto const sampleToleranceWidth = static_cast<int>(16 / static_cast<double>(waveformSize) * bufferLength);
+        
+        // convert to sample pos
+        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * bufferLength);
+        auto* slice = mAudioSource.getSliceManager().getSliceAtSamplePosition(samplePosition, sampleToleranceWidth);
+        if(slice != nullptr)
+        {
+            mActiveMouseMarker = std::get<0>(*slice);
+            mPrevDragPos = xPos;
+        }
+    };
+    
+    mWaveformComponent.onSliceMarkerDragged = [this](float xPos)
+    {
+        if(mActiveMouseMarker.isNull())
+        {
+            return;
+        }
+        
+        auto* slice = mAudioSource.getSliceManager().getSliceById(mActiveMouseMarker);
+        if(slice == nullptr)
+        {
+            return;
+        }
+        
+        // convert to sample delta
+        auto const delta_x = xPos - mPrevDragPos;
+        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
+        auto const waveformSize = mWaveformComponent.getWidth();
+        auto const sampleDelta = static_cast<int>(delta_x / static_cast<double>(waveformSize) * bufferLength);
+        
+        // set
+        mAudioSource.getSliceManager().moveSlice(std::get<0>(*slice), sampleDelta);
+        mPrevDragPos = xPos;
+    };
+    
+    mWaveformComponent.onMouseUp = [this]()
+    {
+        mActiveMouseMarker = juce::Uuid().null();
+        mPrevDragPos = 0.0f;
+    };
+    
     addAndMakeVisible(mSampleLengthSeconds);
     mSampleDesiredLengthSeconds.setNumberOfDecimals(3);
     
@@ -426,6 +514,8 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mTransportSource.addChangeListener(this);
     mAudioSource.getSliceManager().addChangeListener(this);
     mWaveformComponent.getThumbnail().addChangeListener(this);
+    
+    mActiveMouseMarker = juce::Uuid().null();
     
     startThread();
 }

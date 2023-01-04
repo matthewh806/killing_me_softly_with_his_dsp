@@ -75,6 +75,18 @@ void SliceManager::addSlice(size_t position)
     }
 }
 
+void SliceManager::moveSlice(juce::Uuid sliceid, int sampleDelta)
+{
+    auto* slice = getSliceById(sliceid);
+    // check?
+    
+    // Make sure it doesn't go less than > beyond buffer length
+    auto const newPos = static_cast<int>(std::get<1>(*slice)) + sampleDelta;
+    std::get<1>(*slice) = static_cast<size_t>(std::max(0, std::min(newPos, static_cast<int>(getBufferNumSamples()))));
+    sanitiseSlices();
+    sendChangeMessage();
+}
+
 void SliceManager::deleteSlice(juce::Uuid sliceId)
 {
     auto const itr = std::find_if(mSlices.begin(), mSlices.end(), [&](const Slice& slice)
@@ -103,6 +115,27 @@ size_t SliceManager::getCurrentSliceIndex() const
 SliceManager::Slice SliceManager::getCurrentSlice() const
 {
     return mCurrentSlice;
+}
+
+SliceManager::Slice* SliceManager::getSliceById(juce::Uuid& id)
+{
+    auto const itr = std::find_if(mSlices.begin(), mSlices.end(), [&](const Slice& s)
+    {
+        return std::get<0>(s) == id;
+    });
+    
+    decltype(&*itr) ptr;
+    if(itr == mSlices.end())
+    {
+        ptr = nullptr;
+    }
+    else
+    {
+        ptr = &*itr;
+    }
+    
+    return ptr;
+    
 }
 
 SliceManager::Slice* SliceManager::getSliceAtSamplePosition(size_t pos, int tolerance)

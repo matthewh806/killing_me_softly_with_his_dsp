@@ -30,11 +30,13 @@ public:
     void setDivisions(float divisions);
     
     void addSlice(size_t position);
+    void moveSlice(juce::Uuid sliceid, int sampleDelta);
     void deleteSlice(juce::Uuid sliceId);
     
     size_t getCurrentSliceIndex() const;
     Slice getCurrentSlice() const;
     
+    Slice* getSliceById(juce::Uuid& id);
     Slice* getSliceAtSamplePosition(size_t pos, int tolerance);
     
     // Sets the current slice to a random one and returns it

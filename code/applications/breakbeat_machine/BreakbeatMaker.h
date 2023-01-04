@@ -93,7 +93,9 @@ private:
         void resized() override;
         void paint(juce::Graphics& g) override;
         void mouseDoubleClick(juce::MouseEvent const& event) override;
+        void mouseDown(juce::MouseEvent const& event) override;
         void mouseUp(juce::MouseEvent const& event) override;
+        void mouseDrag (const MouseEvent& event) override;
         
         // juce::FileDragAndDropTarget
         bool isInterestedInFileDrag (const StringArray& files) override;
@@ -104,6 +106,9 @@ private:
         
         std::function<void(int)> onWaveformDoubleClicked = nullptr;
         std::function<void(int)> onSliceMarkerRightClicked = nullptr;
+        std::function<void(int)> onSliceMarkerMouseDown = nullptr;
+        std::function<void(float)> onSliceMarkerDragged = nullptr;
+        std::function<void()> onMouseUp = nullptr;
         
     private:
         BreakbeatContentComponent& mParentComponent;
@@ -172,6 +177,9 @@ private:
     juce::File mRecordedFile {juce::File::getSpecialLocation(juce::File::SpecialLocationType::tempDirectory).getChildFile("toous").getChildFile("temp_recording.wav")};
     
     std::unique_ptr<juce::FileChooser> mFileChooser = nullptr;
+    
+    juce::Uuid mActiveMouseMarker;
+    float mPrevDragPos = 0.0f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BreakbeatContentComponent)
 };
