@@ -682,6 +682,7 @@ void BreakbeatContentComponent::handleAsyncUpdate()
         mAudioSource.getSliceManager().sanitiseSlices();
     });
     
+    mAudioSource.getSliceManager().clearSlices();
     changeState(TransportState::Stopped);
 }
 

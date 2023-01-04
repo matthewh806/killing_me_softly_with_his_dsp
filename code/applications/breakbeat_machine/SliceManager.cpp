@@ -112,7 +112,7 @@ size_t SliceManager::getCurrentSliceIndex() const
     return mCurrentSliceIndex;
 }
 
-SliceManager::Slice SliceManager::getCurrentSlice() const
+SliceManager::Slice& SliceManager::getCurrentSlice()
 {
     return mCurrentSlice;
 }
@@ -253,6 +253,12 @@ void SliceManager::performSlice()
     }
     else if(mSliceMethod == manual)
     {
+        if(mSlices.size() == 0)
+        {
+            // Create just one from beginning to end when there are no slices
+            mSlices.push_back({juce::Uuid(), 0, getBufferNumSamples()});
+        }
+        
         // sort in ascending order as we add them into a random position
         std::sort(mSlices.begin(), mSlices.end(), [](const Slice& lhs, const Slice& rhs)
         {
@@ -331,4 +337,9 @@ void SliceManager::sanitiseSlices()
         
 //        jassert(std::get<1>(*itr) < std::get<2>(*itr));
     }
+}
+
+void SliceManager::clearSlices()
+{
+    mSlices.clear();
 }

@@ -34,7 +34,7 @@ public:
     void deleteSlice(juce::Uuid sliceId);
     
     size_t getCurrentSliceIndex() const;
-    Slice getCurrentSlice() const;
+    Slice& getCurrentSlice();
     
     Slice* getSliceById(juce::Uuid& id);
     Slice* getSliceAtSamplePosition(size_t pos, int tolerance);
@@ -56,6 +56,8 @@ public:
      correct
      */
     void sanitiseSlices();
+    
+    void clearSlices();
     
 private:
     
