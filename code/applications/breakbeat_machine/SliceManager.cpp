@@ -257,6 +257,9 @@ void SliceManager::performSlice()
         {
             // Create just one from beginning to end when there are no slices
             mSlices.push_back({juce::Uuid(), 0, getBufferNumSamples()});
+            
+            mCurrentSliceIndex = 0;
+            mCurrentSlice = mSlices[mCurrentSliceIndex];
         }
         
         // sort in ascending order as we add them into a random position
