@@ -9,7 +9,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 set(JUCE_COPY_PLUGIN_AFTER_BUILD ON)
 set(SMTG_RUN_VST_VALIDATOR OFF)
 
-project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.2)
+project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.3)
 
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
