@@ -50,6 +50,21 @@ private:
     juce::String mSuffix;
 };
 
+class NumberField : public juce::Label
+{
+public:
+    NumberField(juce::String const& unitSuffix = "", size_t const numberOfDecimals = 0, bool editable = true, double defaultValue = 0.0);
+    
+    void paint(juce::Graphics& g) override;
+    
+    void setNumberOfDecimals(size_t numberOfDecimals);
+    juce::String getValueAsText() const;
+
+private:
+    size_t mNumberOfDecimals = 0;
+    juce::String mSuffix = juce::String();
+};
+
 class NumberFieldWithLabel : public juce::Component
 {
 public:
@@ -68,11 +83,9 @@ public:
     
 private:
     juce::Label mParamLabel;
-    juce::Label mNumberField;
+    NumberField mNumberField;
     
-    size_t mNumberOfDecimals = 0;
     juce::Range<double> mRange = {std::numeric_limits<double>::min(), std::numeric_limits<double>::max()};
-    juce::String mSuffix = juce::String();
 };
 
 class ComboBoxWithLabel : public juce::Component

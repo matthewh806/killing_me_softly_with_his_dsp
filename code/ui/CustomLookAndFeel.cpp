@@ -142,19 +142,74 @@ juce::String RotarySliderWithLabels::getParameterName() const
     return mParamName;
 }
 
+NumberField::NumberField (juce::String const& unitSuffix, size_t const numberOfDecimals, bool editable, double defaultValue)
+: mNumberOfDecimals(numberOfDecimals)
+, mSuffix(unitSuffix)
+{
+    setEditable(editable);
+    setText(juce::String(defaultValue), juce::NotificationType::dontSendNotification);
+}
+
+void NumberField::paint(juce::Graphics& g)
+{
+    g.fillAll (findColour (Label::backgroundColourId));
+    if (!isBeingEdited())
+    {
+        auto alpha = isEnabled() ? 1.0f : 0.5f;
+        const Font font (getLookAndFeel().getLabelFont (*this));
+
+        g.setColour (findColour (Label::textColourId).withMultipliedAlpha (alpha));
+        g.setFont (font);
+
+        juce::Rectangle<int> const textArea(getBorderSize().subtractedFrom(getLocalBounds()));
+        g.drawFittedText (getValueAsText(), textArea, getJustificationType(),
+                          jmax (1, (int) ((float) textArea.getHeight() / font.getHeight())),
+                          getMinimumHorizontalScale());
+
+        g.setColour (findColour (Label::outlineColourId).withMultipliedAlpha (alpha));
+    }
+    else if (isEnabled())
+    {
+        g.setColour (findColour (Label::outlineColourId));
+    }
+
+    g.drawRect (getLocalBounds());
+}
+
+void NumberField::setNumberOfDecimals(size_t numberOfDecimals)
+{
+    if(numberOfDecimals != mNumberOfDecimals)
+    {
+        mNumberOfDecimals = numberOfDecimals;
+        
+        if(mNumberOfDecimals == 0)
+        {
+            setKeyboardType(TextInputTarget::numericKeyboard);
+        }
+        else
+        {
+            setKeyboardType(TextInputTarget::decimalKeyboard);
+        }
+        
+        repaint();
+    }
+}
+
+
+juce::String NumberField::getValueAsText() const
+{
+    auto const value = getText().getDoubleValue();
+    return juce::String(value, static_cast<int>(mNumberOfDecimals)) + juce::String(" ") + mSuffix;
+}
+
 NumberFieldWithLabel::NumberFieldWithLabel(juce::String const& paramName, juce::String const& unitSuffix, size_t const numberOfDecimals, bool editable, double defaultValue)
+: mNumberField(unitSuffix, numberOfDecimals, editable, defaultValue)
 {
     mParamLabel.setEditable(false);
     mParamLabel.setText(paramName, juce::NotificationType::dontSendNotification);
     addAndMakeVisible(mParamLabel);
     
-    mSuffix = unitSuffix;
-    mNumberOfDecimals = numberOfDecimals;
-    
-    mNumberField.setEditable(editable);
     addAndMakeVisible(mNumberField);
-    mNumberField.setText(juce::String(defaultValue), juce::NotificationType::dontSendNotification);
-    
     mNumberField.onEditorShow = [this]()
     {
         auto* ed = mNumberField.getCurrentTextEditor();
@@ -194,27 +249,12 @@ void NumberFieldWithLabel::setRange(juce::Range<double> const& range, juce::Noti
 
 void NumberFieldWithLabel::setNumberOfDecimals(size_t numberOfDecimals)
 {
-    if(numberOfDecimals != mNumberOfDecimals)
-    {
-        mNumberOfDecimals = numberOfDecimals;
-        
-        if(mNumberOfDecimals == 0)
-        {
-            mNumberField.setKeyboardType(TextInputTarget::numericKeyboard);
-        }
-        else
-        {
-            mNumberField.setKeyboardType(TextInputTarget::decimalKeyboard);
-        }
-        
-        repaint();
-    }
+    mNumberField.setNumberOfDecimals(numberOfDecimals);
 }
 
 void NumberFieldWithLabel::resized()
 {
     auto bounds = getLocalBounds();
-    
     mParamLabel.setBounds(bounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.45)));
     bounds.removeFromLeft(static_cast<int>(2));
     mNumberField.setBounds(bounds);
