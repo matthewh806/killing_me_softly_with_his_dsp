@@ -234,12 +234,12 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")
 , mPitchShiftSlider("Pitch shift", "")
-, mCrossFadeSlider("Cross fade", "ms")
-, mSliceDivsorSlider("Slice Div", "")
-, mSliceTransientThresholdSlider("Detection Thresh.", "")
-, mChangeSampleProbabilitySlider("Swap slice", "%")
-, mReverseSampleProbabilitySlider("Reverse slice", "%")
-, mRetriggerSampleProbabilitySlider("Retrigger slice", "%")
+, mCrossFadeSlider("Cross fade", "ms", 100.0)
+, mSliceDivsorSlider("Slice Div", "", 1.0)
+, mSliceTransientThresholdSlider("Detection Thresh.", "", 0.3)
+, mChangeSampleProbabilitySlider("Swap slice", "%", 0.3)
+, mReverseSampleProbabilitySlider("Reverse slice", "%", 0.3)
+, mRetriggerSampleProbabilitySlider("Retrigger slice", "%", 0.3)
 , mRecentFiles(recentFiles)
 {
     addAndMakeVisible(mSliceTypeCombobox);
