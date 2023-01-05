@@ -60,6 +60,9 @@ public:
     void newFileOpened(String& filePath);
     void setFileOutputPath();
     void exportAudioSlices();
+    
+    void fromXml(juce::XmlElement const& xml);
+    std::unique_ptr<juce::XmlElement> toXml();
 
 private:
     enum class TransportState
@@ -81,7 +84,7 @@ private:
         
         juce::AudioThumbnail& getThumbnail();
         
-        void setSlicePositions(std::vector<size_t> const& slicePositions, size_t activeSliceIndex);
+        void setSlicePositions(std::vector<SliceManager::Slice> const& slicePositions, size_t activeSliceIndex);
         void setActiveSlice(size_t sliceIndex);
         
         void clear();
@@ -90,6 +93,9 @@ private:
         void resized() override;
         void paint(juce::Graphics& g) override;
         void mouseDoubleClick(juce::MouseEvent const& event) override;
+        void mouseDown(juce::MouseEvent const& event) override;
+        void mouseUp(juce::MouseEvent const& event) override;
+        void mouseDrag (const MouseEvent& event) override;
         
         // juce::FileDragAndDropTarget
         bool isInterestedInFileDrag (const StringArray& files) override;
@@ -99,6 +105,10 @@ private:
         void handleAsyncUpdate() override;
         
         std::function<void(int)> onWaveformDoubleClicked = nullptr;
+        std::function<void(int)> onSliceMarkerRightClicked = nullptr;
+        std::function<void(int)> onSliceMarkerMouseDown = nullptr;
+        std::function<void(float)> onSliceMarkerDragged = nullptr;
+        std::function<void()> onMouseUp = nullptr;
         
     private:
         BreakbeatContentComponent& mParentComponent;
@@ -134,7 +144,7 @@ private:
     juce::Label mFileNameLabel;
     juce::Label mFileSampleRateLabel;
     
-    NumberFieldWithLabel mSampleLengthSeconds {"Original Length", "s", 3, false};
+    NumberFieldWithLabel mSampleLengthSeconds {"File Length", "s", 3, false};
     NumberFieldWithLabel mSampleDesiredLengthSeconds {"New Length", "s", 3, true};
     
     juce::TextButton mStopButton;
@@ -167,6 +177,9 @@ private:
     juce::File mRecordedFile {juce::File::getSpecialLocation(juce::File::SpecialLocationType::tempDirectory).getChildFile("toous").getChildFile("temp_recording.wav")};
     
     std::unique_ptr<juce::FileChooser> mFileChooser = nullptr;
+    
+    juce::Uuid mActiveMouseMarker;
+    float mPrevDragPos = 0.0f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BreakbeatContentComponent)
 };

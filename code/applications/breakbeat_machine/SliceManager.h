@@ -9,9 +9,9 @@ class SliceManager
 {
 public:
         
-    // this tuple should be <start, end>
+    // this tuple should be <uuid, start, end>
     // where end is defined either by the pos of the next marker or the end of the file
-    using Slice = std::tuple<size_t, size_t>;
+    using Slice = std::tuple<juce::Uuid, size_t, size_t>;
     
     enum Method
     {
@@ -30,21 +30,34 @@ public:
     void setDivisions(float divisions);
     
     void addSlice(size_t position);
-    
-    void deleteSlice(size_t position);
-    
-    // TODO: move slice?
+    void moveSlice(juce::Uuid sliceid, int sampleDelta);
+    void deleteSlice(juce::Uuid sliceId);
     
     size_t getCurrentSliceIndex() const;
-    Slice getCurrentSlice() const;
+    Slice& getCurrentSlice();
+    
+    Slice* getSliceById(juce::Uuid& id);
+    Slice* getSliceAtSamplePosition(size_t pos, int tolerance);
     
     // Sets the current slice to a random one and returns it
     Slice setRandomSlice();
-    std::vector<size_t> const& getSlices() const;
+    std::vector<Slice> const& getSlices() const;
     
     size_t getNumberOfSlices() const;
     
     void performSlice();
+    
+    void fromXml(juce::XmlElement const& xml);
+    std::unique_ptr<juce::XmlElement> toXml() const;
+    
+    /* Called after adding,
+     movind, deleting slices to ensure
+     all the ordering and positioning is
+     correct
+     */
+    void sanitiseSlices();
+    
+    void clearSlices();
     
 private:
     
@@ -57,5 +70,5 @@ private:
     float mDivisions {1};
     
     // how to make this thread safe? std vector not trivally copyable -> so cant be atomic
-    std::vector<size_t> mSlicePositions;
+    std::vector<Slice> mSlices;
 };

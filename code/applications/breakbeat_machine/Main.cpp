@@ -59,6 +59,10 @@ public:
         }
         
         xml->setAttribute("recentFiles", mRecentFiles.toString());
+        if(std::unique_ptr<juce::XmlElement> markerXml = mBreakbeatContentComponent->toXml())
+        {
+            xml->addChildElement(markerXml.release());
+        }
         xml->writeTo(mPropertyFile);
     }
     
@@ -77,7 +81,15 @@ public:
         if(xml != nullptr && xml->hasTagName("BreakbeatMaker"))
         {
             mRecentFiles.restoreFromString(xml->getStringAttribute("recentFiles"));
+            
+            auto* sliceXml = xml->getChildByName("SliceManager::Slices");
+            if(sliceXml != nullptr)
+            {
+                mBreakbeatContentComponent->fromXml(*sliceXml);
+            }
         }
+        
+        mRecentFiles.removeNonExistentFiles();
     }
 
     std::unique_ptr<MainWindow> mMainWindow;
