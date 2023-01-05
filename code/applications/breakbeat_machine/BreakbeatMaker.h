@@ -144,7 +144,7 @@ private:
     juce::Label mFileNameLabel;
     juce::Label mFileSampleRateLabel;
     
-    NumberFieldWithLabel mSampleLengthSeconds {"Original Length", "s", 3, false};
+    NumberFieldWithLabel mSampleLengthSeconds {"File Length", "s", 3, false};
     NumberFieldWithLabel mSampleDesiredLengthSeconds {"New Length", "s", 3, true};
     
     juce::TextButton mStopButton;
