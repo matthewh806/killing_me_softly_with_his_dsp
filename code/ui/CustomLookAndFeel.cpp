@@ -230,7 +230,7 @@ double NumberFieldWithLabel::getValue() const
 void NumberFieldWithLabel::setValue(const double value, const juce::NotificationType notification)
 {
     auto const cappedValue = std::max(std::min(value, mRange.getEnd()), mRange.getStart());
-    mNumberField.setText(juce::String(cappedValue, std::numeric_limits<double>::max_digits10), notification);
+    mNumberField.setText(juce::String(cappedValue, std::numeric_limits<double>::max_digits10), juce::NotificationType::dontSendNotification);
     if(onValueChanged != nullptr && notification == juce::sendNotification)
     {
         onValueChanged(mNumberField.getText().getDoubleValue());
