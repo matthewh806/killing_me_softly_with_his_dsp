@@ -16,12 +16,13 @@ public:
 class RotarySliderWithLabels : public juce::Slider
 {
 public:
-    RotarySliderWithLabels(juce::String const& paramName, juce::String const& unitSuffix)
+    RotarySliderWithLabels(juce::String const& paramName, juce::String const& unitSuffix, double defaultValue = 0.0)
     : juce::Slider (juce::Slider::SliderStyle::RotaryVerticalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox)
     , mParamName(paramName)
     , mSuffix(unitSuffix)
     {
         setLookAndFeel(&mLookAndFeel);
+        setDoubleClickReturnValue(true, defaultValue, juce::ModifierKeys::noModifiers);
     }
     
     ~RotarySliderWithLabels() override
