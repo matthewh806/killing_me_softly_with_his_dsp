@@ -1,5 +1,29 @@
+v0.0.3
+  Tagged on: ??
+  - CODE
+    - Added basic reverb VST "MattVerb" based on freeverb 
+    - Improved Breakbeat BreakbeatMachine
+      - Fixed marker positioning bugs
+      - Markers can now be deleted & moved
+      - Markers positions are saved on close / loaded on open
+      - Double click rotary sliders to reset to default position
+      - Fixed slice bug when stretching audio
+
+  - EXPERIMENTS
+    - There were so many changes and additions here that its basically
+    - not an "experiments" directory any more
+    - Added SoxMosh CLI & webapp
+    - Added Steganography CLI
+    - Added mp3 ghosts CLI
+    - Added real time environment
+    - Lots of other little stuff too (fm synths, filters etc) 
+
+  - GENERAL
+    - Updated JUCE to 7.0.3
+    - Added Steinberg VST3 sdk as submodule
+
 v0.0.2
-  Tagged on: ?
+  Tagged on: 03/11/2021
   - CODE
     - Imported Pulsar project
     - Added Granular application
