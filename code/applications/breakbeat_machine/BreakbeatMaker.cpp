@@ -444,15 +444,13 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     };
     
     addAndMakeVisible(mSampleLengthSeconds);
-    mSampleDesiredLengthSeconds.setNumberOfDecimals(3);
+    mSampleLengthSeconds.setNumberOfDecimals(3);
     
     addAndMakeVisible(mSampleDesiredLengthSeconds);
     mSampleDesiredLengthSeconds.setNumberOfDecimals(3);
     mSampleDesiredLengthSeconds.setRange({0.1, 10.0}, juce::NotificationType::dontSendNotification);
     mSampleDesiredLengthSeconds.onValueChanged = [this](double value)
     {
-        juce::ignoreUnused(value);
-        
         changeState(TransportState::Stopping);
         mPlayButton.setEnabled(false);
         
@@ -461,6 +459,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         mAudioSource.getSliceManager().performTimestretch(stretchFactor, pitchFactor, [this]()
         {
             mPlayButton.setEnabled(true);
+            mAudioSource.getSliceManager().clearSlices();
             mAudioSource.getSliceManager().performSlice();
             mAudioSource.setNextReadPosition(0);
             updateWaveform();
