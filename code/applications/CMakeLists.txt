@@ -1,3 +1,4 @@
+
 add_subdirectory(template)
 add_subdirectory(real_time)
 add_subdirectory(offline)
@@ -8,3 +9,4 @@ add_subdirectory(granular)
 add_subdirectory(pulsar)
 add_subdirectory(doppler_shift)
 add_subdirectory(matt_verb)
+add_subdirectory(gpt_verb)
