@@ -6,12 +6,11 @@
 class ReverbVST : public Steinberg::Vst::AudioEffect
 {
 public:
-    revmodel* m_reverb;
-    
     ReverbVST()
     {
         // Initialize the RevModel object
         m_reverb = new revmodel();
+        setControllerClass(OUS::kGPTVerbControllerUID);
     }
 
     ~ReverbVST()
@@ -40,10 +39,10 @@ public:
         //--- create Audio IO ------
         addAudioInput (STR16 ("Stereo In"), Steinberg::Vst::SpeakerArr::kStereo);
         addAudioOutput (STR16 ("Stereo Out"), Steinberg::Vst::SpeakerArr::kStereo);
-//
-//        rev.setdry(0.5);
-//        rev.setwet(0.5);
-//        rev.setroomsize(0.8);
+        
+        m_reverb->setdry(0.5);
+        m_reverb->setwet(0.5);
+        m_reverb->setroomsize(0.8);
 
         return Steinberg::kResultOk;
     }
@@ -137,10 +136,11 @@ public:
         }
 
         // Process audio
-        m_reverb->processreplace(inL, inR, outL, outR, data.numSamples, data.symbolicSampleSize);
+        m_reverb->processreplace(inL, inR, outL, outR, data.numSamples, 1);
 
         return Steinberg::kResultOk;
     }
 
 private:
+    revmodel* m_reverb;
 };
