@@ -2,12 +2,14 @@ v0.0.3
   Tagged on: ??
   - CODE
     - Added basic reverb VST "MattVerb" based on freeverb 
+    - Added another reverb VST designed by Chat-GPT 3.5
     - Improved Breakbeat BreakbeatMachine
       - Fixed marker positioning bugs
       - Markers can now be deleted & moved
       - Markers positions are saved on close / loaded on open
       - Double click rotary sliders to reset to default position
       - Fixed slice bug when stretching audio
+
 
   - EXPERIMENTS
     - There were so many changes and additions here that its basically
