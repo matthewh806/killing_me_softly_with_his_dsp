@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vstgui-ui-description version="1">
+    <template name="RetroPixelArtStyle">
+        <bitmap-resource id="pixel_1x1" name="Pixel 1x1" resource-data="Qk12BAAAAAAADYAAAAoAAAAIAAAACAAAAABAAEAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==" resource-type="PNG"/>
+        <color-group name="Colors">
+            <color name="Background" value="0,0,0"/>
+            <color name="Text" value="255,255,255"/>
+            <color name="Button" value="128,128,128"/>
+            <color name="ButtonHighlight" value="192,192,192"/>
+            <color name="ButtonShadow" value="64,64,64"/>
+            <color name="Slider" value="192,192,192"/>
+            <color name="SliderHighlight" value="255,255,255"/>
+            <color name="SliderShadow" value="128,128,128"/>
+        </color-group>
+        <bitmap-font name="Default" size="8" anti-aliasing="true" font-family="Verdana" style="Regular"/>
+        <view-factory name="Frame" background-color="Background">
+            <bitmap name="Background" alpha="true" color="Background">
+                <nine-part-tiled-bitmap-slice part-names="top-left top top-right left center right bottom-left bottom bottom-right" display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+        </view-factory>
+        <view-factory name="Button" background-color="Button" transparent="true">
+            <bitmap name="Background" alpha="true" color="Button">
+                <nine-part-tiled-bitmap-slice part-names="top-left top top-right left center right bottom-left bottom bottom-right" display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+            <bitmap name="Highlight" alpha="true" color="ButtonHighlight">
+                <nine-part-tiled-bitmap-slice part-names="top-left top top-right left center right bottom-left bottom bottom-right" display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+            <bitmap name="Shadow" alpha="true" color="ButtonShadow">
+                <nine-part-tiled-bitmap-slice part-names="top-left top top-right left center right bottom-left bottom bottom-right" display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+            <text-color name="Text" color="Text"/>
+        </view-factory>
+        <view-factory name="TextLabel" background-color="Background" transparent="true">
+            <text-color name="Text" color="Text"/>
+        </view-factory>
+        <view-factory name="TextEdit" background-color="Background" transparent="true">
+            <text-color name="Text" color="Text"/>
+            <text-color name="SelectedText" color="Background"/>
+            <text-color name="SelectedTextBackground" color="Text"/>
+        </view-factory>
+        <view-factory name="Slider" background-color="Slider" transparent="true">
+            <bitmap name="Background" alpha="true" color="Slider">
+                <nine-part-tiled-bitmap-slice part-names="top-left top top-right left center right bottom-left bottom bottom-right" display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+            <bitmap name="Highlight" alpha="true" color="SliderHighlight">
+                <nine-part-tiled-bitmap-slice part-names="top-left top top-right left center right bottom-left bottom bottom-right" display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+            <bitmap name="Shadow" alpha="true" color="SliderShadow">
+                <nine-part-tiled-bitmap-slice part-names="top-left top top-right left center right bottom-left bottom bottom-right" display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+        </view-factory>
+        <view-factory name="CheckBox" background-color="Background" transparent="true">
+            <bitmap name="On" color="Text">
+                <mono-bitmap-slice display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+            <bitmap name="Off" color="Background">
+                <mono-bitmap-slice display-scale="HDPI" draw-antialiased="true"/>
+            </bitmap>
+            <text-color name="Text" color="Text"/>
+        </view-factory>
+    </template>
+    <custom-view name="Parameter" class="VSTGUI::CControl" mouse-enabled="true" size="10,50" background-color="Background" transparent="true">
+        <rect name="label-rect" origin="5,5" size="60,10"/>
+        <rect name="slider-rect" origin="70,5" size="30,40"/>
+        <text-color name="Text" color="Text"/>
+        <bitmap name="Pixel" from-resource="pixel_1x1"/>
+    </custom-view>
+    <custom-view-controller name="ParameterController" class="ParameterController"/>
+    <view-factory name="Custom" background-color="Background" transparent="true">
+        <custom-view-controller name="ParameterController" class="ParameterController"/>
+    </view-factory>
+    <view-list name="Editor">
+        <vstgui-4-window title="Reverb VST" size="380,280" open-on-double-click="true" background-color="Background">
+            <view-container name="Root" background-color="Background" size="get:parent.size" class="RootView">
+                <view-container name="Parameters" background-color="Background" size="get:parent.size" margin="10,10,10,10">
+                    <custom-view name="Damp" background-color="Background" size="get:parent.size" class="Parameter" label="Damp" tag="0"/>
+                    <custom-view name="RoomSize" background-color="Background" size="get:parent.size" class="Parameter" label="Room Size" tag="1"/>
+                    <custom-view name="Wet" background-color="Background" size="get:parent.size" class="Parameter" label="Wet" tag="2"/>
+                    <custom-view name="Dry" background-color="Background" size="get:parent.size" class="Parameter" label="Dry" tag="3"/>
+                    <custom-view name="Width" background-color="Background" size="get:parent.size" class="Parameter" label="Width" tag="4"/>
+                    <custom-view name="FreezeTrigger" background-color="Background" size="get:parent.size" class="Parameter" label="Freeze Trigger" tag="5"/>
+                </view-container>
+            </view-container>
+        </vstgui-4-window>
+    </view-list>
+</vstgui-ui-description>
+
+
+

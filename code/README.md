@@ -148,6 +148,10 @@ This is a VST3 implementation of the [freeverb](https://github.com/sinshu/freeve
 The plugin example provided in the original freeverb repo is build using the VST SDK, so I wanted to try updating it for VST3. I've also added the ability to
 add in predelay to the reverbed signal. 
 
+##### GPTVerb 
+
+This is another implementation of the freeverb VST3 plugin, however this time the code has been generated based on my conversations with [Chat-GPT](chat.openai.com) (Dec 15 2022 Edition) starting with an initial prompt: "can you make me a reverb VST based on the freeverb open source library?".  Many, many, many prompts & iterations later and with a significant amount of code correction on my part the plugin compiled and reverbed any input sound. 
+
 ## Experiments
 
 This directory is just for quick and useful python scripts for testing out dsp ideas or looking at how certain transformations affect a signal graphically.
