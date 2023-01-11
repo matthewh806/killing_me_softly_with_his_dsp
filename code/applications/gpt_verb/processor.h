@@ -43,6 +43,7 @@ public:
         m_reverb->setdry(0.5);
         m_reverb->setwet(0.5);
         m_reverb->setroomsize(0.8);
+        m_reverb->setpredelaytime(0.0);
 
         return Steinberg::kResultOk;
     }
