@@ -40,8 +40,7 @@ private:
       " r: increment rotation speed\n"
       " i: increase the polygon edge separation\n"
       " d: decrease the polygon edge separation\n"
-      " n [3-9]: create polygon with n sides\n"
-      "     Note: 9 crashes the application!\n"
+      " n [3-8]: create polygon with n sides\n"
       " g: I thought I had gravity ctrls... but no\n";
     
     juce::Label mControlsLabel;

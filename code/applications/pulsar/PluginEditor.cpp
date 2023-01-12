@@ -183,10 +183,6 @@ bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
     {
         mWorld.createPolygon(8);
     }
-    else if(key == KeyPress::numberPad9 || key == 57)
-    {
-        mWorld.createPolygon(9);
-    }
     
     return true;
 }
