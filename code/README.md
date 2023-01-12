@@ -152,6 +152,18 @@ add in predelay to the reverbed signal.
 
 This is another implementation of the freeverb VST3 plugin, however this time the code has been generated based on my conversations with [Chat-GPT](chat.openai.com) (Dec 15 2022 Edition) starting with an initial prompt: "can you make me a reverb VST based on the freeverb open source library?".  Many, many, many prompts & iterations later and with a significant amount of code correction on my part the plugin compiled and reverbed any input sound. 
 
+##### VST3 Note:
+
+As these are unsigned VST's we need a way to tell Apple to unquarantine them, otherwise they load properly in a DAW. In order to enable them open a terminal
+and run the following command 
+
+```
+sudo xattr -rd com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/MattVerb.vst3/
+```
+
+Replacing the path at the end with the path to location of the vst3 
+
+
 ## Experiments
 
 This directory is just for quick and useful python scripts for testing out dsp ideas or looking at how certain transformations affect a signal graphically.
