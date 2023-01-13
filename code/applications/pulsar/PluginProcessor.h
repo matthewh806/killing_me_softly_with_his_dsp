@@ -15,7 +15,10 @@
 //==============================================================================
 /**
 */
-class PulsarAudioProcessor  : public AudioProcessor
+class PulsarAudioProcessor
+: public AudioProcessor
+, private juce::MidiInputCallback
+, private juce::AsyncUpdater
 {
 public:
     //==============================================================================
@@ -54,8 +57,26 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    
+    //==============================================================================
+    void setMidiInput(juce::String const& identifier);
+    void setMidiOutput(juce::String const& identifier);
+    void sendNoteOnMessage(int noteNumber, float velocity);
 
 private:
     //==============================================================================
+    
+    // juce::MidiInputCallback
+    void handleIncomingMidiMessage (juce::MidiInput *source, juce::MidiMessage const& message) override;
+    
+    // juce::AsyncUpdater
+    void handleAsyncUpdate() override;
+    
+    AudioDeviceManager mDeviceManager;
+    
+    std::unique_ptr<juce::MidiOutput> mMidiOutput;
+    CriticalSection mMidiMonitorLock;
+    Array<juce::MidiMessage> mIncomingMessages;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PulsarAudioProcessor)
 };

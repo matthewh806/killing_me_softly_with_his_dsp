@@ -14,8 +14,9 @@
 
 //==============================================================================
 
-PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
+PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p, AudioDeviceManager& deviceManager)
 : AudioProcessorEditor (&p)
+, mDeviceManager(deviceManager)
 {
     mInformationScreen.setSize(300, 300);
     setSize (500, 500);
@@ -33,7 +34,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
     {
         auto const index = mMidiInputDeviceList.comboBox.getSelectedItemIndex();
         auto const inputs = MidiInput::getAvailableDevices();
-        setMidiInput(inputs[index].identifier);
+        static_cast<PulsarAudioProcessor&>(processor).setMidiInput(inputs[index].identifier);
     };
     
     for(int i = 0; i < midiInputs.size(); ++i)
@@ -41,7 +42,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
         mMidiInputDeviceList.comboBox.addItem(midiInputs[i].name, i+1);
         if(mDeviceManager.isMidiInputDeviceEnabled(midiInputs[i].identifier))
         {
-            setMidiInput(midiInputs[i].identifier);
+            static_cast<PulsarAudioProcessor&>(processor).setMidiInput(midiInputs[i].identifier);
             mMidiInputDeviceList.comboBox.setSelectedId(i+1);
         }
     }
@@ -65,7 +66,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
     mMidiOutputDeviceList.comboBox.onChange = [this] {
         auto const index = mMidiOutputDeviceList.comboBox.getSelectedItemIndex();
         auto const outputs = MidiOutput::getAvailableDevices();
-        setMidiOutput(outputs[index].identifier);
+        static_cast<PulsarAudioProcessor&>(processor).setMidiOutput(outputs[index].identifier);
     };
     
     for(int i = 0; i < midiOutputs.size(); ++i)
@@ -74,7 +75,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
         
         if(mDeviceManager.getDefaultMidiOutputIdentifier() == midiOutputs[i].identifier)
         {
-            setMidiOutput(midiOutputs[i].identifier);
+            static_cast<PulsarAudioProcessor&>(processor).setMidiOutput(midiOutputs[i].identifier);
             mMidiOutputDeviceList.comboBox.setSelectedId(i+1);
         }
     }
@@ -103,11 +104,28 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p)
 
 PulsarAudioProcessorEditor::~PulsarAudioProcessorEditor()
 {
-    stopTimer();
     removeKeyListener(this);
 }
 
 //==============================================================================
+
+int PulsarAudioProcessorEditor::getMidiInputChannel() const
+{
+    return mMidiInputChannel;
+}
+
+int PulsarAudioProcessorEditor::getMidiOutputChannel() const
+{
+    return mMidiOutputChannel;
+}
+
+Physics::PulsarWorld& PulsarAudioProcessorEditor::getWorld()
+{
+    return mWorld;
+}
+
+//==============================================================================
+
 void PulsarAudioProcessorEditor::paint (Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
@@ -205,93 +223,9 @@ void PulsarAudioProcessorEditor::mouseUp (juce::MouseEvent const& event)
     }
 }
 
-void PulsarAudioProcessorEditor::handleIncomingMidiMessage (juce::MidiInput *source, const juce::MidiMessage &message)
-{
-    juce::ignoreUnused(source);
-    
-    const ScopedLock s1 (mMidiMonitorLock);
-    mIncomingMessages.add(message);
-    triggerAsyncUpdate();
-}
-
-void PulsarAudioProcessorEditor::handleAsyncUpdate()
-{
-    // midi message loop
-    Array<MidiMessage> messages;
-    
-    {
-        const ScopedLock s1(mMidiMonitorLock);
-        messages.swapWith(mIncomingMessages);
-    }
-    
-    for(auto &m : messages)
-    {
-        if(m.getChannel() != mMidiInputChannel)
-        {
-            continue;
-        }
-        
-        if(m.isNoteOn())
-        {
-            mWorld.spawnBall(m.getNoteNumber(), m.getVelocity());
-        }
-        else if(m.isController())
-        {
-            auto const pitchVal = m.getControllerValue();
-            
-            // map 0 - 127 to 0 - 360
-            auto anglularVelocity = 360.0 / static_cast<double>(127) * static_cast<double>(pitchVal);
-            mWorld.setPolygonRotationSpeed(anglularVelocity);
-        }
-    }
-}
-
 void PulsarAudioProcessorEditor::sendNoteOnMessage(int noteNumber, float velocity)
 {
-    if(!mMidiOutput)
-    {
-        return;
-    }
-    
-    //! @todo: Use a midi buffer and do the timestamping properly...?
-    auto messageOn = MidiMessage::noteOn(mMidiOutputChannel, noteNumber, static_cast<uint8>(velocity));
-    messageOn.setTimeStamp(Time::getMillisecondCounterHiRes());
-    auto messageOff = MidiMessage::noteOff (messageOn.getChannel(), messageOn.getNoteNumber());
-    messageOff.setTimeStamp (messageOn.getTimeStamp() + NOTE_OFF_TIME_MS); // lasts 300ms
-    
-    MidiBuffer buffer;
-    buffer.addEvent(messageOn, 0);
-    buffer.addEvent(messageOff, static_cast<int>(NOTE_OFF_TIME_MS * 44.1));
-    
-    mMidiOutput->sendBlockOfMessages(buffer, Time::getMillisecondCounterHiRes(), 44100.0);
-}
-
-//==============================================================================
-void PulsarAudioProcessorEditor::setMidiInput(String const& identifier)
-{
-    auto list = MidiInput::getAvailableDevices();
-    mDeviceManager.removeMidiInputDeviceCallback(identifier, this);
-    
-    if(!mDeviceManager.isMidiInputDeviceEnabled(identifier))
-    {
-        mDeviceManager.setMidiInputDeviceEnabled(identifier, true);
-    }
-    
-    mDeviceManager.addMidiInputDeviceCallback(identifier, this);
-}
-
-void PulsarAudioProcessorEditor::setMidiOutput(juce::String const& identifier)
-{
-    auto list = MidiOutput::getAvailableDevices();
-    mMidiOutput = MidiOutput::openDevice(identifier);
-    
-    if(mMidiOutput == nullptr)
-    {
-        std::cerr << "Error opening midioutput device " << identifier << "\n";
-        return;
-    }
-    
-    mMidiOutput->startBackgroundThread();
+    static_cast<PulsarAudioProcessor&>(processor).sendNoteOnMessage(noteNumber, velocity);
 }
 
 void PulsarAudioProcessorEditor::showInformationScreen()

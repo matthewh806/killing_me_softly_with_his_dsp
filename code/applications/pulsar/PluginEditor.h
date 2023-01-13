@@ -54,23 +54,20 @@ private:
 class PulsarAudioProcessorEditor
 : public juce::AudioProcessorEditor
 , public juce::KeyListener
-, public juce::Timer
-, private juce::MidiInputCallback
-, private juce::AsyncUpdater
 {
 public:
-    PulsarAudioProcessorEditor (PulsarAudioProcessor&);
+    PulsarAudioProcessorEditor (PulsarAudioProcessor& processor, AudioDeviceManager& deviceManager);
     ~PulsarAudioProcessorEditor() override;
 
     //==============================================================================
+    
+    int getMidiInputChannel() const;
+    int getMidiOutputChannel() const;
+    
+    Physics::PulsarWorld& getWorld();
 
     void paint (Graphics&) override;
     void resized() override;
-    
-    void timerCallback() override
-    {
-        
-    }
     
     // juce::keyPressed
     bool keyPressed(juce::KeyPress const& key) override;
@@ -78,26 +75,15 @@ public:
     
     void mouseUp (const MouseEvent& event) override;
     
-    // juce::MidiInputCallback
-    void handleIncomingMidiMessage (juce::MidiInput *source, juce::MidiMessage const& message) override;
-    
-    // juce::AsyncUpdater
-    void handleAsyncUpdate() override;
-    
+    // TODO: Refactor this approach, just used to pass on to Processor for now
     void sendNoteOnMessage(int noteNumber, float velocity);
 
 private:
-    void setMidiInput(juce::String const& identifier);
-    void setMidiOutput(juce::String const& identifier);
-    
     void showInformationScreen();
     
     Physics::PulsarWorld mWorld {*this, { 0.0f, 0.0f, 4.0f, 4.0f }, {0.0f, 10.0f}};
     
-    CriticalSection mMidiMonitorLock;
-    Array<juce::MidiMessage> mIncomingMessages;
-    
-    AudioDeviceManager mDeviceManager;
+    AudioDeviceManager& mDeviceManager;
     
     ComboBoxWithLabel mMidiInputDeviceList {"Midi in"};
     ComboBoxWithLabel mMidiInputChannelList {"Channel"};
@@ -112,7 +98,6 @@ private:
     juce::Random mRandom;
     NoteStrategy mNoteStrategy;
     
-    std::unique_ptr<juce::MidiOutput> mMidiOutput;
     int mMidiInputChannel;
     int mMidiOutputChannel;
     
