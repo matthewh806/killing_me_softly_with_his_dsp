@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "PulsarWorld.h"
 
 //==============================================================================
 /**
@@ -59,6 +60,16 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     //==============================================================================
+    Physics::PulsarWorld& getWorld();
+    void updateEditorUI();
+    
+    //==============================================================================
+    int getMidiInputChannel() const;
+    void setMidiInputChannel(int channel);
+    
+    int getMidiOutputChannel() const;
+    void setMidiOutputChannel(int channel);
+    
     void setMidiInput(juce::String const& identifier);
     void setMidiOutput(juce::String const& identifier);
     void sendNoteOnMessage(int noteNumber, float velocity);
@@ -72,11 +83,17 @@ private:
     // juce::AsyncUpdater
     void handleAsyncUpdate() override;
     
+    Physics::PulsarWorld mWorld {*this, { 0.0f, 0.0f, 4.0f, 4.0f }, {0.0f, 10.0f}};
+    
     AudioDeviceManager mDeviceManager;
     
     std::unique_ptr<juce::MidiOutput> mMidiOutput;
     CriticalSection mMidiMonitorLock;
     Array<juce::MidiMessage> mIncomingMessages;
+    juce::MidiBuffer mOutgoingMessages;
+    
+    int mMidiInputChannel;
+    int mMidiOutputChannel;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PulsarAudioProcessor)
 };

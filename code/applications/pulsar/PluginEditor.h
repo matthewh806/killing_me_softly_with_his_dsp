@@ -12,7 +12,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
-#include "PulsarWorld.h"
 #include "NoteStrategy.h"
 #include "../../ui/CustomLookAndFeel.h"
 
@@ -60,11 +59,6 @@ public:
     ~PulsarAudioProcessorEditor() override;
 
     //==============================================================================
-    
-    int getMidiInputChannel() const;
-    int getMidiOutputChannel() const;
-    
-    Physics::PulsarWorld& getWorld();
 
     void paint (Graphics&) override;
     void resized() override;
@@ -74,14 +68,9 @@ public:
     bool keyPressed (const KeyPress &key, Component *originatingComponent) override;
     
     void mouseUp (const MouseEvent& event) override;
-    
-    // TODO: Refactor this approach, just used to pass on to Processor for now
-    void sendNoteOnMessage(int noteNumber, float velocity);
 
 private:
     void showInformationScreen();
-    
-    Physics::PulsarWorld mWorld {*this, { 0.0f, 0.0f, 4.0f, 4.0f }, {0.0f, 10.0f}};
     
     AudioDeviceManager& mDeviceManager;
     
@@ -97,9 +86,6 @@ private:
     
     juce::Random mRandom;
     NoteStrategy mNoteStrategy;
-    
-    int mMidiInputChannel;
-    int mMidiOutputChannel;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PulsarAudioProcessorEditor)
 };

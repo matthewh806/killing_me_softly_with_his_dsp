@@ -1,7 +1,10 @@
 juce_add_plugin(Pulsar
     PRODUCT_NAME "Pulsar Project"
     MICROPHONE_PERMISSION_ENABLED   TRUE
-    FORMATS Standalone)
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT TRUE
+    IS_MIDI_EFFECT TRUE
+    FORMATS Standalone VST3)
 
 juce_generate_juce_header(Pulsar)
 
@@ -32,6 +35,7 @@ target_compile_definitions(Pulsar PRIVATE
     # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
     JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_gui_app` call
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_gui_app` call
+    JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:Pulsar,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:Pulsar,JUCE_VERSION>")
 
