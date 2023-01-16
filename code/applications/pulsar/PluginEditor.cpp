@@ -23,6 +23,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     
     addKeyListener(this);
     
+    auto& pulsarProcessor = static_cast<PulsarAudioProcessor&>(processor);
     if(juce::JUCEApplication::isStandaloneApp())
     {
         addAndMakeVisible(mMidiInputDeviceList);
@@ -32,11 +33,11 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         
         mMidiInputDeviceList.comboBox.setTextWhenNoChoicesAvailable("No Midi Inputs Enabled");
         auto midiInputs = MidiInput::getAvailableDevices();
-        mMidiInputDeviceList.comboBox.onChange = [this]
+        mMidiInputDeviceList.comboBox.onChange = [&]
         {
             auto const index = mMidiInputDeviceList.comboBox.getSelectedItemIndex();
             auto const inputs = MidiInput::getAvailableDevices();
-            static_cast<PulsarAudioProcessor&>(processor).setMidiInput(inputs[index].identifier);
+            pulsarProcessor.setMidiInput(inputs[index].identifier);
         };
         
         for(int i = 0; i < midiInputs.size(); ++i)
@@ -55,20 +56,20 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
             mMidiOutputChannelList.comboBox.addItem(juce::String(i), i);
         }
         
-        mMidiInputChannelList.comboBox.onChange = [this] {
-            static_cast<PulsarAudioProcessor&>(processor).setMidiInputChannel(mMidiInputChannelList.comboBox.getSelectedId());
+        mMidiInputChannelList.comboBox.onChange = [&] {
+            pulsarProcessor.setMidiInputChannel(mMidiInputChannelList.comboBox.getSelectedId());
         };
         
-        mMidiOutputChannelList.comboBox.onChange = [this] {
-            static_cast<PulsarAudioProcessor&>(processor).setMidiOutputChannel(mMidiOutputChannelList.comboBox.getSelectedId());
+        mMidiOutputChannelList.comboBox.onChange = [&] {
+            pulsarProcessor.setMidiOutputChannel(mMidiOutputChannelList.comboBox.getSelectedId());
         };
         
         mMidiOutputDeviceList.comboBox.setTextWhenNoChoicesAvailable("No Midi Outputs Enabled");
         auto midiOutputs = MidiOutput::getAvailableDevices();
-        mMidiOutputDeviceList.comboBox.onChange = [this] {
+        mMidiOutputDeviceList.comboBox.onChange = [&] {
             auto const index = mMidiOutputDeviceList.comboBox.getSelectedItemIndex();
             auto const outputs = MidiOutput::getAvailableDevices();
-            static_cast<PulsarAudioProcessor&>(processor).setMidiOutput(outputs[index].identifier);
+            pulsarProcessor.setMidiOutput(outputs[index].identifier);
         };
         
         for(int i = 0; i < midiOutputs.size(); ++i)
@@ -77,18 +78,18 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
             
             if(mDeviceManager.getDefaultMidiOutputIdentifier() == midiOutputs[i].identifier)
             {
-                static_cast<PulsarAudioProcessor&>(processor).setMidiOutput(midiOutputs[i].identifier);
+                pulsarProcessor.setMidiOutput(midiOutputs[i].identifier);
                 mMidiOutputDeviceList.comboBox.setSelectedId(i+1);
             }
         }
     }
     else
     {
-        static_cast<PulsarAudioProcessor&>(processor).setMidiInputChannel(1);
-        static_cast<PulsarAudioProcessor&>(processor).setMidiOutputChannel(1);
+        pulsarProcessor.setMidiInputChannel(1);
+        pulsarProcessor.setMidiOutputChannel(1);
     }
     
-    static_cast<PulsarAudioProcessor&>(processor).getWorld().setRect({0, 0, Physics::Utils::pixelsToMeters(static_cast<float>(getWidth())), Physics::Utils::pixelsToMeters(static_cast<float>(getHeight()))});
+    pulsarProcessor.getWorld().setRect({0, 0, Physics::Utils::pixelsToMeters(static_cast<float>(getWidth())), Physics::Utils::pixelsToMeters(static_cast<float>(getHeight()))});
     
     addAndMakeVisible(mNoteStrategyList);
     mNoteStrategyList.comboBox.addItem("random", 1);
@@ -125,8 +126,15 @@ void PulsarAudioProcessorEditor::paint (Graphics& g)
     
     g.drawSingleLineText("Number of balls: " + juce::String(static_cast<PulsarAudioProcessor&>(processor).getWorld().getNumberOfBalls()), 20, getHeight() - 80);
     
+    auto& pulsarProcessor = static_cast<PulsarAudioProcessor&>(processor);
     Box2DRenderer box2DRenderer;
-    box2DRenderer.render(g, static_cast<PulsarAudioProcessor&>(processor).getWorld().getWorld(), static_cast<PulsarAudioProcessor&>(processor).getWorld().getRect().getX(), static_cast<PulsarAudioProcessor&>(processor).getWorld().getRect().getY(), static_cast<PulsarAudioProcessor&>(processor).getWorld().getRect().getRight(), static_cast<PulsarAudioProcessor&>(processor).getWorld().getRect().getBottom(), getLocalBounds().toFloat());
+    box2DRenderer.render(g,
+                         pulsarProcessor.getWorld().getWorld(),
+                         pulsarProcessor.getWorld().getRect().getX(),
+                         pulsarProcessor.getWorld().getRect().getY(),
+                         pulsarProcessor.getWorld().getRect().getRight(),
+                         pulsarProcessor.getWorld().getRect().getBottom(),
+                         getLocalBounds().toFloat());
 }
 
 void PulsarAudioProcessorEditor::resized()
@@ -154,17 +162,18 @@ void PulsarAudioProcessorEditor::resized()
 
 bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
 {
+    auto& pulsarProcessor = static_cast<PulsarAudioProcessor&>(processor);
     if(key == 82) // r
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().incrementPolygonRotationSpeed();
+        pulsarProcessor.getWorld().incrementPolygonRotationSpeed();
     }
     else if (key == 73) // i
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().increaseEdgeSeparation();
+        pulsarProcessor.getWorld().increaseEdgeSeparation();
     }
     else if (key == 68) // d
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().decreaseEdgeSeparation();
+        pulsarProcessor.getWorld().decreaseEdgeSeparation();
     }
     else if(key == 72) // h
     {
@@ -173,27 +182,27 @@ bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
     }
     else if(key == KeyPress::numberPad3 || key == 51)
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().createPolygon(3);
+        pulsarProcessor.getWorld().createPolygon(3);
     }
     else if(key == KeyPress::numberPad4 || key == 52)
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().createPolygon(4);
+        pulsarProcessor.getWorld().createPolygon(4);
     }
     else if(key == KeyPress::numberPad5 || key == 53)
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().createPolygon(5);
+        pulsarProcessor.getWorld().createPolygon(5);
     }
     else if(key == KeyPress::numberPad6 || key == 54)
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().createPolygon(6);
+        pulsarProcessor.getWorld().createPolygon(6);
     }
     else if(key == KeyPress::numberPad7 || key == 55)
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().createPolygon(7);
+        pulsarProcessor.getWorld().createPolygon(7);
     }
     else if(key == KeyPress::numberPad8 || key == 56)
     {
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().createPolygon(8);
+        pulsarProcessor.getWorld().createPolygon(8);
     }
     
     return true;
