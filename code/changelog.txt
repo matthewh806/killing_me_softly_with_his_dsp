@@ -1,11 +1,13 @@
 v0.0.4
   Tagged on: ??
   - CODE
-    - Changed target "Pulsar Project" -> "Pulsar"
-    - Fixed a bug in Pulsar application which caused a box2d exception when
-      creating a polygon with 9 vertices
-    - Create a VST3 version of Pulsar (+ refactor)
-    
+    - Improved Pulsar project
+      - Changed target "Pulsar Project" -> "Pulsar"
+      - Fixed a bug in the application which caused a box2d exception when
+        creating a polygon with 9 vertices
+      - Create a VST3 version
+      - Added a bunch of different musical scale options 
+
   - GENERAL
     - Define the company name and use in all JUCE targets
 
