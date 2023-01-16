@@ -9,28 +9,16 @@ AudioDecayProcessor::AudioDecayProcessor()
 : juce::AudioProcessor (BusesProperties().withInput  ("Input",     juce::AudioChannelSet::stereo())
                   .withOutput ("Output",    juce::AudioChannelSet::stereo())
                   .withInput  ("Sidechain", juce::AudioChannelSet::stereo()))
+, state(*this, nullptr, "state",
+        {
+            std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"quantisation", 1}, "Quantisation Level", 0.0f, 1.0f, 0.5f),
+            std::make_unique<juce::AudioParameterInt>(juce::ParameterID{"downsampling", 2}, "Downsampling Factor", 1, 16, 1),
+            std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wetdry", 3}, "Wet/Dry mix", 0.0f, 1.0f, 0.0f)
+        })
 {
-    // TODO: Create a mapping for quantisation level!
-    addParameter(mQuantisationLevel = new juce::AudioParameterFloat({"quantisation level", 1}, "Quantisation Level", 0.0f, 1.0f, 0.5f));
-    addParameter(mDownsamplingFactor = new juce::AudioParameterInt({"downsampling", 2}, "Downsampling Factor", 1, 16, 1));
-    addParameter(mWetDryMix = new juce::AudioParameterFloat({"wetdry", 2}, "Wet/Dry mix", 0.0f, 1.0f, 0.0f));
+    state.state.addChild({ "uiState", {{"width", 400}, {"height", 200 } }, {} }, -1, nullptr);
 }
 
-void AudioDecayProcessor::setQuantisationLevel(int bitDepth)
-{
-//    auto const qL = 2.0f / (std::pow(2.0f, static_cast<float>(bitDepth)) - 1.0f);
-//    mQuantisationLevel.store(qL);
-}
-
-void AudioDecayProcessor::setDownsampleFactor(int downsampleFactor)
-{
-//    mDownsampleFactor.store(downsampleFactor);
-}
-
-void AudioDecayProcessor::setWetDryMix(float mix)
-{
-//    mWetDryMix.store(std::min(std::max(mix, 0.0f), 1.0f));
-}
 
 //==============================================================================
 bool AudioDecayProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -69,9 +57,12 @@ void AudioDecayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
     auto const numChannels = buffer.getNumChannels();
     
     // TODO: Is this thread safe...?
-    auto const quantisationLevel = mQuantisationLevel->get();
-    auto const downsampleFactor = mDownsamplingFactor->get();
-    auto const wetDryMix = mWetDryMix->get(); // 0.0 = 100% dry, 1.0 = 100% wet
+    auto const quantisationLevel = state.getParameter("quantisation")->getValue();
+    
+    // TODO: Why is this zero? if I use getParameter
+    // what does it do anyway? :S :S
+    auto const downsampleFactor =  1.0; // state.getParameter("downsampling")->getValue();
+    auto const wetDryMix = state.getParameter("wetdry")->getValue(); // 0.0 = 100% dry, 1.0 = 100% wet
     
     for(auto i = 0; i < numSamples; ++i)
     {
@@ -86,7 +77,7 @@ void AudioDecayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
              * the simplest approach is just to preserve every N samples (0, N, 2N) and
              * zero those in between - preserving the length of the output and with no interpolation
              */
-            auto const resampledValue = (i % downsampleFactor == 0) ? crushedValue : 0.0f;
+            auto const resampledValue = (i % static_cast<int>(downsampleFactor) == 0) ? crushedValue : 0.0f;
             auto const mixedValue = (1.0f - wetDryMix) * s + wetDryMix * resampledValue; // check this logic...
             
             buffer.setSample(ch, i, mixedValue);

@@ -7,8 +7,6 @@ juce_generate_juce_header(AudioDecay)
 
 set(ApplicationSources
     ${UISources}
-    ${CMAKE_SOURCE_DIR}/applications/audio_decay/MainComponent.h
-    ${CMAKE_SOURCE_DIR}/applications/audio_decay/MainComponent.cpp
 )
 source_group("Source/ApplicationSources" FILES ${ApplicationSources})
 
