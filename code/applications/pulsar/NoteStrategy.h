@@ -11,7 +11,14 @@ public:
     {
         random,
         major,
-        minor
+        minor,
+        harmonicMinor,
+        melodicMinor,
+        minorPentatonic,
+        majorPentatonic,
+        dorian,
+        phrygian,
+        lydian
     };
     
     void setStrategy(Strategy strategy);
@@ -26,7 +33,14 @@ public:
     {
         {Strategy::random, {0, 1, 2, 3, 4, 5 , 6, 7, 8, 9, 10, 11}},
         {Strategy::major, {0, 2, 4, 5, 7, 9, 11}},
-        {Strategy::minor, {0, 2, 3, 5, 7, 8 , 10}}
+        {Strategy::minor, {0, 2, 3, 5, 7, 8 , 10}},
+        {Strategy::harmonicMinor, {0, 2, 3, 5, 7, 8, 11}},
+        {Strategy::melodicMinor, {0, 2, 3, 5, 7, 9, 11}},
+        {Strategy::minorPentatonic, {0,3,5,7,10}},
+        {Strategy::majorPentatonic, {0,2,4,7,9}},
+        {Strategy::dorian, {0,2,3,5,7,9,10}},
+        {Strategy::phrygian, {0,1,3,5,7,8,10}},
+        {Strategy::lydian, {0,2,4,6,7,9,11}}
     };
     
     int getMidiNote();

@@ -92,9 +92,16 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     pulsarProcessor.getWorld().setRect({0, 0, Physics::Utils::pixelsToMeters(static_cast<float>(getWidth())), Physics::Utils::pixelsToMeters(static_cast<float>(getHeight()))});
     
     addAndMakeVisible(mNoteStrategyList);
-    mNoteStrategyList.comboBox.addItem("random", 1);
-    mNoteStrategyList.comboBox.addItem("major", 2);
-    mNoteStrategyList.comboBox.addItem("minor", 3);
+    mNoteStrategyList.comboBox.addItem("Random", 1);
+    mNoteStrategyList.comboBox.addItem("Major", 2);
+    mNoteStrategyList.comboBox.addItem("Minor", 3);
+    mNoteStrategyList.comboBox.addItem("HarmonicMinor", 4);
+    mNoteStrategyList.comboBox.addItem("MelodicMinor", 5);
+    mNoteStrategyList.comboBox.addItem("MinorPentatonic", 6);
+    mNoteStrategyList.comboBox.addItem("MajorPentatonic", 7);
+    mNoteStrategyList.comboBox.addItem("Dorian", 8);
+    mNoteStrategyList.comboBox.addItem("Phrygian", 9);
+    mNoteStrategyList.comboBox.addItem("Lydian", 10);
     mNoteStrategyList.comboBox.setSelectedId(1);
     mNoteStrategyList.comboBox.onChange = [this]()
     {
