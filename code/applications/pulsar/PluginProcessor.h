@@ -73,6 +73,13 @@ public:
     void setMidiInput(juce::String const& identifier);
     void setMidiOutput(juce::String const& identifier);
     void sendNoteOnMessage(int noteNumber, float velocity);
+    
+    static BusesProperties getBusesLayout()
+    {
+        // Live doesn't like to load midi-only plugins, so we add an audio output there.
+        return PluginHostType().isAbletonLive() ? BusesProperties().withOutput ("out", AudioChannelSet::stereo())
+                                                : BusesProperties();
+    }
 
 private:
     //==============================================================================

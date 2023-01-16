@@ -4,7 +4,7 @@
 //==============================================================================
 PulsarAudioProcessor::PulsarAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : juce::AudioProcessor (BusesProperties())
+     : juce::AudioProcessor (getBusesLayout())
 #endif
 {
 }
