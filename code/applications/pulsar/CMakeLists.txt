@@ -1,5 +1,5 @@
 juce_add_plugin(Pulsar
-    PRODUCT_NAME "Pulsar Project"
+    PRODUCT_NAME "Pulsar"
     MICROPHONE_PERMISSION_ENABLED   TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT TRUE
