@@ -39,8 +39,8 @@ using namespace OUS;
 // GetPluginFactory function!
 //------------------------------------------------------------------------
 
-BEGIN_FACTORY_DEF ("the office of unspecified services", 
-			       "", 
+BEGIN_FACTORY_DEF ("The Office of Unspecified Services", 
+			       "http://theofficeofunspecifiedservices.com", 
 			       "mailto:")
 
 	//---First Plug-in included in this factory-------
