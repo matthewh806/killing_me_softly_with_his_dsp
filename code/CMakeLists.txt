@@ -16,6 +16,9 @@ add_subdirectory(dependencies/rubberband)
 add_subdirectory(dependencies/vst3sdk)
 add_subdirectory(dependencies/freeverb)
 
+set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "The Office of Unspecified Services")
+set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "http://theofficeofunspecifiedservices.com")
+
 if(UNIX AND NOT APPLE)
     set_property(TARGET rubberband PROPERTY CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 endif()

@@ -12,7 +12,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
-#include "PulsarWorld.h"
 #include "NoteStrategy.h"
 #include "../../ui/CustomLookAndFeel.h"
 
@@ -40,8 +39,7 @@ private:
       " r: increment rotation speed\n"
       " i: increase the polygon edge separation\n"
       " d: decrease the polygon edge separation\n"
-      " n [3-9]: create polygon with n sides\n"
-      "     Note: 9 crashes the application!\n"
+      " n [3-8]: create polygon with n sides\n"
       " g: I thought I had gravity ctrls... but no\n";
     
     juce::Label mControlsLabel;
@@ -55,12 +53,9 @@ private:
 class PulsarAudioProcessorEditor
 : public juce::AudioProcessorEditor
 , public juce::KeyListener
-, public juce::Timer
-, private juce::MidiInputCallback
-, private juce::AsyncUpdater
 {
 public:
-    PulsarAudioProcessorEditor (PulsarAudioProcessor&);
+    PulsarAudioProcessorEditor (PulsarAudioProcessor& processor, AudioDeviceManager& deviceManager);
     ~PulsarAudioProcessorEditor() override;
 
     //==============================================================================
@@ -68,37 +63,16 @@ public:
     void paint (Graphics&) override;
     void resized() override;
     
-    void timerCallback() override
-    {
-        
-    }
-    
     // juce::keyPressed
     bool keyPressed(juce::KeyPress const& key) override;
     bool keyPressed (const KeyPress &key, Component *originatingComponent) override;
     
     void mouseUp (const MouseEvent& event) override;
-    
-    // juce::MidiInputCallback
-    void handleIncomingMidiMessage (juce::MidiInput *source, juce::MidiMessage const& message) override;
-    
-    // juce::AsyncUpdater
-    void handleAsyncUpdate() override;
-    
-    void sendNoteOnMessage(int noteNumber, float velocity);
 
 private:
-    void setMidiInput(juce::String const& identifier);
-    void setMidiOutput(juce::String const& identifier);
-    
     void showInformationScreen();
     
-    Physics::PulsarWorld mWorld {*this, { 0.0f, 0.0f, 4.0f, 4.0f }, {0.0f, 10.0f}};
-    
-    CriticalSection mMidiMonitorLock;
-    Array<juce::MidiMessage> mIncomingMessages;
-    
-    AudioDeviceManager mDeviceManager;
+    AudioDeviceManager& mDeviceManager;
     
     ComboBoxWithLabel mMidiInputDeviceList {"Midi in"};
     ComboBoxWithLabel mMidiInputChannelList {"Channel"};
@@ -112,10 +86,6 @@ private:
     
     juce::Random mRandom;
     NoteStrategy mNoteStrategy;
-    
-    std::unique_ptr<juce::MidiOutput> mMidiOutput;
-    int mMidiInputChannel;
-    int mMidiOutputChannel;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PulsarAudioProcessorEditor)
 };

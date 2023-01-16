@@ -9,13 +9,13 @@
 */
 
 #include "PulsarWorld.h"
-#include "PluginEditor.h"
+#include "PluginProcessor.h"
 #include "Utils.h"
 
 #define DEGTORAD 0.0174532925199432957f
 #define RADTODEG 57.295779513082320876f
 
-Physics::PulsarWorld::PulsarWorld(AudioProcessorEditor& parent, juce::Rectangle<float> worldRect, const b2Vec2& gravity)
+Physics::PulsarWorld::PulsarWorld(AudioProcessor& parent, juce::Rectangle<float> worldRect, const b2Vec2& gravity)
 : mParent(parent), mWorld(gravity), mWorldRect(worldRect)
 {
     startTimer(60);
@@ -158,7 +158,7 @@ void Physics::PulsarWorld::BeginContact(b2Contact* contact)
             auto* ball = static_cast<Ball*>(userAData);
             auto const midiData = ball->getMidiData();
         
-            auto pulsarAudioEditor = dynamic_cast<PulsarAudioProcessorEditor*>(&mParent);
+            auto pulsarAudioEditor = dynamic_cast<PulsarAudioProcessor*>(&mParent);
             pulsarAudioEditor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity);
         }
         
@@ -167,8 +167,8 @@ void Physics::PulsarWorld::BeginContact(b2Contact* contact)
             auto* ball = static_cast<Ball*>(userBData);
             auto const midiData = ball->getMidiData();
         
-            auto pulsarAudioEditor = dynamic_cast<PulsarAudioProcessorEditor*>(&mParent);
-            pulsarAudioEditor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity);
+            auto pulsarAudioEditor = dynamic_cast<PulsarAudioProcessor*>(&mParent);
+                pulsarAudioEditor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity);
         }
         
         return;
@@ -217,5 +217,5 @@ void Physics::PulsarWorld::timerCallback()
     removeBalls();
     
     mWorld.Step(0.02f, 8, 3);
-    mParent.repaint();
+    static_cast<PulsarAudioProcessor&>(mParent).updateEditorUI();
 }

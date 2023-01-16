@@ -35,12 +35,12 @@ int NoteStrategy::getMidiNote()
     
     auto const& scaleDegrees = degrees.at(mStrategy);
     // get a random value in the strategy
-    auto const degree = scaleDegrees[mRandom.nextInt(static_cast<int>(scaleDegrees.size()))];
+    auto const degree = scaleDegrees[static_cast<size_t>(mRandom.nextInt(static_cast<int>(scaleDegrees.size())))];
     auto const octave = mRandom.nextInt(juce::Range<int>(2, 7));
     auto const noteIdx = (rootNoteIndex + degree) % static_cast<int>(notes.size());
     auto const midiNote = octave * 12 + noteIdx;
-    std::cout << "Note: " << notes[noteIdx] << octave << ", " << midiNote << "\n";
+    std::cout << "Note: " << notes[static_cast<size_t>(noteIdx)] << octave << ", " << midiNote << "\n";
     
-    return midiNote;
+    return static_cast<int>(midiNote);
     
 }
