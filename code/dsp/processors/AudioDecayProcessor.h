@@ -46,9 +46,9 @@ private:
     int mBlockSize;
     int mSampleRate;
     
-    std::atomic<float> mQuantisationLevel {1.0};
-    std::atomic<int> mDownsampleFactor {1};
-    std::atomic<float> mWetDryMix {1.0};
+    juce::AudioParameterFloat* mQuantisationLevel;
+    juce::AudioParameterInt* mDownsamplingFactor;
+    juce::AudioParameterFloat* mWetDryMix;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioDecayProcessor)

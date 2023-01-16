@@ -1,26 +1,35 @@
 #include "AudioDecayProcessor.h"
 
+AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new AudioDecayProcessor();
+}
+
 AudioDecayProcessor::AudioDecayProcessor()
 : juce::AudioProcessor (BusesProperties().withInput  ("Input",     juce::AudioChannelSet::stereo())
                   .withOutput ("Output",    juce::AudioChannelSet::stereo())
                   .withInput  ("Sidechain", juce::AudioChannelSet::stereo()))
 {
+    // TODO: Create a mapping for quantisation level!
+    addParameter(mQuantisationLevel = new juce::AudioParameterFloat({"quantisation level", 1}, "Quantisation Level", 0.0f, 1.0f, 0.5f));
+    addParameter(mDownsamplingFactor = new juce::AudioParameterInt({"downsampling", 2}, "Downsampling Factor", 1, 16, 1));
+    addParameter(mWetDryMix = new juce::AudioParameterFloat({"wetdry", 2}, "Wet/Dry mix", 0.0f, 1.0f, 0.0f));
 }
 
 void AudioDecayProcessor::setQuantisationLevel(int bitDepth)
 {
-    auto const qL = 2.0f / (std::pow(2.0f, static_cast<float>(bitDepth)) - 1.0f);
-    mQuantisationLevel.store(qL);
+//    auto const qL = 2.0f / (std::pow(2.0f, static_cast<float>(bitDepth)) - 1.0f);
+//    mQuantisationLevel.store(qL);
 }
 
 void AudioDecayProcessor::setDownsampleFactor(int downsampleFactor)
 {
-    mDownsampleFactor.store(downsampleFactor);
+//    mDownsampleFactor.store(downsampleFactor);
 }
 
 void AudioDecayProcessor::setWetDryMix(float mix)
 {
-    mWetDryMix.store(std::min(std::max(mix, 0.0f), 1.0f));
+//    mWetDryMix.store(std::min(std::max(mix, 0.0f), 1.0f));
 }
 
 //==============================================================================
@@ -59,10 +68,10 @@ void AudioDecayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
     auto const numSamples = buffer.getNumSamples();
     auto const numChannels = buffer.getNumChannels();
     
-    // store the atomic variables locally
-    auto const quantisationLevel = mQuantisationLevel.load();
-    auto const downsampleFactor = mDownsampleFactor.load();
-    auto const wetDryMix = mWetDryMix.load(); // 0.0 = 100% dry, 1.0 = 100% wet
+    // TODO: Is this thread safe...?
+    auto const quantisationLevel = mQuantisationLevel->get();
+    auto const downsampleFactor = mDownsamplingFactor->get();
+    auto const wetDryMix = mWetDryMix->get(); // 0.0 = 100% dry, 1.0 = 100% wet
     
     for(auto i = 0; i < numSamples; ++i)
     {
