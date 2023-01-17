@@ -4,11 +4,13 @@
 #include "../../ui/CustomLookAndFeel.h"
 
 //==============================================================================
-class AudioDecayProcessor  : public juce::AudioProcessor
+class AudioDecayProcessor
+: public juce::AudioProcessor
+, private juce::AudioProcessorValueTreeState::Listener
 {
 public:
     // TODO: Make this private
-    AudioProcessorValueTreeState state;
+    juce::AudioProcessorValueTreeState state;
     
     //==============================================================================
     AudioDecayProcessor();
@@ -51,7 +53,7 @@ private:
         , mBitDepthSlider("Bit-Depth", "bit")
         , mDownsamplingSlider("Downsampling", "x")
         , mWetDrySlider("Mix", "")
-        , mBitDepthAttachment(owner.state, "quantisation", mBitDepthSlider)
+        , mBitDepthAttachment(owner.state, "bitdepth", mBitDepthSlider)
         , mDownsamplingAttachment(owner.state, "downsampling", mDownsamplingSlider)
         , mWetDryAttachment(owner.state, "wetdry", mWetDrySlider)
         {
@@ -103,12 +105,19 @@ private:
     };
     
     //==============================================================================
+    
+    // juce::AudioProcessorValueTreeState::Listener
+    void parameterChanged (const String& parameterID, float newValue) override;
+    
+    //==============================================================================
     int mBlockSize;
     int mSampleRate;
     
-    juce::AudioParameterFloat* mQuantisationLevel;
+    juce::AudioParameterFloat* mBitDepth;
     juce::AudioParameterInt* mDownsamplingFactor;
     juce::AudioParameterFloat* mWetDryMix;
+    
+    float mQuantisationLevel = 1.0;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioDecayProcessor)

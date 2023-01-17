@@ -11,11 +11,12 @@ AudioDecayProcessor::AudioDecayProcessor()
                   .withInput  ("Sidechain", juce::AudioChannelSet::stereo()))
 , state(*this, nullptr, "state",
         {
-            std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"quantisation", 1}, "Quantisation Level", 0.0f, 1.0f, 0.5f),
-            std::make_unique<juce::AudioParameterInt>(juce::ParameterID{"downsampling", 2}, "Downsampling Factor", 1, 16, 1),
-            std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wetdry", 3}, "Wet/Dry mix", 0.0f, 1.0f, 0.0f)
+            std::make_unique<juce::AudioParameterInt>("bitdepth", "Bit Depth", 3, 24, 16),
+            std::make_unique<juce::AudioParameterInt>("downsampling", "Downsampling Factor", 1, 10, 1),
+            std::make_unique<juce::AudioParameterFloat>("wetdry", "Wet/Dry mix", 0.0f, 1.0f, 0.0f)
         })
 {
+    state.addParameterListener("bitdepth", this);
     state.state.addChild({ "uiState", {{"width", 400}, {"height", 200 } }, {} }, -1, nullptr);
 }
 
@@ -56,12 +57,7 @@ void AudioDecayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
     auto const numSamples = buffer.getNumSamples();
     auto const numChannels = buffer.getNumChannels();
     
-    // TODO: Is this thread safe...?
-    auto const quantisationLevel = state.getParameter("quantisation")->getValue();
-    
-    // TODO: Why is this zero? if I use getParameter
-    // what does it do anyway? :S :S
-    auto const downsampleFactor =  1.0; // state.getParameter("downsampling")->getValue();
+    auto const downsampleFactor = static_cast<int>(*state.getRawParameterValue("downsampling"));
     auto const wetDryMix = state.getParameter("wetdry")->getValue(); // 0.0 = 100% dry, 1.0 = 100% wet
     
     for(auto i = 0; i < numSamples; ++i)
@@ -71,7 +67,7 @@ void AudioDecayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
             auto const s = buffer.getSample(ch, i);
             
             // First do the bit reduction
-            auto const crushedValue = quantisationLevel * static_cast<int>(s / quantisationLevel);
+            auto const crushedValue = mQuantisationLevel * static_cast<int>(s / mQuantisationLevel);
             
             /* Now apply the downsampling operations
              * the simplest approach is just to preserve every N samples (0, N, 2N) and
@@ -93,4 +89,12 @@ void AudioDecayProcessor::getStateInformation (MemoryBlock& destData)
 void AudioDecayProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
+}
+
+void AudioDecayProcessor::parameterChanged (const String& parameterID, float newValue)
+{
+    if(parameterID.equalsIgnoreCase("bitdepth"))
+    {
+        mQuantisationLevel = 2.0f / (std::pow(2.0f, newValue) - 1.0f);
+    }
 }
