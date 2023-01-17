@@ -7,8 +7,6 @@ juce_generate_juce_header(SimpleDelay)
 
 set(SimpleDelayApplicationSources
     ${UISources}
-    ${CMAKE_SOURCE_DIR}/applications/delay/MainComponent.h
-    ${CMAKE_SOURCE_DIR}/applications/delay/MainComponent.cpp
 )
 source_group("Source/ApplicationSources" FILES ${SimpleDelayApplicationSources})
 
