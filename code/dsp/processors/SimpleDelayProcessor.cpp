@@ -1,13 +1,22 @@
 #include "SimpleDelayProcessor.h"
 
+AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new SimpleDelayProcessor();
+}
+
 SimpleDelayProcessor::SimpleDelayProcessor()
 : juce::AudioProcessor (BusesProperties().withInput  ("Input",     juce::AudioChannelSet::stereo())
                   .withOutput ("Output",    juce::AudioChannelSet::stereo())
                   .withInput  ("Sidechain", juce::AudioChannelSet::stereo()))
+, state(*this, nullptr, "state",
+        {
+            std::make_unique<juce::AudioParameterFloat>("wetdry", "Wet/Dry Mix", 0.0f, 1.0f, 0.5f),
+            std::make_unique<juce::AudioParameterFloat>("delaytime", "Delay Time", 0.0f, 2.0f, 0.1f),
+            std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", 0.0f, 1.0f, 0.5f)
+        })
 {
-    addParameter (mWetDryMix = new AudioParameterFloat ("wetdrymix", "WetDryMix", 0.0f, 1.0f, 0.5f));
-    addParameter (mDelayTime = new AudioParameterFloat ("delaytime", "DelayTime", 0.0f, 2.0f, 0.1f));
-    addParameter (mFeedback = new AudioParameterFloat ("feedback", "Feedback", 0.0f, 1.0f, 0.5f));
+    state.state.addChild({ "uiState", {{"width", 400}, {"height", 200 } }, {} }, -1, nullptr);
 }
 
 //==============================================================================
@@ -39,9 +48,9 @@ void SimpleDelayProcessor::releaseResources()
 
 void SimpleDelayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
 {
-    auto const delayTime = mDelayTime->get();
-    auto const wetDryRatio = mWetDryMix->get();
-    auto const feedbackAmt = mFeedback->get();
+    auto const delayTime = static_cast<float>(*state.getRawParameterValue("delaytime"));
+    auto const wetDryRatio = static_cast<float>(*state.getRawParameterValue("wetdry"));
+    auto const feedbackAmt = static_cast<float>(*state.getRawParameterValue("feedback"));
     
     auto const channels = buffer.getNumChannels();
     if(channels > 2)
@@ -62,21 +71,6 @@ void SimpleDelayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             buffer.setSample(ch, sample, (1.0f - wetDryRatio) * inputSignal + wetDryRatio * delayedSample);
         }
     }
-}
-
-void SimpleDelayProcessor::setWetDryMix(float newValue)
-{
-    *mWetDryMix = std::max(0.0f, std::min(newValue, 1.0f));
-}
-
-void SimpleDelayProcessor::setDelayTime(float newValue)
-{
-    *mDelayTime = std::max(0.0f, std::min(newValue, 2.0f));
-}
-
-void SimpleDelayProcessor::setFeedback(float newValue)
-{
-    *mFeedback = std::max(0.0f, std::min(newValue, 1.0f));
 }
 
 void SimpleDelayProcessor::getStateInformation (MemoryBlock& destData)

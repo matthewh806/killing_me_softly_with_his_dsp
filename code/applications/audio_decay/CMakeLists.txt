@@ -1,14 +1,12 @@
-juce_add_gui_app(AudioDecay
+juce_add_plugin(AudioDecay
     PRODUCT_NAME "Smash My Bits Up"
-    MICROPHONE_PERMISSION_ENABLED   TRUE)
+    MICROPHONE_PERMISSION_ENABLED   TRUE
+    FORMATS Standalone VST3)
 
 juce_generate_juce_header(AudioDecay)
 
 set(ApplicationSources
     ${UISources}
-    ${CMAKE_SOURCE_DIR}/applications/audio_decay/Main.cpp
-    ${CMAKE_SOURCE_DIR}/applications/audio_decay/MainComponent.h
-    ${CMAKE_SOURCE_DIR}/applications/audio_decay/MainComponent.cpp
 )
 source_group("Source/ApplicationSources" FILES ${ApplicationSources})
 
@@ -22,6 +20,7 @@ target_compile_definitions(AudioDecay PRIVATE
     # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
     JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_gui_app` call
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_gui_app` call
+    JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:AudioDecay,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:AudioDecay,JUCE_VERSION>")
 
