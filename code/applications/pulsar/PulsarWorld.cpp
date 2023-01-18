@@ -101,6 +101,17 @@ void Physics::PulsarWorld::incrementPolygonRotationSpeed()
     mPolygon->setAngularVelocity( std::fmod(curAngVelocity + 45 * DEGTORAD, 360 * DEGTORAD ));
 }
 
+void Physics::PulsarWorld::setGravity(float gravityY)
+{
+    auto const g = b2Vec2 {0.0f, std::clamp(gravityY, GRAV_MIN, GRAV_MAX)};
+    mWorld.SetGravity(g);
+}
+
+float Physics::PulsarWorld::getGravity()
+{
+    return mWorld.GetGravity().y;
+}
+
 void Physics::PulsarWorld::increaseEdgeSeparation()
 {
     mPolygon->increaseEdgeSeparation(2);

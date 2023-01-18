@@ -42,6 +42,9 @@ namespace Physics
         void setPolygonRotationSpeed(double angularVelocity);
         void incrementPolygonRotationSpeed();
         
+        void setGravity(float gravityY);
+        float getGravity();
+        
         void increaseEdgeSeparation();
         void decreaseEdgeSeparation();
         
