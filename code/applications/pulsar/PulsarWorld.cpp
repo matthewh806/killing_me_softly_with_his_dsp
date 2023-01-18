@@ -135,7 +135,7 @@ Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, float radius, int not
     return b;
 }
 
-Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity)
+Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, int noteNumber, float velocity)
 {
     // radius based on velocity
     // linear for now
@@ -144,7 +144,12 @@ Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity)
     auto constexpr maxRadius = 10.0f;
     auto const radius = velocity / 127 * (maxRadius - minRadius) + minRadius;
     
-    return spawnBall(mPolygon->getRandomPointInside(), Utils::pixelsToMeters(radius), noteNumber, velocity);
+    return spawnBall(pos, Utils::pixelsToMeters(radius), noteNumber, velocity);
+}
+
+Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity)
+{
+    return spawnBall(mPolygon->getRandomPointInside(), noteNumber, velocity);
 }
 
 void Physics::PulsarWorld::removeBalls()
