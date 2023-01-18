@@ -205,7 +205,6 @@ juce::String NumberField::getValueAsText() const
 NumberFieldWithLabel::NumberFieldWithLabel(juce::String const& paramName, juce::String const& unitSuffix, size_t const numberOfDecimals, bool editable, double defaultValue)
 : mNumberField(unitSuffix, numberOfDecimals, editable, defaultValue)
 {
-    // TODO: Make editable? why not??
     mParamLabel.setEditable(false);
     mParamLabel.setText(paramName, juce::NotificationType::dontSendNotification);
     addAndMakeVisible(mParamLabel);
