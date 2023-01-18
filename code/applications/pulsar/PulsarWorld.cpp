@@ -129,8 +129,8 @@ Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity)
     // radius based on velocity
     // linear for now
     // map 0 - 127 onto range minRad - maxRad
-    auto constexpr minRadius = 0.5f;
-    auto constexpr maxRadius = 5.0f;
+    auto constexpr minRadius = 2.0f;
+    auto constexpr maxRadius = 10.0f;
     auto const radius = velocity / 127 * (maxRadius - minRadius) + minRadius;
     
     return spawnBall(mPolygon->getRandomPointInside(), Utils::pixelsToMeters(radius), noteNumber, velocity);
