@@ -7,6 +7,10 @@ v0.0.4
         creating a polygon with 9 vertices
       - Create a VST3 version
       - Added a bunch of different musical scale options
+      - Added number field to control gravity parameter
+      - Added ability to set octave note range of balls
+      - Increased the min / max ball radius for visual improvement
+      - Balls now spawn at mouse click location
     - Converted AudioDecay into a VST3
     - Converted SimpleDelay into a VST3
 
