@@ -91,6 +91,14 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     
     pulsarProcessor.getWorld().setRect({0, 0, Physics::Utils::pixelsToMeters(static_cast<float>(getWidth())), Physics::Utils::pixelsToMeters(static_cast<float>(getHeight()))});
     
+    addAndMakeVisible(mGravityField);
+    mGravityField.setRange({GRAV_MIN, GRAV_MAX}, juce::NotificationType::dontSendNotification);
+    mGravityField.setValue(pulsarProcessor.getWorld().getGravity(), juce::NotificationType::dontSendNotification);
+    mGravityField.onValueChanged = [&](double value)
+    {
+        pulsarProcessor.getWorld().setGravity(static_cast<float>(value));
+    };
+    
     addAndMakeVisible(mNoteStrategyList);
     mNoteStrategyList.comboBox.addItem("Random", 1);
     mNoteStrategyList.comboBox.addItem("Major", 2);
@@ -162,7 +170,9 @@ void PulsarAudioProcessorEditor::resized()
         mMidiOutputChannelList.setBounds(midiOutputBounds);
     }
     
-    auto scaleBounds = bounds.removeFromBottom(20);
+    auto scaleBounds = bounds.removeFromBottom(45);
+    mGravityField.setBounds(scaleBounds.removeFromTop(20).removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
+    scaleBounds.removeFromTop(5);
     mNoteStrategyList.setBounds(scaleBounds.removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
     mNoteKey.setBounds(scaleBounds.removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
 }
