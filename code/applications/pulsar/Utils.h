@@ -15,6 +15,9 @@
 namespace Physics
 {
     #define    RAND_LIMIT 32767
+    
+    #define GRAV_MIN 0.0f
+    #define GRAV_MAX 100.0f
 
     class Utils
     {
