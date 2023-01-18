@@ -124,6 +124,29 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         auto const noteName = mNoteKey.comboBox.getItemText(mNoteKey.comboBox.getSelectedItemIndex());
         mNoteStrategy.setKey(noteName.toStdString());
     };
+    
+    addAndMakeVisible(mMinOctave);
+    mMinOctave.setRange({0, 7}, juce::NotificationType::dontSendNotification);
+    mMinOctave.setValue(mNoteStrategy.getOctaveRange().getStart(), juce::NotificationType::dontSendNotification);
+    mMinOctave.onValueChanged = [this](double value)
+    {
+        // set value
+        auto const curRange = mNoteStrategy.getOctaveRange();
+        mNoteStrategy.setOctaveRange({static_cast<int>(value), curRange.getEnd()});
+        
+        // check ranges
+    };
+    
+    addAndMakeVisible(mMaxOctave);
+    mMaxOctave.setRange({0, 7}, juce::NotificationType::dontSendNotification);
+    mMaxOctave.setValue(mNoteStrategy.getOctaveRange().getEnd(), juce::NotificationType::sendNotification);
+    mMaxOctave.onValueChanged = [&](double value)
+    {
+        auto const curRange = mNoteStrategy.getOctaveRange();
+        mNoteStrategy.setOctaveRange({curRange.getStart(), static_cast<int>(value) + 1});
+    };
+    
+    addAndMakeVisible(mMaxOctave);
 }
 
 PulsarAudioProcessorEditor::~PulsarAudioProcessorEditor()
@@ -170,11 +193,22 @@ void PulsarAudioProcessorEditor::resized()
         mMidiOutputChannelList.setBounds(midiOutputBounds);
     }
     
-    auto scaleBounds = bounds.removeFromBottom(45);
-    mGravityField.setBounds(scaleBounds.removeFromTop(20).removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
-    scaleBounds.removeFromTop(5);
-    mNoteStrategyList.setBounds(scaleBounds.removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
-    mNoteKey.setBounds(scaleBounds.removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
+    auto gravityBounds = bounds.removeFromBottom(70);
+    auto const halfScreenWidth = static_cast<int>(gravityBounds.getWidth() * 0.5);
+    
+    mGravityField.setBounds(gravityBounds.removeFromTop(20).removeFromLeft(halfScreenWidth));
+    
+    gravityBounds.removeFromTop(5);
+    
+    auto scaleKeyBounds = gravityBounds.removeFromTop(20);
+    mNoteStrategyList.setBounds(scaleKeyBounds.removeFromLeft(halfScreenWidth));
+    mNoteKey.setBounds(scaleKeyBounds.removeFromLeft(halfScreenWidth));
+    
+    scaleKeyBounds.removeFromTop(5);
+    
+    auto octaveRangeBounds = gravityBounds.removeFromTop(20);
+    mMinOctave.setBounds(octaveRangeBounds.removeFromLeft(halfScreenWidth));
+    mMaxOctave.setBounds(octaveRangeBounds.removeFromLeft(halfScreenWidth));
 }
 
 bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)

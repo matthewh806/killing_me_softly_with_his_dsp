@@ -85,6 +85,9 @@ private:
     ComboBoxWithLabel mNoteStrategyList {"Scale"};
     ComboBoxWithLabel mNoteKey {"Key"};
     
+    NumberFieldWithLabel mMinOctave {"Min Octave", "", 0, true};
+    NumberFieldWithLabel mMaxOctave {"Max Octave", "", 0, true};
+    
     InformationScreen mInformationScreen;
     
     juce::Random mRandom;
