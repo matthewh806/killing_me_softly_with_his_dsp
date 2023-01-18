@@ -16,8 +16,11 @@ namespace Physics
 {
     #define    RAND_LIMIT 32767
     
+    // TODO: Move into separate file (constants.h?)
     #define GRAV_MIN 0.0f
     #define GRAV_MAX 100.0f
+    #define OCTAVE_MIN 0
+    #define OCTAVE_MAX 8
 
     class Utils
     {

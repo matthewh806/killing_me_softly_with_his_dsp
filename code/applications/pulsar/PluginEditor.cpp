@@ -130,11 +130,12 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     mMinOctave.setValue(mNoteStrategy.getOctaveRange().getStart(), juce::NotificationType::dontSendNotification);
     mMinOctave.onValueChanged = [this](double value)
     {
-        // set value
         auto const curRange = mNoteStrategy.getOctaveRange();
-        mNoteStrategy.setOctaveRange({static_cast<int>(value), curRange.getEnd()});
+        auto const minValue = std::clamp(static_cast<int>(value), OCTAVE_MIN, curRange.getEnd() - 1);
+        mNoteStrategy.setOctaveRange({minValue, curRange.getEnd()});
         
-        // check ranges
+        // Update UI value after clamp
+        mMinOctave.setValue(minValue, juce::NotificationType::dontSendNotification);
     };
     
     addAndMakeVisible(mMaxOctave);
@@ -143,7 +144,11 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     mMaxOctave.onValueChanged = [&](double value)
     {
         auto const curRange = mNoteStrategy.getOctaveRange();
-        mNoteStrategy.setOctaveRange({curRange.getStart(), static_cast<int>(value) + 1});
+        auto const maxValue = std::clamp(static_cast<int>(value + 1), curRange.getStart() + 1, OCTAVE_MAX);
+        mNoteStrategy.setOctaveRange({curRange.getStart(), maxValue});
+        
+        // Update UI value after clamp. The ui value is reduced by 1 to account for the exclusive range end
+        mMaxOctave.setValue(maxValue - 1, juce::NotificationType::dontSendNotification);
     };
     
     addAndMakeVisible(mMaxOctave);
