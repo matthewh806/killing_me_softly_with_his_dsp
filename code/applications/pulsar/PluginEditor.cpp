@@ -278,7 +278,7 @@ void PulsarAudioProcessorEditor::mouseUp (juce::MouseEvent const& event)
         int const midiNote = mNoteStrategy.getMidiNote();
         int const velocity = mRandom.nextInt(127);
         
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().spawnBall(midiNote, velocity);
+        static_cast<PulsarAudioProcessor&>(processor).getWorld().spawnBall(worldPos, midiNote, velocity);
     }
 }
 
