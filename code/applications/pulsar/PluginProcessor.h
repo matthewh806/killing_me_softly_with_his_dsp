@@ -102,5 +102,9 @@ private:
     int mMidiInputChannel;
     int mMidiOutputChannel;
     
+    double mStartTime;
+    
+    double mSampleRate;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PulsarAudioProcessor)
 };
