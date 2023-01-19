@@ -7,6 +7,7 @@ PulsarAudioProcessor::PulsarAudioProcessor()
      : juce::AudioProcessor (getBusesLayout())
 #endif
 {
+    mStartTime = juce::Time::getMillisecondCounterHiRes() * 0.001;
 }
 
 PulsarAudioProcessor::~PulsarAudioProcessor()
@@ -81,7 +82,13 @@ void PulsarAudioProcessor::changeProgramName (int index, const juce::String& new
 //==============================================================================
 void PulsarAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    juce::ignoreUnused(sampleRate, samplesPerBlock);
+    juce::ignoreUnused(samplesPerBlock);
+    
+    mSampleRate = sampleRate;
+    
+    // Set to be consistent with the size of the midi buffer used in the juce VST3 wrapper.
+    mOutgoingMessages.ensureSize(2048);
+    mOutgoingMessages.clear();
 }
 
 void PulsarAudioProcessor::releaseResources()
@@ -125,7 +132,15 @@ void PulsarAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     
     if(!juce::JUCEApplication::isStandaloneApp())
     {
-        // TODO: Handle these properly
+        //! @todo: This is a temp fix for empty midi messages being passed to the host
+        //!       see https://github.com/matthewh806/killing_me_softly_with_his_dsp/issues/45
+        //!
+        //!       Obviously acquiring a lock on the audio thread is not a good idea
+        //!       so i need to come up with a more robust solution
+        //!
+        //!       Its only a midi buffer so not quite as crucial as audio data, but still...getIncomingMidiBuffer
+        //!
+        const ScopedLock s1 (mMidiMonitorLock);
         midiMessages.clear();
         
         // Add all midi messages in the buffer to the output
@@ -161,17 +176,21 @@ void PulsarAudioProcessor::setStateInformation (const void* data, int sizeInByte
 void PulsarAudioProcessor::sendNoteOnMessage(int noteNumber, float velocity)
 {
     //! @todo: Use a midi buffer and do the timestamping properly...?
-    auto messageOn = MidiMessage::noteOn(getMidiOutputChannel(), noteNumber, static_cast<uint8>(velocity));
-    messageOn.setTimeStamp(Time::getMillisecondCounterHiRes());
-    auto messageOff = MidiMessage::noteOff (messageOn.getChannel(), messageOn.getNoteNumber());
-    messageOff.setTimeStamp (messageOn.getTimeStamp() + NOTE_OFF_TIME_MS); // lasts 300ms
     
+    auto const relativeStartTimeSeconds = Time::getMillisecondCounterHiRes() * 0.001 - mStartTime;
+    auto messageOn = MidiMessage::noteOn(getMidiOutputChannel(), noteNumber, static_cast<uint8>(velocity));
+    messageOn.setTimeStamp(relativeStartTimeSeconds);
+    
+    auto messageOff = MidiMessage::noteOff (messageOn.getChannel(), messageOn.getNoteNumber());
+    messageOff.setTimeStamp (relativeStartTimeSeconds + NOTE_OFF_TIME_MS * 0.001); // lasts 100ms
+    
+    const ScopedLock s1 (mMidiMonitorLock);
     mOutgoingMessages.addEvent(messageOn, 0);
-    mOutgoingMessages.addEvent(messageOff, static_cast<int>(NOTE_OFF_TIME_MS * 44.1));
+    mOutgoingMessages.addEvent(messageOff, NOTE_OFF_TIME_MS * static_cast<int>(mSampleRate));
     
     if(juce::JUCEApplication::isStandaloneApp() && mMidiOutput)
     {
-        mMidiOutput->sendBlockOfMessages(mOutgoingMessages, Time::getMillisecondCounterHiRes(), 44100.0);
+        mMidiOutput->sendBlockOfMessages(mOutgoingMessages, Time::getMillisecondCounterHiRes(), mSampleRate);
         mOutgoingMessages.clear();
     }
 }
