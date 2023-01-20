@@ -21,6 +21,7 @@ namespace Physics
     #define GRAV_MAX 100.0f
     #define OCTAVE_MIN 0
     #define OCTAVE_MAX 8
+    #define PHYSICS_STEP_FREQ 60 // Physics / renderer refresh in Hz
 
     class Utils
     {
