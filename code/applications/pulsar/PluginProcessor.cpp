@@ -141,6 +141,23 @@ void PulsarAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         //!       Its only a midi buffer so not quite as crucial as audio data, but still...getIncomingMidiBuffer
         //!
         const ScopedLock s1 (mMidiMonitorLock);
+        
+        auto needsAsyncUpdate = false;
+        for(auto const& metaMidi : midiMessages)
+        {
+            auto const message = metaMidi.getMessage();
+            if(message.isNoteOn())
+            {
+                mIncomingMessages.add(metaMidi.getMessage());
+                needsAsyncUpdate = true;
+            }
+        }
+        
+        if(needsAsyncUpdate)
+        {
+            triggerAsyncUpdate();
+        }
+        
         midiMessages.clear();
         
         // Add all midi messages in the buffer to the output
