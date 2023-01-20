@@ -18,7 +18,7 @@
 Physics::PulsarWorld::PulsarWorld(AudioProcessor& parent, juce::Rectangle<float> worldRect, const b2Vec2& gravity)
 : mParent(parent), mWorld(gravity), mWorldRect(worldRect)
 {
-    startTimer(60);
+    startTimerHz(PHYSICS_STEP_FREQ);
     
     b2BodyDef boundaryBodyDef;
     boundaryBodyDef.type = b2_staticBody;
@@ -231,7 +231,6 @@ void Physics::PulsarWorld::removeBall(Ball* ball)
 void Physics::PulsarWorld::timerCallback()
 {
     removeBalls();
-    
-    mWorld.Step(0.02f, 8, 3);
+    mWorld.Step(1.0f / static_cast<float>(PHYSICS_STEP_FREQ), 8, 3);
     static_cast<PulsarAudioProcessor&>(mParent).updateEditorUI();
 }
