@@ -5,11 +5,14 @@ v0.0.4
       - Changed target "Pulsar Project" -> "Pulsar"
       - Fixed a bug in the application which caused a box2d exception when
         creating a polygon with 9 vertices
+      - Fixed bug causing empty MIDI data / bad memory access
+      - Fixed input from external MIDI device
       - Create a VST3 version
       - Added a bunch of different musical scale options
       - Added number field to control gravity parameter
       - Added ability to set octave note range of balls
       - Increased the min / max ball radius for visual improvement
+      - Improved the physics step / renderer refresh rate
       - Balls now spawn at mouse click location
     - Converted AudioDecay into a VST3
     - Converted SimpleDelay into a VST3
