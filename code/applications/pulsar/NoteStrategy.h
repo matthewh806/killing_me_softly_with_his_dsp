@@ -24,6 +24,9 @@ public:
     void setStrategy(Strategy strategy);
     void setKey(std::string key);
     
+    juce::Range<int> getOctaveRange() const;
+    void setOctaveRange(juce::Range<int> octaveRange);
+    
     std::vector<std::string> const notes =
     {
         "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
@@ -50,4 +53,7 @@ private:
     std::string mKey = "C";
     
     Random mRandom;
+    
+    // The range is exclusive of the max so this is really 2-7
+    juce::Range<int> mOctaveRange {2, 8};
 };

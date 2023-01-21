@@ -91,6 +91,14 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     
     pulsarProcessor.getWorld().setRect({0, 0, Physics::Utils::pixelsToMeters(static_cast<float>(getWidth())), Physics::Utils::pixelsToMeters(static_cast<float>(getHeight()))});
     
+    addAndMakeVisible(mGravityField);
+    mGravityField.setRange({GRAV_MIN, GRAV_MAX}, juce::NotificationType::dontSendNotification);
+    mGravityField.setValue(pulsarProcessor.getWorld().getGravity(), juce::NotificationType::dontSendNotification);
+    mGravityField.onValueChanged = [&](double value)
+    {
+        pulsarProcessor.getWorld().setGravity(static_cast<float>(value));
+    };
+    
     addAndMakeVisible(mNoteStrategyList);
     mNoteStrategyList.comboBox.addItem("Random", 1);
     mNoteStrategyList.comboBox.addItem("Major", 2);
@@ -116,6 +124,34 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         auto const noteName = mNoteKey.comboBox.getItemText(mNoteKey.comboBox.getSelectedItemIndex());
         mNoteStrategy.setKey(noteName.toStdString());
     };
+    
+    addAndMakeVisible(mMinOctave);
+    mMinOctave.setRange({0, 7}, juce::NotificationType::dontSendNotification);
+    mMinOctave.setValue(mNoteStrategy.getOctaveRange().getStart(), juce::NotificationType::dontSendNotification);
+    mMinOctave.onValueChanged = [this](double value)
+    {
+        auto const curRange = mNoteStrategy.getOctaveRange();
+        auto const minValue = std::clamp(static_cast<int>(value), OCTAVE_MIN, curRange.getEnd() - 1);
+        mNoteStrategy.setOctaveRange({minValue, curRange.getEnd()});
+        
+        // Update UI value after clamp
+        mMinOctave.setValue(minValue, juce::NotificationType::dontSendNotification);
+    };
+    
+    addAndMakeVisible(mMaxOctave);
+    mMaxOctave.setRange({0, 7}, juce::NotificationType::dontSendNotification);
+    mMaxOctave.setValue(mNoteStrategy.getOctaveRange().getEnd(), juce::NotificationType::sendNotification);
+    mMaxOctave.onValueChanged = [&](double value)
+    {
+        auto const curRange = mNoteStrategy.getOctaveRange();
+        auto const maxValue = std::clamp(static_cast<int>(value + 1), curRange.getStart() + 1, OCTAVE_MAX);
+        mNoteStrategy.setOctaveRange({curRange.getStart(), maxValue});
+        
+        // Update UI value after clamp. The ui value is reduced by 1 to account for the exclusive range end
+        mMaxOctave.setValue(maxValue - 1, juce::NotificationType::dontSendNotification);
+    };
+    
+    addAndMakeVisible(mMaxOctave);
 }
 
 PulsarAudioProcessorEditor::~PulsarAudioProcessorEditor()
@@ -162,9 +198,22 @@ void PulsarAudioProcessorEditor::resized()
         mMidiOutputChannelList.setBounds(midiOutputBounds);
     }
     
-    auto scaleBounds = bounds.removeFromBottom(20);
-    mNoteStrategyList.setBounds(scaleBounds.removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
-    mNoteKey.setBounds(scaleBounds.removeFromLeft(static_cast<int>(scaleBounds.getWidth() * 0.5)));
+    auto gravityBounds = bounds.removeFromBottom(70);
+    auto const halfScreenWidth = static_cast<int>(gravityBounds.getWidth() * 0.5);
+    
+    mGravityField.setBounds(gravityBounds.removeFromTop(20).removeFromLeft(halfScreenWidth));
+    
+    gravityBounds.removeFromTop(5);
+    
+    auto scaleKeyBounds = gravityBounds.removeFromTop(20);
+    mNoteStrategyList.setBounds(scaleKeyBounds.removeFromLeft(halfScreenWidth));
+    mNoteKey.setBounds(scaleKeyBounds.removeFromLeft(halfScreenWidth));
+    
+    scaleKeyBounds.removeFromTop(5);
+    
+    auto octaveRangeBounds = gravityBounds.removeFromTop(20);
+    mMinOctave.setBounds(octaveRangeBounds.removeFromLeft(halfScreenWidth));
+    mMaxOctave.setBounds(octaveRangeBounds.removeFromLeft(halfScreenWidth));
 }
 
 bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
@@ -229,7 +278,7 @@ void PulsarAudioProcessorEditor::mouseUp (juce::MouseEvent const& event)
         int const midiNote = mNoteStrategy.getMidiNote();
         int const velocity = mRandom.nextInt(127);
         
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().spawnBall(midiNote, velocity);
+        static_cast<PulsarAudioProcessor&>(processor).getWorld().spawnBall(worldPos, midiNote, velocity);
     }
 }
 

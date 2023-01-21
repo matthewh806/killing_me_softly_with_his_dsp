@@ -40,7 +40,8 @@ private:
       " i: increase the polygon edge separation\n"
       " d: decrease the polygon edge separation\n"
       " n [3-8]: create polygon with n sides\n"
-      " g: I thought I had gravity ctrls... but no\n";
+      " Set Gravity with the number field \n"
+      " Set scale / key with the drop down fields \n";
     
     juce::Label mControlsLabel;
 };
@@ -79,8 +80,13 @@ private:
     ComboBoxWithLabel mMidiOutputDeviceList {"Midi out"};
     ComboBoxWithLabel mMidiOutputChannelList {"Channel"};
     
+    NumberFieldWithLabel mGravityField { "Gravity", "N", 1, true };
+    
     ComboBoxWithLabel mNoteStrategyList {"Scale"};
     ComboBoxWithLabel mNoteKey {"Key"};
+    
+    NumberFieldWithLabel mMinOctave {"Min Octave", "", 0, true};
+    NumberFieldWithLabel mMaxOctave {"Max Octave", "", 0, true};
     
     InformationScreen mInformationScreen;
     

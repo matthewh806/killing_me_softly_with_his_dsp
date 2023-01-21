@@ -42,6 +42,9 @@ namespace Physics
         void setPolygonRotationSpeed(double angularVelocity);
         void incrementPolygonRotationSpeed();
         
+        void setGravity(float gravityY);
+        float getGravity();
+        
         void increaseEdgeSeparation();
         void decreaseEdgeSeparation();
         
@@ -60,6 +63,9 @@ namespace Physics
         //!
         //! Note: Coordinates should be scaled to physics coordinates
         Physics::Ball* spawnBall(b2Vec2 pos);
+        
+        //! @brief: Spawn a ball at pos with velocity
+        Physics::Ball* spawnBall(b2Vec2 pos, int noteNumber, float velocity);
         
         //! @brief: Spawn a ball at pos and with radius
         //!

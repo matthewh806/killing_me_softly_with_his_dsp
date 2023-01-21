@@ -18,7 +18,7 @@
 Physics::PulsarWorld::PulsarWorld(AudioProcessor& parent, juce::Rectangle<float> worldRect, const b2Vec2& gravity)
 : mParent(parent), mWorld(gravity), mWorldRect(worldRect)
 {
-    startTimer(60);
+    startTimerHz(PHYSICS_STEP_FREQ);
     
     b2BodyDef boundaryBodyDef;
     boundaryBodyDef.type = b2_staticBody;
@@ -101,6 +101,17 @@ void Physics::PulsarWorld::incrementPolygonRotationSpeed()
     mPolygon->setAngularVelocity( std::fmod(curAngVelocity + 45 * DEGTORAD, 360 * DEGTORAD ));
 }
 
+void Physics::PulsarWorld::setGravity(float gravityY)
+{
+    auto const g = b2Vec2 {0.0f, std::clamp(gravityY, GRAV_MIN, GRAV_MAX)};
+    mWorld.SetGravity(g);
+}
+
+float Physics::PulsarWorld::getGravity()
+{
+    return mWorld.GetGravity().y;
+}
+
 void Physics::PulsarWorld::increaseEdgeSeparation()
 {
     mPolygon->increaseEdgeSeparation(2);
@@ -124,16 +135,21 @@ Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, float radius, int not
     return b;
 }
 
-Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity)
+Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, int noteNumber, float velocity)
 {
     // radius based on velocity
     // linear for now
     // map 0 - 127 onto range minRad - maxRad
-    auto constexpr minRadius = 0.5f;
-    auto constexpr maxRadius = 5.0f;
+    auto constexpr minRadius = 2.0f;
+    auto constexpr maxRadius = 10.0f;
     auto const radius = velocity / 127 * (maxRadius - minRadius) + minRadius;
     
-    return spawnBall(mPolygon->getRandomPointInside(), Utils::pixelsToMeters(radius), noteNumber, velocity);
+    return spawnBall(pos, Utils::pixelsToMeters(radius), noteNumber, velocity);
+}
+
+Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity)
+{
+    return spawnBall(mPolygon->getRandomPointInside(), noteNumber, velocity);
 }
 
 void Physics::PulsarWorld::removeBalls()
@@ -215,7 +231,6 @@ void Physics::PulsarWorld::removeBall(Ball* ball)
 void Physics::PulsarWorld::timerCallback()
 {
     removeBalls();
-    
-    mWorld.Step(0.02f, 8, 3);
+    mWorld.Step(1.0f / static_cast<float>(PHYSICS_STEP_FREQ), 8, 3);
     static_cast<PulsarAudioProcessor&>(mParent).updateEditorUI();
 }
