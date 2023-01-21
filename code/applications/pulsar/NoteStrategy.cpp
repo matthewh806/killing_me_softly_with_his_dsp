@@ -34,6 +34,16 @@ void NoteStrategy::setOctaveRange(juce::Range<int> octaveRange)
     mOctaveRange = octaveRange;
 }
 
+juce::Range<int> NoteStrategy::getNoteLengthRange() const
+{
+    return mNoteLengthRange;
+}
+
+void NoteStrategy::setNoteLengthRange(juce::Range<int> noteLengthRange)
+{
+    mNoteLengthRange = noteLengthRange;
+}
+
 int NoteStrategy::getMidiNote()
 {
     auto const rootNoteIndex = std::distance(notes.begin(), std::find(notes.begin(), notes.end(), mKey));
@@ -52,5 +62,9 @@ int NoteStrategy::getMidiNote()
     std::cout << "Note: " << notes[static_cast<size_t>(noteIdx)] << octave << ", " << midiNote << "\n";
     
     return static_cast<int>(midiNote);
-    
+}
+
+int NoteStrategy::getRandomNoteLength()
+{
+    return mRandom.nextInt(mNoteLengthRange);
 }

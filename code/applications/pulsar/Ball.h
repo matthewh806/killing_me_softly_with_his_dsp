@@ -20,10 +20,11 @@ namespace Physics
         struct MidiData
         {
             int noteNumber;
+            int noteLength;
             float velocity;
         };
         
-        Ball(b2World& world, b2Vec2 pos, int noteNumber, float velocity, double radius = 1.0, float density = 1.0, float restitution = 0.75);
+        Ball(b2World& world, b2Vec2 pos, int noteNumber, float velocity, int noteLength, double radius = 1.0, float density = 1.0, float restitution = 0.75);
         ~Ball();
         
         void startContact();
@@ -31,7 +32,7 @@ namespace Physics
         
         MidiData getMidiData() const;
         
-        void setMidiData(int noteNumber, float velocity);
+        void setMidiData(int noteNumber, int noteLength, float velocity);
         
         bool isContacting();
 
@@ -42,7 +43,7 @@ namespace Physics
         b2Body* mBody;
         
 //        juce::Colour mColour;
-        MidiData mMidiData {1, 0.0};
+        MidiData mMidiData {1, 100, 0.0};
     };
 }
 

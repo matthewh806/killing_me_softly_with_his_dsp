@@ -10,7 +10,7 @@
 
 #include "Ball.h"
 
-Physics::Ball::Ball(b2World& world, b2Vec2 pos, int noteNumber, float velocity, double radius, float density, float restitution)
+Physics::Ball::Ball(b2World& world, b2Vec2 pos, int noteNumber, float velocity, int noteLength, double radius, float density, float restitution)
 {
     b2CircleShape circleShape;
     circleShape.m_p.Set(0, 0);
@@ -30,7 +30,7 @@ Physics::Ball::Ball(b2World& world, b2Vec2 pos, int noteNumber, float velocity, 
     
     mBody->SetUserData(this);
     
-    setMidiData(noteNumber, velocity);
+    setMidiData(noteNumber, noteLength, velocity);
     
     /*
      todo:
@@ -74,8 +74,9 @@ Physics::Ball::MidiData Physics::Ball::getMidiData() const
     return mMidiData;
 }
 
-void Physics::Ball::setMidiData(int noteNumber, float velocity)
+void Physics::Ball::setMidiData(int noteNumber, int noteLength, float velocity)
 {
     mMidiData.noteNumber = noteNumber;
+    mMidiData.noteLength = noteLength;
     mMidiData.velocity = velocity;
 }

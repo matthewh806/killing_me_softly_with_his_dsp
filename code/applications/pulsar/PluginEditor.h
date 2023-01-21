@@ -46,9 +46,6 @@ private:
     juce::Label mControlsLabel;
 };
 
-//! @todo: note hardcoded. this could be based on the length of a mouse down for e.g. (or rand)
-#define NOTE_OFF_TIME_MS 100
-
 //! @todo: With random changes to rotation, gravity etc
 //! @todo: Add ability to connect rotation, gravity etc with midi for things like lfos
 class PulsarAudioProcessorEditor
@@ -63,6 +60,8 @@ public:
 
     void paint (Graphics&) override;
     void resized() override;
+    
+    NoteStrategy& getNoteStrategy();
     
     // juce::keyPressed
     bool keyPressed(juce::KeyPress const& key) override;
@@ -87,6 +86,9 @@ private:
     
     NumberFieldWithLabel mMinOctave {"Min Octave", "", 0, true};
     NumberFieldWithLabel mMaxOctave {"Max Octave", "", 0, true};
+    
+    NumberFieldWithLabel mMinNoteLength {"Min Note length", "ms", 0, true};
+    NumberFieldWithLabel mMaxNoteLength {"Max Note length", "ms", 0, true};
     
     InformationScreen mInformationScreen;
     

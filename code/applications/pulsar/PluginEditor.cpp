@@ -126,7 +126,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     };
     
     addAndMakeVisible(mMinOctave);
-    mMinOctave.setRange({0, 7}, juce::NotificationType::dontSendNotification);
+    mMinOctave.setRange({OCTAVE_MIN, OCTAVE_MAX - 1}, juce::NotificationType::dontSendNotification);
     mMinOctave.setValue(mNoteStrategy.getOctaveRange().getStart(), juce::NotificationType::dontSendNotification);
     mMinOctave.onValueChanged = [this](double value)
     {
@@ -139,7 +139,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     };
     
     addAndMakeVisible(mMaxOctave);
-    mMaxOctave.setRange({0, 7}, juce::NotificationType::dontSendNotification);
+    mMaxOctave.setRange({OCTAVE_MIN, OCTAVE_MAX - 1}, juce::NotificationType::dontSendNotification);
     mMaxOctave.setValue(mNoteStrategy.getOctaveRange().getEnd(), juce::NotificationType::sendNotification);
     mMaxOctave.onValueChanged = [&](double value)
     {
@@ -151,7 +151,29 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         mMaxOctave.setValue(maxValue - 1, juce::NotificationType::dontSendNotification);
     };
     
-    addAndMakeVisible(mMaxOctave);
+    addAndMakeVisible(mMinNoteLength);
+    mMinNoteLength.setRange({NOTE_LEN_MIN, NOTE_LEN_MAX}, juce::NotificationType::dontSendNotification);
+    mMinNoteLength.setValue(NOTE_LEN_MIN, juce::NotificationType::sendNotification);
+    mMinNoteLength.onValueChanged = [&](double value)
+    {
+        auto const curRange = mNoteStrategy.getNoteLengthRange();
+        auto const minValue = std::clamp(static_cast<int>(value), NOTE_LEN_MIN, NOTE_LEN_MAX - 1);
+        mNoteStrategy.setNoteLengthRange({minValue, curRange.getEnd()});
+        
+        mMinNoteLength.setValue(minValue, juce::NotificationType::dontSendNotification);
+    };
+    
+    addAndMakeVisible(mMaxNoteLength);
+    mMaxNoteLength.setRange({NOTE_LEN_MIN, NOTE_LEN_MAX}, juce::NotificationType::dontSendNotification);
+    mMaxNoteLength.setValue(NOTE_LEN_MIN, juce::NotificationType::sendNotification);
+    mMaxNoteLength.onValueChanged = [&](double value)
+    {
+        auto const curRange = mNoteStrategy.getNoteLengthRange();
+        auto const maxValue = std::clamp(static_cast<int>(value), curRange.getStart(), NOTE_LEN_MAX);
+        mNoteStrategy.setNoteLengthRange({curRange.getStart(), maxValue});
+        
+        mMaxNoteLength.setValue(maxValue, juce::NotificationType::dontSendNotification);
+    };
 }
 
 PulsarAudioProcessorEditor::~PulsarAudioProcessorEditor()
@@ -198,7 +220,7 @@ void PulsarAudioProcessorEditor::resized()
         mMidiOutputChannelList.setBounds(midiOutputBounds);
     }
     
-    auto gravityBounds = bounds.removeFromBottom(70);
+    auto gravityBounds = bounds.removeFromBottom(95);
     auto const halfScreenWidth = static_cast<int>(gravityBounds.getWidth() * 0.5);
     
     mGravityField.setBounds(gravityBounds.removeFromTop(20).removeFromLeft(halfScreenWidth));
@@ -214,6 +236,17 @@ void PulsarAudioProcessorEditor::resized()
     auto octaveRangeBounds = gravityBounds.removeFromTop(20);
     mMinOctave.setBounds(octaveRangeBounds.removeFromLeft(halfScreenWidth));
     mMaxOctave.setBounds(octaveRangeBounds.removeFromLeft(halfScreenWidth));
+    
+    octaveRangeBounds.removeFromTop(5);
+    
+    auto noteLengthBounds = gravityBounds.removeFromTop(20);
+    mMinNoteLength.setBounds(noteLengthBounds.removeFromLeft(halfScreenWidth));
+    mMaxNoteLength.setBounds(noteLengthBounds.removeFromLeft(halfScreenWidth));
+}
+
+NoteStrategy& PulsarAudioProcessorEditor::getNoteStrategy()
+{
+    return mNoteStrategy;
 }
 
 bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
@@ -277,8 +310,9 @@ void PulsarAudioProcessorEditor::mouseUp (juce::MouseEvent const& event)
     {
         int const midiNote = mNoteStrategy.getMidiNote();
         int const velocity = mRandom.nextInt(127);
+        int const noteLength = mNoteStrategy.getRandomNoteLength();
         
-        static_cast<PulsarAudioProcessor&>(processor).getWorld().spawnBall(worldPos, midiNote, velocity);
+        static_cast<PulsarAudioProcessor&>(processor).getWorld().spawnBall(worldPos, midiNote, velocity, noteLength);
     }
 }
 

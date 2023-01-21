@@ -127,15 +127,15 @@ bool Physics::PulsarWorld::testPointInPolygon(b2Vec2 const &p)
     return mPolygon->testPoint(p);
 }
 
-Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, float radius, int noteNumber, float velocity)
+Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, float radius, int noteNumber, float velocity, int noteLength)
 {
-    Ball* b = new Ball{mWorld, pos, noteNumber, velocity, radius};
+    Ball* b = new Ball{mWorld, pos, noteNumber, velocity, noteLength, radius};
     mBalls.push_back(b);
     
     return b;
 }
 
-Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, int noteNumber, float velocity)
+Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, int noteNumber, float velocity, int noteLength)
 {
     // radius based on velocity
     // linear for now
@@ -144,12 +144,12 @@ Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, int noteNumber, float
     auto constexpr maxRadius = 10.0f;
     auto const radius = velocity / 127 * (maxRadius - minRadius) + minRadius;
     
-    return spawnBall(pos, Utils::pixelsToMeters(radius), noteNumber, velocity);
+    return spawnBall(pos, Utils::pixelsToMeters(radius), noteNumber, velocity, noteLength);
 }
 
-Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity)
+Physics::Ball* Physics::PulsarWorld::spawnBall(int noteNumber, float velocity, int noteLength)
 {
-    return spawnBall(mPolygon->getRandomPointInside(), noteNumber, velocity);
+    return spawnBall(mPolygon->getRandomPointInside(), noteNumber, velocity, noteLength);
 }
 
 void Physics::PulsarWorld::removeBalls()
@@ -174,8 +174,8 @@ void Physics::PulsarWorld::BeginContact(b2Contact* contact)
             auto* ball = static_cast<Ball*>(userAData);
             auto const midiData = ball->getMidiData();
         
-            auto pulsarAudioEditor = dynamic_cast<PulsarAudioProcessor*>(&mParent);
-            pulsarAudioEditor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity);
+            auto pulsarAudioProcessor = dynamic_cast<PulsarAudioProcessor*>(&mParent);
+            pulsarAudioProcessor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity, midiData.noteLength);
         }
         
         if(userBData)
@@ -183,8 +183,8 @@ void Physics::PulsarWorld::BeginContact(b2Contact* contact)
             auto* ball = static_cast<Ball*>(userBData);
             auto const midiData = ball->getMidiData();
         
-            auto pulsarAudioEditor = dynamic_cast<PulsarAudioProcessor*>(&mParent);
-                pulsarAudioEditor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity);
+            auto pulsarAudioProcessor = dynamic_cast<PulsarAudioProcessor*>(&mParent);
+            pulsarAudioProcessor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity, midiData.noteLength);
         }
         
         return;

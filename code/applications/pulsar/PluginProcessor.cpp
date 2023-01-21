@@ -126,7 +126,7 @@ void PulsarAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
+    
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
@@ -162,6 +162,8 @@ void PulsarAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         
         // Add all midi messages in the buffer to the output
         // How to do this in a thread safe + lock free way...?
+        auto currentTime = juce::Time::getMillisecondCounterHiRes() * 0.001 - mStartTime;
+        auto currentSampleNumber = static_cast<int>(currentTime * mSampleRate);
         midiMessages.swapWith(mOutgoingMessages);
     }
 }
@@ -190,7 +192,7 @@ void PulsarAudioProcessor::setStateInformation (const void* data, int sizeInByte
 
 //==============================================================================
 
-void PulsarAudioProcessor::sendNoteOnMessage(int noteNumber, float velocity)
+void PulsarAudioProcessor::sendNoteOnMessage(int noteNumber, float velocity, int noteLength)
 {
     //! @todo: Use a midi buffer and do the timestamping properly...?
     
@@ -199,11 +201,11 @@ void PulsarAudioProcessor::sendNoteOnMessage(int noteNumber, float velocity)
     messageOn.setTimeStamp(relativeStartTimeSeconds);
     
     auto messageOff = MidiMessage::noteOff (messageOn.getChannel(), messageOn.getNoteNumber());
-    messageOff.setTimeStamp (relativeStartTimeSeconds + NOTE_OFF_TIME_MS * 0.001); // lasts 100ms
+    messageOff.setTimeStamp (relativeStartTimeSeconds + static_cast<double>(noteLength) * 0.001);
     
     const ScopedLock s1 (mMidiMonitorLock);
-    mOutgoingMessages.addEvent(messageOn, 0);
-    mOutgoingMessages.addEvent(messageOff, NOTE_OFF_TIME_MS * static_cast<int>(mSampleRate));
+    mOutgoingMessages.addEvent(messageOn, static_cast<int>(messageOn.getTimeStamp() * mSampleRate));
+    mOutgoingMessages.addEvent(messageOff, static_cast<int>(messageOff.getTimeStamp() * mSampleRate));
     
     if(juce::JUCEApplication::isStandaloneApp() && mMidiOutput)
     {
@@ -322,7 +324,7 @@ void PulsarAudioProcessor::handleAsyncUpdate()
         
         if(m.isNoteOn())
         {
-            mWorld.spawnBall(m.getNoteNumber(), m.getVelocity());
+            mWorld.spawnBall(m.getNoteNumber(), m.getVelocity(), pulsarEditor->getNoteStrategy().getRandomNoteLength());
         }
         else if(m.isController())
         {

@@ -72,7 +72,7 @@ public:
     
     void setMidiInput(juce::String const& identifier);
     void setMidiOutput(juce::String const& identifier);
-    void sendNoteOnMessage(int noteNumber, float velocity);
+    void sendNoteOnMessage(int noteNumber, float velocity, int noteLength);
     
     static BusesProperties getBusesLayout()
     {

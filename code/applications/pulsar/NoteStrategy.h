@@ -27,6 +27,9 @@ public:
     juce::Range<int> getOctaveRange() const;
     void setOctaveRange(juce::Range<int> octaveRange);
     
+    juce::Range<int> getNoteLengthRange() const;
+    void setNoteLengthRange(juce::Range<int> noteLengthRange);
+    
     std::vector<std::string> const notes =
     {
         "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
@@ -47,6 +50,7 @@ public:
     };
     
     int getMidiNote();
+    int getRandomNoteLength();
     
 private:
     Strategy mStrategy { Strategy::major };
@@ -56,4 +60,5 @@ private:
     
     // The range is exclusive of the max so this is really 2-7
     juce::Range<int> mOctaveRange {2, 8};
+    juce::Range<int> mNoteLengthRange {100, 1000};
 };

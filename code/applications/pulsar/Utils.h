@@ -12,17 +12,25 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-namespace Physics
+class Constants
 {
-    #define    RAND_LIMIT 32767
-    
-    // TODO: Move into separate file (constants.h?)
+    #define RAND_LIMIT 32767
+
     #define GRAV_MIN 0.0f
     #define GRAV_MAX 100.0f
+  
     #define OCTAVE_MIN 0
     #define OCTAVE_MAX 8
+    
+    #define NOTE_LEN_MIN 100  // ms
+    #define NOTE_LEN_MAX 1000
+    
+    
     #define PHYSICS_STEP_FREQ 60 // Physics / renderer refresh in Hz
+};
 
+namespace Physics
+{
     class Utils
     {
     public:
