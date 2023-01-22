@@ -7,6 +7,8 @@ juce_add_gui_app(RealTimeStretch
 
 juce_generate_juce_header(RealTimeStretch)
 
+set_target_properties(RealTimeStretch PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
 target_sources(RealTimeStretch
     PRIVATE
         ${CoreSources}

@@ -8,6 +8,8 @@ juce_add_plugin(DopplerShift
 
 juce_generate_juce_header(DopplerShift)
 
+set_target_properties(DopplerShift PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
 set(DopplerShiftSources
     ${UISources}
     ${CoreSources}
