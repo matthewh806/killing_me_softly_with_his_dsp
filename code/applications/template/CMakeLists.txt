@@ -4,6 +4,8 @@ juce_add_gui_app(Template
 
 juce_generate_juce_header(Template)
 
+set_target_properties(Template PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
 set(TemplateApplicationSources
     ${UISources}
     ${CMAKE_SOURCE_DIR}/applications/template/Main.cpp
