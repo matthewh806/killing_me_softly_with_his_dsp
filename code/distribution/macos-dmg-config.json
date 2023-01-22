@@ -8,7 +8,7 @@
     "contents": [
       { "x": 72, "y": 72, "type": "file", "path": "../build/artifacts/breakbeat_machine.app" },
       { "x": 72, "y": 176, "type": "file", "path": "../build/artifacts/granular.app" },
-      { "x": 72, "y": 320, "type": "file", "path": "../build/artifacts/juce_offline_time_stretch.app" },
+      { "x": 72, "y": 320, "type": "file", "path": "../build/artifacts/stretch_armstrong.app" },
       { "x": 176, "y": 72, "type": "file", "path": "../build/artifacts/pulsar.vst3" },
       { "x": 176, "y": 176, "type": "file", "path": "../build/artifacts/simple_delay.vst3" },
       { "x": 176, "y": 320, "type": "file", "path": "../build/artifacts/MattVerb.vst3" },
