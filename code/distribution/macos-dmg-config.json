@@ -1,0 +1,21 @@
+{
+    "title": "Killing Me Softly With His DSP",
+    "icon-size": 64,
+    "window": {
+      "position": { "x": 200, "y": 120},
+      "size": { "width": 600, "height": 410}
+    },
+    "contents": [
+      { "x": 72, "y": 72, "type": "file", "path": "../build/artifacts/breakbeat_machine.app" },
+      { "x": 72, "y": 176, "type": "file", "path": "../build/artifacts/granular.app" },
+      { "x": 72, "y": 320, "type": "file", "path": "../build/artifacts/juce_offline_time_stretch.app" },
+      { "x": 176, "y": 72, "type": "file", "path": "../build/artifacts/pulsar.vst3" },
+      { "x": 176, "y": 176, "type": "file", "path": "../build/artifacts/simple_delay.vst3" },
+      { "x": 176, "y": 320, "type": "file", "path": "../build/artifacts/MattVerb.vst3" },
+      { "x": 320, "y": 72, "type": "file", "path": "../build/artifacts/smash_my_bits_up.vst3" },
+      { "x": 464, "y": 72, "type": "link", "path": "/Applications" },
+      { "x": 464, "y": 176, "type": "link", "path": "/Library/Audio/Plug-Ins/VST3" },
+      { "x": 464, "y": 320, "type": "file", "path": "../changelog.txt" }
+    ]
+  }
+  
