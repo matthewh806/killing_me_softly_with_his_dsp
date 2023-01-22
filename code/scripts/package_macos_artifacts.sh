@@ -23,7 +23,10 @@ for d in $BUILD_PATH/applications/*; do
       if [ -d *.app ]; then
         # remove whitespace, add underscores, remove extension, make lower case
         FILENAME=$(basename *.app .app | xargs | sed -e 's/ /_/g' | tr '[:upper:]' '[:lower:]')
-        zip -r $FILENAME.zip *.app
+        mv *.app $FILENAME.app
+        zip -r $FILENAME.zip $FILENAME.app
+
+        cp $FILENAME.app $BUILD_PATH/artifacts
         mv $FILENAME.zip $BUILD_PATH/artifacts
       fi
 
@@ -35,7 +38,7 @@ for d in $BUILD_PATH/applications/*; do
           # remove whitespace, add underscores, remove extension, make lower case
           FILENAME=$(basename *.vst3 .vst3 | xargs | sed -e 's/ /_/g' | tr '[:upper:]' '[:lower:]')
           mv *.vst3 $FILENAME.vst3
-          mv $FILENAME.vst3 $BUILD_PATH/VST3/$BUILD_TYPE
+          cp $FILENAME.vst3 $BUILD_PATH/artifacts
         fi
       fi
 
@@ -45,12 +48,26 @@ done
 
 # Put all VST3's into a single zipped folder
 cd $BUILD_PATH/VST3/$BUILD_TYPE
-VSTFILENAME="KMSWHDSP_VSTs.zip"
-zip -r $VSTFILENAME *.vst3
-mv $VSTFILENAME $BUILD_PATH/artifacts
+mv *.vst3 $BUILD_PATH/artifacts
 
-echo '\033[0;34m' "Output writtent to $BUILD_PATH/artifacts"
+echo '\033[0;34m' "Output written to $BUILD_PATH/artifacts"
 echo '\033[0m'
 
 echo '\033[0;34m' "Done"
 echo '\033[0m'
+
+if [[ $BUILD_TYPE == "Release" ]]; then
+  # Package all of the applications / plugins into a dmg
+
+  APP_NAME="KMSWHDSP"
+
+  DMG_PATH="$BUILD_PATH/$APP_NAME-v0.0.4.dmg"
+
+  test -f "$DMG_PATH" && rm "$DMG_PATH"
+
+  echo '\033[0;34m' "Creating apple disk image..."
+  echo '\033[0m'
+  cd $BUILD_PATH/../distribution
+  appdmg "macos-dmg-config.json" "$DMG_PATH"
+fi
+
