@@ -26,7 +26,7 @@ for d in $BUILD_PATH/applications/*; do
         mv *.app $FILENAME.app
         zip -r $FILENAME.zip $FILENAME.app
 
-        cp $FILENAME.app $BUILD_PATH/artifacts
+        cp -R $FILENAME.app $BUILD_PATH/artifacts
         mv $FILENAME.zip $BUILD_PATH/artifacts
       fi
 
@@ -38,7 +38,7 @@ for d in $BUILD_PATH/applications/*; do
           # remove whitespace, add underscores, remove extension, make lower case
           FILENAME=$(basename *.vst3 .vst3 | xargs | sed -e 's/ /_/g' | tr '[:upper:]' '[:lower:]')
           mv *.vst3 $FILENAME.vst3
-          cp $FILENAME.vst3 $BUILD_PATH/artifacts
+          cp -R $FILENAME.vst3 $BUILD_PATH/artifacts
         fi
       fi
 
