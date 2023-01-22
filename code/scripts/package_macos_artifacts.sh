@@ -3,11 +3,14 @@
 ThisPath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_PATH="$ThisPath/../build"
 
-if [ -z $1 ]; then
+if [[ $1 == "Debug" ]]; then
   BUILD_TYPE=Debug
 else
   BUILD_TYPE=Release
 fi
+
+echo '\033[0;34m' "Prepare project for $BUILD_TYPE archive..."
+echo '\033[0m'
 
 mkdir -p $BUILD_PATH/artifacts
 
@@ -45,3 +48,9 @@ cd $BUILD_PATH/VST3/$BUILD_TYPE
 VSTFILENAME="KMSWHDSP_VSTs.zip"
 zip -r $VSTFILENAME *.vst3
 mv $VSTFILENAME $BUILD_PATH/artifacts
+
+echo '\033[0;34m' "Output writtent to $BUILD_PATH/artifacts"
+echo '\033[0m'
+
+echo '\033[0;34m' "Done"
+echo '\033[0m'
