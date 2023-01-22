@@ -19,6 +19,9 @@ v0.0.4
 
   - GENERAL
     - Define the company name and use in all JUCE targets
+    - Rename "Juce offline timestretch" to "Stretch Armstrong"
+    - Add VST3 validation tests to CI/CD process
+    - Package all applications and plugins into a single DMG
 
 v0.0.3
   Tagged on: 11/01/2023
