@@ -45,6 +45,8 @@ jobs:
       run: |
         brew update
         brew install libsamplerate aubio
+        brew install node
+        npm install -g appdmg
 
     - name: Configure CMake
       run: cmake -B code/build -S code -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
