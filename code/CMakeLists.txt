@@ -16,6 +16,8 @@ add_subdirectory(dependencies/rubberband)
 add_subdirectory(dependencies/vst3sdk)
 add_subdirectory(dependencies/freeverb)
 
+include(juce_shared_vst.cmake)
+
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "The Office of Unspecified Services")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "http://theofficeofunspecifiedservices.com")
 
