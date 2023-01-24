@@ -109,6 +109,8 @@ private:
     // juce::AudioProcessorValueTreeState::Listener
     void parameterChanged (const String& parameterID, float newValue) override;
     
+    void updateQuantisationLevel(float bitDepth);
+    
     //==============================================================================
     int mBlockSize;
     int mSampleRate;

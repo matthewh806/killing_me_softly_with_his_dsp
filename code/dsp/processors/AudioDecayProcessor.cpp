@@ -16,6 +16,7 @@ AudioDecayProcessor::AudioDecayProcessor()
             std::make_unique<juce::AudioParameterFloat>("wetdry", "Wet/Dry mix", 0.0f, 1.0f, 0.0f)
         })
 {
+    updateQuantisationLevel(static_cast<float>(*state.getRawParameterValue("bitdepth")));
     state.addParameterListener("bitdepth", this);
     state.state.addChild({ "uiState", {{"width", 400}, {"height", 200 } }, {} }, -1, nullptr);
 }
@@ -95,6 +96,11 @@ void AudioDecayProcessor::parameterChanged (const String& parameterID, float new
 {
     if(parameterID.equalsIgnoreCase("bitdepth"))
     {
-        mQuantisationLevel = 2.0f / (std::pow(2.0f, newValue) - 1.0f);
+        updateQuantisationLevel(newValue);
     }
+}
+
+void AudioDecayProcessor::updateQuantisationLevel(float bitDepth)
+{
+    mQuantisationLevel = 2.0f / (std::pow(2.0f, bitDepth) - 1.0f);
 }
