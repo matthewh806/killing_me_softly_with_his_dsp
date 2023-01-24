@@ -11,8 +11,10 @@ SimpleDelayProcessor::SimpleDelayProcessor()
                   .withInput  ("Sidechain", juce::AudioChannelSet::stereo()))
 , state(*this, nullptr, "state",
         {
+            std::make_unique<juce::AudioParameterBool>("sync", "Sync", false),
             std::make_unique<juce::AudioParameterFloat>("wetdry", "Wet/Dry Mix", 0.0f, 1.0f, 0.5f),
             std::make_unique<juce::AudioParameterFloat>("delaytime", "Delay Time", 0.0f, 2.0f, 0.1f),
+            std::make_unique<juce::AudioParameterInt>("delaydivisor", "Delay Time", 1, 16, 4),
             std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", 0.0f, 1.0f, 0.5f)
         })
 {
@@ -48,7 +50,32 @@ void SimpleDelayProcessor::releaseResources()
 
 void SimpleDelayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
 {
-    auto const delayTime = static_cast<float>(*state.getRawParameterValue("delaytime"));
+    auto delayTime = static_cast<float>(*state.getRawParameterValue("delaytime"));
+    auto const syncMode = static_cast<float>(*state.getRawParameterValue("sync")) >= 0.5f;
+    if(syncMode)
+    {
+        // calculate delay mode based on current BPM
+        // NOTE/ TODO: This assumes a 4/4 time signature at the moment
+        if(auto* playhead = getPlayHead())
+        {
+            auto const pos = playhead->getPosition();
+            if(pos.hasValue())
+            {
+                auto const syncDelayDivisor = static_cast<int>(*state.getRawParameterValue("delaydivisor"));
+                auto bpm = 120.0;
+                
+                if(pos->getBpm().hasValue())
+                {
+                    bpm = *pos->getBpm();
+                }
+                
+                auto time_quarter = 60.0 / bpm;
+                delayTime = static_cast<float>(4.0 / syncDelayDivisor * time_quarter);
+            }
+        }
+    }
+    
+    
     auto const wetDryRatio = static_cast<float>(*state.getRawParameterValue("wetdry"));
     auto const feedbackAmt = static_cast<float>(*state.getRawParameterValue("feedback"));
     
@@ -59,12 +86,14 @@ void SimpleDelayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     }
     
     auto const numSamples = buffer.getNumSamples();
+    auto const fractionalSampleDelay = delayTime * mSampleRate;
+    
     for(auto ch = 0; ch < channels; ++ch)
     {
         for(int sample = 0; sample < numSamples; ++sample)
         {
             auto const inputSignal = buffer.getSample(ch, sample);
-            auto const delayedSample = static_cast<float>(mDelayBuffers[ch]->readBuffer(delayTime * mSampleRate)); // not thread safe...
+            auto const delayedSample = static_cast<float>(mDelayBuffers[ch]->readBuffer(fractionalSampleDelay)); // not thread safe...
 
             double inputToDelayBuffer = inputSignal + feedbackAmt * delayedSample;
             mDelayBuffers[ch]->writeBuffer(static_cast<float>(inputToDelayBuffer));

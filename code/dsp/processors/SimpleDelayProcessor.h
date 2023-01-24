@@ -110,6 +110,7 @@ private:
     };
     
     //==============================================================================
+    AudioParameterBool* mSyncMode;
     AudioParameterFloat* mWetDryMix;
     AudioParameterFloat* mDelayTime;
     AudioParameterFloat* mFeedback;
