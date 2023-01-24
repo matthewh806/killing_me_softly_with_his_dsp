@@ -50,21 +50,33 @@ private:
     //==============================================================================
     class SimpleDelayPluginProcessorEditor
     : public juce::AudioProcessorEditor
+    , private juce::AudioProcessorValueTreeState::Listener
     {
     public:
         
         SimpleDelayPluginProcessorEditor(SimpleDelayProcessor& owner)
         : juce::AudioProcessorEditor(owner)
+        , mSyncToggle("Sync")
         , mDelayTimeSlider("Delay Time", "s")
+        , mSyncedDelaySlider("Beat Fraction", "")
         , mWetDrySlider("Wet / Dry", "")
         , mFeedbackSlider("Feedback", "")
+        , mSyncToggleAttachment(owner.state, "sync", mSyncToggle)
         , mDelayTimeAttachment(owner.state, "delaytime", mDelayTimeSlider)
+        , mSyncedDelayTimeAttachment(owner.state, "delaydivisor", mSyncedDelaySlider)
         , mWetDryAttachment(owner.state, "wetdry", mWetDrySlider)
         , mFeedbackAttachment(owner.state, "feedback", mFeedbackSlider)
         {
+            addAndMakeVisible(mSyncToggle);
+            owner.state.addParameterListener("sync", this);
+            
             addAndMakeVisible(&mDelayTimeSlider);
             mDelayTimeSlider.mLabels.add({0.0f, "0.1s"});
             mDelayTimeSlider.mLabels.add({1.0f, "2s"});
+            
+            addAndMakeVisible(&mSyncedDelaySlider);
+            mDelayTimeSlider.mLabels.add({0.0f, "1"});
+            mDelayTimeSlider.mLabels.add({1.0f, "16"});
             
             addAndMakeVisible(&mWetDrySlider);
             mWetDrySlider.mLabels.add({0.0f, "0"});
@@ -74,10 +86,15 @@ private:
             mFeedbackSlider.mLabels.add({0.0f, "0%"});
             mFeedbackSlider.mLabels.add({1.0f, "100%"});
             
-            setSize (600, 200);
+            mDelayTimeSlider.setVisible(true);
+            mSyncedDelaySlider.setVisible(false);
+            setSize (600, 250);
         }
         
-        ~SimpleDelayPluginProcessorEditor() override {}
+        ~SimpleDelayPluginProcessorEditor() override
+        {
+            dynamic_cast<SimpleDelayProcessor&>(processor).state.removeParameterListener("sync", this);
+        }
         
         //==============================================================================
         void paint (juce::Graphics& g) override
@@ -90,9 +107,17 @@ private:
         {
             auto bounds = getLocalBounds();
             bounds.removeFromTop(20);
+            
+            auto syncButtonBounds = bounds.removeFromTop(20);
+            mSyncToggle.setBounds(syncButtonBounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.30)));
+            
             auto const rotaryWidth = static_cast<int>(bounds.getWidth() * 0.30);
             auto const spacing = static_cast<int>((bounds.getWidth() - (rotaryWidth * 3)) / 2.0);
-            mDelayTimeSlider.setBounds(bounds.removeFromLeft(rotaryWidth));
+            
+            auto delaySliderBounds = bounds.removeFromLeft(rotaryWidth);
+            mDelayTimeSlider.setBounds(delaySliderBounds);
+            mSyncedDelaySlider.setBounds(delaySliderBounds);
+            
             bounds.removeFromLeft(spacing);
             mWetDrySlider.setBounds(bounds.removeFromLeft(rotaryWidth));
             bounds.removeFromLeft(spacing);
@@ -100,11 +125,29 @@ private:
         }
         
     private:
+        // juce::AudioProcessorValueTreeState::Listener
+        void parameterChanged (const String& parameterID, float newValue) override
+        {
+            if(parameterID.equalsIgnoreCase("sync"))
+            {
+                auto const synced = newValue >= 0.5f;
+                mDelayTimeSlider.setVisible(!synced);
+                mSyncedDelaySlider.setVisible(synced);
+                
+                repaint();
+            }
+        }
+        
+        juce::ToggleButton mSyncToggle;
+        
         RotarySliderWithLabels mDelayTimeSlider;
+        RotarySliderWithLabels mSyncedDelaySlider;
         RotarySliderWithLabels mWetDrySlider;
         RotarySliderWithLabels mFeedbackSlider;
         
+        juce::AudioProcessorValueTreeState::ButtonAttachment mSyncToggleAttachment;
         juce::AudioProcessorValueTreeState::SliderAttachment mDelayTimeAttachment;
+        juce::AudioProcessorValueTreeState::SliderAttachment mSyncedDelayTimeAttachment;
         juce::AudioProcessorValueTreeState::SliderAttachment mWetDryAttachment;
         juce::AudioProcessorValueTreeState::SliderAttachment mFeedbackAttachment;
     };

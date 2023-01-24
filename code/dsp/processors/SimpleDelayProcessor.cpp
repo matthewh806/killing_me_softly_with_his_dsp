@@ -18,7 +18,7 @@ SimpleDelayProcessor::SimpleDelayProcessor()
             std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", 0.0f, 1.0f, 0.5f)
         })
 {
-    state.state.addChild({ "uiState", {{"width", 400}, {"height", 200 } }, {} }, -1, nullptr);
+    state.state.addChild({ "uiState", {{"width", 400}, {"height", 250 } }, {} }, -1, nullptr);
 }
 
 //==============================================================================
