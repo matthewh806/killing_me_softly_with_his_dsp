@@ -18,7 +18,7 @@ add_subdirectory(dependencies/freeverb)
 
 include(juce_shared_vst.cmake)
 
-set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "The Office of Unspecified Services")
+set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "TheOfficeOfUnspecifiedServices")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "http://theofficeofunspecifiedservices.com")
 
 if(UNIX AND NOT APPLE)
