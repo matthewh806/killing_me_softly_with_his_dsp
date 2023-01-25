@@ -234,7 +234,7 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")
 , mPitchShiftSlider("Pitch shift", "")
-, mCrossFadeSlider("Cross fade", "ms", 100.0)
+, mCrossFadeSlider("Cross fade", "ms", 10.0)
 , mSliceDivsorSlider("Slice Div", "", 1.0)
 , mSliceTransientThresholdSlider("Detection Thresh.", "", 0.3)
 , mChangeSampleProbabilitySlider("Swap slice", "%", 0.3)
@@ -294,9 +294,9 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     
     addAndMakeVisible(mCrossFadeSlider);
     mCrossFadeSlider.mLabels.add({0.0, "0"});
-    mCrossFadeSlider.mLabels.add({1.0, "200"});
-    mCrossFadeSlider.setRange(0.0, 400.0, 10.0);
-    mCrossFadeSlider.setValue(100, juce::NotificationType::dontSendNotification);
+    mCrossFadeSlider.mLabels.add({1.0, "30"});
+    mCrossFadeSlider.setRange(0.0, 30.0, 1.0);
+    mCrossFadeSlider.setValue(10.0, juce::NotificationType::dontSendNotification);
     mCrossFadeSlider.onValueChange = [this]()
     {
         mAudioSource.setCrossFade(static_cast<float>(mCrossFadeSlider.getValue()));
