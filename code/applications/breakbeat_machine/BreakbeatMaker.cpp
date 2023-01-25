@@ -654,7 +654,7 @@ void BreakbeatContentComponent::changeListenerCallback(juce::ChangeBroadcaster* 
         auto const& slices = mAudioSource.getSliceManager().getSlices();
         auto const activeSlice = mAudioSource.getSliceManager().getCurrentSliceIndex();
         
-        std::cout << "Number of slices: " << slices.size() << "\n";
+//        std::cout << "Number of slices: " << slices.size() << "\n";
         
         mWaveformComponent.setSlicePositions(slices, activeSlice);
     }
