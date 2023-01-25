@@ -10,6 +10,7 @@ class SimpleDelayProcessor  : public juce::AudioProcessor
 public:
     // TODO: Make this private
     juce::AudioProcessorValueTreeState state;
+    constexpr static float syncedDelayDivisions[7] = {1, 2, 4, 8, 16, 32, 64};
     
     //==============================================================================
     SimpleDelayProcessor();
@@ -75,8 +76,8 @@ private:
             mDelayTimeSlider.mLabels.add({1.0f, "2s"});
             
             addAndMakeVisible(&mSyncedDelaySlider);
-            mDelayTimeSlider.mLabels.add({0.0f, "1"});
-            mDelayTimeSlider.mLabels.add({1.0f, "16"});
+            mSyncedDelaySlider.mLabels.add({0.0f, "1"});
+            mSyncedDelaySlider.mLabels.add({1.0f, "1/64"});
             
             addAndMakeVisible(&mWetDrySlider);
             mWetDrySlider.mLabels.add({0.0f, "0"});
@@ -88,6 +89,7 @@ private:
             
             mDelayTimeSlider.setVisible(true);
             mSyncedDelaySlider.setVisible(false);
+            
             setSize (600, 250);
         }
         
@@ -125,6 +127,19 @@ private:
         }
         
     private:
+        
+        class SyncedDelayRotarySliderWithLabels : public RotarySliderWithLabels
+        {
+        public:
+            using RotarySliderWithLabels::RotarySliderWithLabels;
+            
+            juce::String getDisplayString() const override
+            {
+                auto const strVal = juce::String(syncedDelayDivisions[static_cast<int>(getValue())]);
+                return "1 / " + strVal;
+            }
+        };
+        
         // juce::AudioProcessorValueTreeState::Listener
         void parameterChanged (const String& parameterID, float newValue) override
         {
@@ -141,7 +156,8 @@ private:
         juce::ToggleButton mSyncToggle;
         
         RotarySliderWithLabels mDelayTimeSlider;
-        RotarySliderWithLabels mSyncedDelaySlider;
+        SyncedDelayRotarySliderWithLabels mSyncedDelaySlider;
+        
         RotarySliderWithLabels mWetDrySlider;
         RotarySliderWithLabels mFeedbackSlider;
         

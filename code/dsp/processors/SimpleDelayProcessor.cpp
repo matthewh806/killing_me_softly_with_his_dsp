@@ -14,7 +14,7 @@ SimpleDelayProcessor::SimpleDelayProcessor()
             std::make_unique<juce::AudioParameterBool>("sync", "Sync", false),
             std::make_unique<juce::AudioParameterFloat>("wetdry", "Wet/Dry Mix", 0.0f, 1.0f, 0.5f),
             std::make_unique<juce::AudioParameterFloat>("delaytime", "Delay Time", 0.0f, 2.0f, 0.1f),
-            std::make_unique<juce::AudioParameterInt>("delaydivisor", "Delay Time", 1, 16, 4),
+            std::make_unique<juce::AudioParameterInt>("delaydivisor", "Delay Time", 0, 6, 3),
             std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", 0.0f, 1.0f, 0.5f)
         })
 {
@@ -61,7 +61,7 @@ void SimpleDelayProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             auto const pos = playhead->getPosition();
             if(pos.hasValue())
             {
-                auto const syncDelayDivisor = static_cast<int>(*state.getRawParameterValue("delaydivisor"));
+                auto const syncDelayDivisor = syncedDelayDivisions[static_cast<int>(*state.getRawParameterValue("delaydivisor"))];
                 auto bpm = 120.0;
                 
                 if(pos->getBpm().hasValue())
