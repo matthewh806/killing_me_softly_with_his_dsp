@@ -14,8 +14,11 @@ v0.0.4
       - Increased the min / max ball radius for visual improvement
       - Improved the physics step / renderer refresh rate
       - Balls now spawn at mouse click location
+    - Improved SimpleDelay
+      - Implemented tempo synced delay times
+      - Create a VST version
     - Converted AudioDecay into a VST3
-    - Converted SimpleDelay into a VST3
+    
 
   - GENERAL
     - Define the company name and use in all JUCE targets
