@@ -177,8 +177,7 @@ private:
     int mBlockSize;
     int mSampleRate;
     
-    CircularBuffer<float>** mDelayBuffers;
-
+    std::vector<std::unique_ptr<CircularBuffer<float>>> mDelayBuffers;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleDelayProcessor)
 };
