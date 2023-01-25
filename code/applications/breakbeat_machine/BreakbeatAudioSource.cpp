@@ -142,6 +142,7 @@ void BreakbeatAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& buff
             }
         };
         
+        retainedBuffer = mSliceManager.getActiveBuffer();
         currentPosition = atSliceEnd ? sliceStartPosition : currentPosition;
         auto const readBufferEnd = std::min(sliceEndPosition, currentPosition + static_cast<size_t>(samplesRemaining));
         jassert(currentPosition >= 0 && readBufferEnd >= currentPosition);

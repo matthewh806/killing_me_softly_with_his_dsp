@@ -807,7 +807,7 @@ void BreakbeatContentComponent::updateWaveform()
 {
     mWaveformComponent.clear();
     mWaveformComponent.getThumbnail().reset(2, mAudioSource.getSliceManager().getSampleSampleRate());
-    mWaveformComponent.getThumbnail().addBlock(0, *mAudioSource.getSliceManager().getActiveBuffer(), 0, static_cast<int>(mAudioSource.getSliceManager().getBufferNumSamples()));
+    mWaveformComponent.getThumbnail().addBlock(0, *mAudioSource.getSliceManager().getForwardBuffer(), 0, static_cast<int>(mAudioSource.getSliceManager().getBufferNumSamples()));
 }
 
 void BreakbeatContentComponent::fromXml(juce::XmlElement const& xml)

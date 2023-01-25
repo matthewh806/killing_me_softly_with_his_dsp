@@ -79,6 +79,17 @@ void SampleManager::setForwardBufferActive()
     retainedBuffer->updateCurrentSampleBuffer(false);
 }
 
+juce::AudioSampleBuffer* SampleManager::getForwardBuffer()
+{
+    ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mActiveBuffer);
+    if(mActiveBuffer == nullptr)
+    {
+        return nullptr;
+    }
+    
+    return retainedBuffer->getForwardAudioSampleBuffer();
+}
+
 void SampleManager::setReverseBufferActive()
 {
     ReferenceCountedForwardAndReverseBuffer::Ptr retainedBuffer(mActiveBuffer);
@@ -98,7 +109,7 @@ juce::AudioSampleBuffer* SampleManager::getActiveBuffer()
         return nullptr;
     }
     
-    return mActiveBuffer->getForwardAudioSampleBuffer();
+    return mActiveBuffer->getCurrentAudioSampleBuffer();
 }
 
 void SampleManager::clearFreeBuffers()

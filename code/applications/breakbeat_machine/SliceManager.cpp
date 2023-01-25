@@ -234,7 +234,7 @@ void SliceManager::performSlice()
         detectionSettings.sampleRate = static_cast<int>(getSampleSampleRate());
         detectionSettings.threshold = mThreshold;
         
-        auto const onsetPositions = AudioAnalyser::getOnsetPositions(*getActiveBuffer(), detectionSettings);
+        auto const onsetPositions = AudioAnalyser::getOnsetPositions(*getForwardBuffer(), detectionSettings);
         auto const numSlices = onsetPositions.size();
         jassert(numSlices > 0);
         

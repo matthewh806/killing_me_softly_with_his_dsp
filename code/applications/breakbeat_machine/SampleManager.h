@@ -40,6 +40,8 @@ public:
     void setForwardBufferActive();
     void setReverseBufferActive();
     
+    juce::AudioSampleBuffer* getForwardBuffer();
+    
     juce::AudioSampleBuffer* getActiveBuffer();
     void clearFreeBuffers();
     
