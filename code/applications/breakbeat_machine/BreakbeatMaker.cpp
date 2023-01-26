@@ -685,6 +685,23 @@ void BreakbeatContentComponent::handleAsyncUpdate()
     changeState(TransportState::Stopped);
 }
 
+bool BreakbeatContentComponent::keyPressed(juce::KeyPress const& key)
+{
+    if(key == KeyPress::spaceKey) // r
+    {
+        changeState(mState == TransportState::Starting || mState == TransportState::Playing
+            ? TransportState::Stopping : TransportState::Starting);
+    }
+    
+    return true;
+}
+
+bool BreakbeatContentComponent::keyPressed (const juce::KeyPress& key, juce::Component* originatingComponent)
+{
+    juce::ignoreUnused(originatingComponent);
+    return keyPressed(key);
+}
+
 void BreakbeatContentComponent::newFileOpened(juce::String& filePath)
 {
     mChosenPath.swapWith(filePath);

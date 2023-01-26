@@ -25,6 +25,7 @@ class BreakbeatContentComponent
 , private juce::Thread
 , private juce::ChangeListener
 , private juce::AsyncUpdater
+, private juce::KeyListener
 {
 public:
     enum ColourIds
@@ -56,6 +57,10 @@ public:
     
     // juce::AsyncUpdater
     void handleAsyncUpdate() override;
+    
+    // juce::KeyListener
+    bool keyPressed(juce::KeyPress const& key) override;
+    bool keyPressed (const juce::KeyPress& key, juce::Component* originatingComponent) override;
     
     void newFileOpened(String& filePath);
     void setFileOutputPath();
