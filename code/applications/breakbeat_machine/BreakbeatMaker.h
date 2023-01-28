@@ -6,6 +6,7 @@
 #include "BreakbeatAudioSource.h"
 #include "../../utils/FileRecorder.h"
 #include "SliceExporter.h"
+#include "BreakbeatWaveform.h"
 
 //==============================================================================
 
@@ -26,7 +27,6 @@ class BreakbeatContentComponent
 , private juce::ChangeListener
 , private juce::AsyncUpdater
 , private juce::KeyListener
-, private juce::Timer
 {
 public:
     enum ColourIds
@@ -79,67 +79,6 @@ private:
         Stopping
     };
     
-    class WaveformComponent
-    : public juce::Component
-    , public juce::FileDragAndDropTarget
-    , private juce::AsyncUpdater
-    , private juce::ChangeListener
-    {
-    public:
-        WaveformComponent(BreakbeatContentComponent& parent, juce::AudioFormatManager& formatManager);
-        ~WaveformComponent() override;
-        
-        juce::AudioThumbnail& getThumbnail();
-        
-        void setSlicePositions(std::vector<SliceManager::Slice> const& slicePositions, size_t activeSliceIndex);
-        void setActiveSlice(size_t sliceIndex);
-        
-        void setPlayheadPosition(float playheadPosition);
-        
-        void clear();
-        
-        // juce::Component
-        void resized() override;
-        void paint(juce::Graphics& g) override;
-        void mouseDoubleClick(juce::MouseEvent const& event) override;
-        void mouseDown(juce::MouseEvent const& event) override;
-        void mouseUp(juce::MouseEvent const& event) override;
-        void mouseDrag (const MouseEvent& event) override;
-        
-        // juce::FileDragAndDropTarget
-        bool isInterestedInFileDrag (const StringArray& files) override;
-        void filesDropped (const StringArray& files, int x, int y) override;
-        
-        // juce::AsyncUpdater
-        void handleAsyncUpdate() override;
-        
-        // juce::ChangeListener
-        void changeListenerCallback(juce::ChangeBroadcaster* source) override;
-        
-        std::function<void(int)> onWaveformDoubleClicked = nullptr;
-        std::function<void(int)> onSliceMarkerRightClicked = nullptr;
-        std::function<void(int)> onSliceMarkerMouseDown = nullptr;
-        std::function<void(float)> onSliceMarkerDragged = nullptr;
-        std::function<void()> onMouseUp = nullptr;
-        
-    private:
-        BreakbeatContentComponent& mParentComponent;
-        
-        juce::AudioFormatManager& mAudioFormatManager;
-        juce::AudioThumbnailCache mThumbnailCache;
-        juce::AudioThumbnail mThumbnail;
-        
-        float mPlayheadPosition {0.0f};
-        
-        std::vector<size_t> mSlicePositions;
-        size_t mActiveSliceIndex {0};
-        
-        double mSampleRate = 44100.0;
-    };
-    
-    // juce::Timer
-    void timerCallback() override;
-    
     void checkForBuffersToFree();
     void checkForPathToOpen();
     
@@ -183,7 +122,7 @@ private:
     
     SliceExporter mSliceExporter {mFormatManager};
     
-    WaveformComponent mWaveformComponent { *this, mFormatManager };
+    BreakbeatWaveformComponent mWaveformComponent { mFormatManager, mTransportSource };
     
     juce::String mChosenPath;
     
