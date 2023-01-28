@@ -14,6 +14,11 @@ v0.0.4
       - Increased the min / max ball radius for visual improvement
       - Improved the physics step / renderer refresh rate
       - Balls now spawn at mouse click location
+    - Improved BreakbeatMachine
+      - Reimplemented slice reverse
+      - Reimplemented slice retrigger
+      - Reimplemented and improved slice fade in/out logic
+      - Added functionality to start / stop transport with space key
     - Improved SimpleDelay
       - Implemented tempo synced delay times
       - Create a VST version
@@ -31,7 +36,7 @@ v0.0.3
   - CODE
     - Added basic reverb VST "MattVerb" based on freeverb 
     - Added another reverb VST designed by Chat-GPT 3.5
-    - Improved Breakbeat BreakbeatMachine
+    - Improved BreakbeatMachine
       - Fixed marker positioning bugs
       - Markers can now be deleted & moved
       - Markers positions are saved on close / loaded on open
