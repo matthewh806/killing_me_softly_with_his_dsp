@@ -26,6 +26,7 @@ class BreakbeatContentComponent
 , private juce::ChangeListener
 , private juce::AsyncUpdater
 , private juce::KeyListener
+, private juce::Timer
 {
 public:
     enum ColourIds
@@ -82,6 +83,7 @@ private:
     : public juce::Component
     , public juce::FileDragAndDropTarget
     , private juce::AsyncUpdater
+    , private juce::ChangeListener
     {
     public:
         WaveformComponent(BreakbeatContentComponent& parent, juce::AudioFormatManager& formatManager);
@@ -91,6 +93,8 @@ private:
         
         void setSlicePositions(std::vector<SliceManager::Slice> const& slicePositions, size_t activeSliceIndex);
         void setActiveSlice(size_t sliceIndex);
+        
+        void setPlayheadPosition(float playheadPosition);
         
         void clear();
         
@@ -109,6 +113,9 @@ private:
         // juce::AsyncUpdater
         void handleAsyncUpdate() override;
         
+        // juce::ChangeListener
+        void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+        
         std::function<void(int)> onWaveformDoubleClicked = nullptr;
         std::function<void(int)> onSliceMarkerRightClicked = nullptr;
         std::function<void(int)> onSliceMarkerMouseDown = nullptr;
@@ -122,11 +129,16 @@ private:
         juce::AudioThumbnailCache mThumbnailCache;
         juce::AudioThumbnail mThumbnail;
         
+        float mPlayheadPosition {0.0f};
+        
         std::vector<size_t> mSlicePositions;
         size_t mActiveSliceIndex {0};
         
         double mSampleRate = 44100.0;
     };
+    
+    // juce::Timer
+    void timerCallback() override;
     
     void checkForBuffersToFree();
     void checkForPathToOpen();

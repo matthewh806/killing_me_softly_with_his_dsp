@@ -13,14 +13,15 @@
 BreakbeatContentComponent::WaveformComponent::WaveformComponent(BreakbeatContentComponent& parent, juce::AudioFormatManager& formatManager)
 : mParentComponent(parent)
 , mAudioFormatManager(formatManager)
-, mThumbnailCache(1)
-, mThumbnail(512, mAudioFormatManager, mThumbnailCache)
+, mThumbnailCache(32)
+, mThumbnail(32, mAudioFormatManager, mThumbnailCache)
 {
+    mThumbnail.addChangeListener(this);
 }
 
 BreakbeatContentComponent::WaveformComponent::~WaveformComponent()
 {
-    
+    mThumbnail.removeChangeListener(this);
 }
 
 
@@ -56,6 +57,15 @@ void BreakbeatContentComponent::WaveformComponent::setActiveSlice(size_t sliceIn
     repaint();
 }
 
+void BreakbeatContentComponent::WaveformComponent::setPlayheadPosition(float playheadPosition)
+{
+    if(std::abs(mPlayheadPosition - playheadPosition) > std::numeric_limits<float>::epsilon())
+    {
+        mPlayheadPosition = playheadPosition;
+        repaint();
+    }
+}
+
 void BreakbeatContentComponent::WaveformComponent::resized()
 {
     
@@ -63,21 +73,34 @@ void BreakbeatContentComponent::WaveformComponent::resized()
 
 void BreakbeatContentComponent::WaveformComponent::paint(juce::Graphics& g)
 {
-    juce::Rectangle<int> thumbnailBounds (0, 20, getWidth(), getHeight());
+    juce::Rectangle<int> thumbnailBounds (0, 20, getWidth(), getHeight() - 20);
     
     if(mThumbnail.getNumChannels() == 0)
     {
-        g.setColour(juce::Colours::darkgrey);
-        g.fillRect(thumbnailBounds);
         g.setColour(juce::Colours::white);
         g.drawFittedText("Drag and drop and audio file", thumbnailBounds, juce::Justification::centred, 1);
     }
     else
     {
+        auto const audioLength = mThumbnail.getTotalLength();
+        g.setColour(juce::Colours::darkorange);
+        mThumbnail.drawChannels(g, thumbnailBounds, 0.0, audioLength, 1.0f);
+        
         g.setColour(juce::Colours::white);
-        g.fillRect(thumbnailBounds);
-        g.setColour(juce::Colours::red);
-        mThumbnail.drawChannels(g, thumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
+        auto const playheadDrawPosition = mPlayheadPosition / audioLength * thumbnailBounds.getWidth() + thumbnailBounds.getX();
+        g.drawLine(playheadDrawPosition, thumbnailBounds.getY(), playheadDrawPosition, thumbnailBounds.getBottom(), 2.0f);
+    }
+    
+    if(!mThumbnail.isFullyLoaded())
+    {
+        juce::Component::SafePointer<juce::Component> sp {this};
+        juce::MessageManager::callAsync([sp]()
+                                        {
+                                            if(auto c = sp.getComponent())
+                                            {
+                                                c->repaint();
+                                            }
+                                        });
     }
     
     if(mSlicePositions.size() <= 1)
@@ -228,6 +251,14 @@ void BreakbeatContentComponent::WaveformComponent::filesDropped (const StringArr
 void BreakbeatContentComponent::WaveformComponent::handleAsyncUpdate()
 {
     repaint();
+}
+
+void BreakbeatContentComponent::WaveformComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if(source == &mThumbnail)
+    {
+        repaint();
+    }
 }
 
 BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
@@ -512,10 +543,10 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     
     mTransportSource.addChangeListener(this);
     mAudioSource.getSliceManager().addChangeListener(this);
-    mWaveformComponent.getThumbnail().addChangeListener(this);
     
     mActiveMouseMarker = juce::Uuid().null();
     
+    startTimer(40.0);
     startThread();
 }
 
@@ -640,11 +671,7 @@ void BreakbeatContentComponent::run()
 
 void BreakbeatContentComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
-    if(source == &mWaveformComponent.getThumbnail())
-    {
-        repaint();
-    }
-    else if(source == &mTransportSource)
+    if(source == &mTransportSource)
     {
         changeState(mTransportSource.isPlaying() ? TransportState::Playing : TransportState::Stopped);
     }
@@ -813,6 +840,11 @@ void BreakbeatContentComponent::checkForPathToOpen()
     
     mRecentFiles.addFile(juce::File(pathToOpen));
     triggerAsyncUpdate();
+}
+
+void BreakbeatContentComponent::timerCallback()
+{
+    mWaveformComponent.setPlayheadPosition(mTransportSource.getCurrentPosition());
 }
 
 void BreakbeatContentComponent::checkForBuffersToFree()
