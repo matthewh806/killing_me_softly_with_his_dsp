@@ -20,6 +20,8 @@ target_sources(BreakbeatMachine
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatMaker.cpp
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SliceExporter.h
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SliceExporter.cpp
+        ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatWaveform.h
+        ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/BreakbeatWaveform.cpp
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/Main.cpp)
 
 target_compile_definitions(BreakbeatMachine
