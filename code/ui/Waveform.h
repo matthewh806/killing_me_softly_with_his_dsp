@@ -35,9 +35,4 @@ private:
     juce::AudioFormatManager& mAudioFormatManager;
     juce::AudioThumbnailCache mThumbnailCache;
     juce::AudioThumbnail mThumbnail;
-    
-    int64_t mStartSample = 0;
-    int64_t mEndSample = 0;
-    
-    double mSampleRate = 44100.0;
 };

@@ -2,8 +2,8 @@
 
 WaveformComponent::WaveformComponent(juce::AudioFormatManager& formatManager)
 : mAudioFormatManager(formatManager)
-, mThumbnailCache(1)
-, mThumbnail(512, mAudioFormatManager, mThumbnailCache)
+, mThumbnailCache(32)
+, mThumbnail(32, mAudioFormatManager, mThumbnailCache)
 {
 }
 
@@ -51,24 +51,17 @@ void WaveformComponent::paint(juce::Graphics& g)
         mThumbnail.drawChannels(g, mThumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
     }
     
-    juce::Range<int64_t> sampleRange { mStartSample, mEndSample };
-    if(sampleRange.getLength() == 0)
+    if(!mThumbnail.isFullyLoaded())
     {
-        return;
+        juce::Component::SafePointer<juce::Component> sp {this};
+        juce::MessageManager::callAsync([sp]()
+                                        {
+                                            if(auto c = sp.getComponent())
+                                            {
+                                                c->repaint();
+                                            }
+                                        });
     }
-    
-    auto const sampleStartRatio = static_cast<double>(sampleRange.getStart() / mSampleRate) / mThumbnail.getTotalLength();
-    auto const sampleSizeRatio = static_cast<double>(sampleRange.getLength() / mSampleRate) / mThumbnail.getTotalLength();
-    
-    juce::Rectangle<int> clipBounds {
-        mThumbnailBounds.getX() + static_cast<int>(mThumbnailBounds.getWidth() * sampleStartRatio),
-        mThumbnailBounds.getY(),
-        static_cast<int>(mThumbnailBounds.getWidth() * sampleSizeRatio),
-        mThumbnailBounds.getHeight()
-    };
-    
-    g.setColour(juce::Colours::blue.withAlpha(0.4f));
-    g.fillRect(clipBounds);
 }
 
 bool WaveformComponent::isInterestedInFileDrag (const StringArray& files)

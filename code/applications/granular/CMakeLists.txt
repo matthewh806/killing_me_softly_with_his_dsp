@@ -12,8 +12,6 @@ set(GranularApplicationSources
     ${CMAKE_SOURCE_DIR}/applications/granular/Main.cpp
     ${CMAKE_SOURCE_DIR}/applications/granular/MainComponent.h
     ${CMAKE_SOURCE_DIR}/applications/granular/MainComponent.cpp
-    ${CMAKE_SOURCE_DIR}/applications/granular/Waveform.h
-    ${CMAKE_SOURCE_DIR}/applications/granular/Waveform.cpp
 )
 source_group("Source/ApplicationSources" FILES ${GranularApplicationSources})
 

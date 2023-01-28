@@ -2,10 +2,9 @@
 
 #include "JuceHeader.h"
 #include "../../ui/CustomLookAndFeel.h"
+#include "../../ui/Waveform.h"
 #include "../../core/ReferenceCountedBuffer.h"
 #include "../../dsp/synthesis/granular/Scheduler.h"
-
-#include "Waveform.h"
 
 class GranularWaveform
 : public WaveformComponent
