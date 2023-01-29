@@ -385,6 +385,7 @@ void BreakbeatContentComponent::prepareToPlay (int samplerPerBlockExpected, doub
 {
     mAudioSource.prepareToPlay(samplerPerBlockExpected, sampleRate);
     mTransportSource.prepareToPlay(samplerPerBlockExpected, sampleRate);
+    mWaveformComponent.setSampleRate(static_cast<float>(sampleRate));
     
     mTemporaryChannels.resize(2, nullptr);
 }
