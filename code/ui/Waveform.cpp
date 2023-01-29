@@ -31,7 +31,7 @@ void WaveformComponent::clear()
 
 void WaveformComponent::resized()
 {
-    mThumbnailBounds = juce::Rectangle<int>(10, 10, getWidth()-20, getHeight()-20);
+    mThumbnailBounds = getLocalBounds();
 }
 
 void WaveformComponent::paint(juce::Graphics& g)

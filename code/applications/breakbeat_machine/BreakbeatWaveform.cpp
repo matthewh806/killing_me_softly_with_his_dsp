@@ -199,7 +199,7 @@ void BreakbeatWaveformComponent::setSampleRate(float sampleRate)
 
 void BreakbeatWaveformComponent::resized()
 {
-    juce::Rectangle<int> thumbnailBounds (10, 10, getWidth() - 10, getHeight() - 10);
+    auto const thumbnailBounds = getLocalBounds();
     mWaveformComponent.setBounds (thumbnailBounds);
     mSliceOverlayComponent.setBounds(thumbnailBounds);
     mPlayheadOverlayComponent.setBounds (thumbnailBounds);
@@ -207,6 +207,7 @@ void BreakbeatWaveformComponent::resized()
 
 void BreakbeatWaveformComponent::paint(juce::Graphics& g)
 {
+    juce::ignoreUnused(g);
 }
 
 void BreakbeatWaveformComponent::mouseDoubleClick(juce::MouseEvent const& event)

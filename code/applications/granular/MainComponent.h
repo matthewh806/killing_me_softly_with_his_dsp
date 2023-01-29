@@ -22,7 +22,7 @@ public:
         // draw the grains
         auto const lengthInSeconds = getThumbnail().getTotalLength();
         auto const lengthInSamples = static_cast<size_t>(std::floor(lengthInSeconds * 44100.0));
-        auto const waveformBounds = getThumbnailBounds();
+        auto const waveformBounds = getLocalBounds();
         
         for(size_t i = 0; i < Scheduler::POOL_SIZE; ++i)
         {
