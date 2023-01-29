@@ -8,7 +8,6 @@ PlayheadPositionOverlayComponent::PlayheadPositionOverlayComponent(juce::AudioTr
 
 PlayheadPositionOverlayComponent::~PlayheadPositionOverlayComponent()
 {
-//    mThumbnail.removeChangeListener(this);
 }
 
 void PlayheadPositionOverlayComponent::paint(juce::Graphics& g)
@@ -21,7 +20,7 @@ void PlayheadPositionOverlayComponent::paint(juce::Graphics& g)
         return;
     }
     
-    auto const playheadDrawPosition = mPlayheadPosition / audioLength * getWidth();
+    auto const playheadDrawPosition = static_cast<float>(mPlayheadPosition / audioLength * getWidth());
     g.drawLine(playheadDrawPosition, 0.0f, playheadDrawPosition, getHeight(), 2.0f);
 }
 
@@ -65,7 +64,7 @@ void SlicesOverlayComponent::paint(juce::Graphics& g)
         
         // draw the slice handle
         Path trianglePath;
-        trianglePath.addTriangle(sliceX - 8.0f, 0.0f, sliceX, getY() - 16.0f, sliceX + 8.0f, getY());
+        trianglePath.addTriangle(sliceX - 8.0f, 0.0f, sliceX + 8.0f, 0.0f, sliceX, 16.0f);
         g.fillPath(trianglePath);
     }
     
@@ -151,11 +150,15 @@ BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager&
 , mSliceOverlayComponent(transportSource)
 , mPlayheadOverlayComponent(transportSource)
 {
-//    mThumbnail.addChangeListener(this);
+    mWaveformComponent.getThumbnail().addChangeListener(this);
     
     addAndMakeVisible(mWaveformComponent);
     addAndMakeVisible(mSliceOverlayComponent);
     addAndMakeVisible(mPlayheadOverlayComponent);
+    
+    mPlayheadOverlayComponent.setInterceptsMouseClicks(false, false);
+    mSliceOverlayComponent.setInterceptsMouseClicks(false, false);
+    mWaveformComponent.setInterceptsMouseClicks(false, false);
     
     mWaveformComponent.onNewFileDropped = [this](juce::String& path)
     {
@@ -168,7 +171,7 @@ BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager&
 
 BreakbeatWaveformComponent::~BreakbeatWaveformComponent()
 {
-//    mThumbnail.removeChangeListener(this);
+    mWaveformComponent.getThumbnail().removeChangeListener(this);
 }
 
 
@@ -199,10 +202,13 @@ void BreakbeatWaveformComponent::setSampleRate(float sampleRate)
 
 void BreakbeatWaveformComponent::resized()
 {
-    auto const thumbnailBounds = getLocalBounds();
-    mWaveformComponent.setBounds (thumbnailBounds);
-    mSliceOverlayComponent.setBounds(thumbnailBounds);
-    mPlayheadOverlayComponent.setBounds (thumbnailBounds);
+    auto componentBounds = getLocalBounds();
+    mSliceOverlayComponent.setBounds(componentBounds);
+    
+    // This reduction is done to give the slice markers some space at the top
+    componentBounds.removeFromTop(18.0);
+    mWaveformComponent.setBounds (componentBounds);
+    mPlayheadOverlayComponent.setBounds (componentBounds);
 }
 
 void BreakbeatWaveformComponent::paint(juce::Graphics& g)
@@ -271,8 +277,21 @@ void BreakbeatWaveformComponent::handleAsyncUpdate()
 
 void BreakbeatWaveformComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
-//    if(source == &mThumbnail)
-//    {
-//        repaint();
-//    }
+    if(source == &mWaveformComponent.getThumbnail())
+    {
+        repaint();
+    }
 }
+
+// juce::FileDragAndDropTarget
+bool BreakbeatWaveformComponent::isInterestedInFileDrag (const StringArray& files)
+{
+        return mWaveformComponent.isInterestedInFileDrag(files);
+}
+
+void BreakbeatWaveformComponent::filesDropped (const StringArray& files, int x, int y)
+{
+    mWaveformComponent.filesDropped(files, x, y);
+}
+
+

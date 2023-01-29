@@ -52,6 +52,7 @@ private:
 
 class BreakbeatWaveformComponent
 : public juce::Component
+, public juce::FileDragAndDropTarget
 , private juce::AsyncUpdater
 , private juce::ChangeListener
 {
@@ -76,6 +77,10 @@ public:
     void mouseUp(juce::MouseEvent const& event) override;
     void mouseDrag (const MouseEvent& event) override;
     
+    // juce::FileDragAndDropTarget
+    bool isInterestedInFileDrag (const StringArray& files) override;
+    void filesDropped (const StringArray& files, int x, int y) override;
+    
     // juce::AsyncUpdater
     void handleAsyncUpdate() override;
     
@@ -91,6 +96,7 @@ public:
     std::function<void(juce::String&)> onNewFileDropped = nullptr;
     
 private:
+    
     juce::AudioFormatManager& mAudioFormatManager;
     
     WaveformComponent mWaveformComponent;
