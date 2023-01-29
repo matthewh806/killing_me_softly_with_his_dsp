@@ -19,6 +19,9 @@ v0.0.4
       - Reimplemented slice retrigger
       - Reimplemented and improved slice fade in/out logic
       - Added functionality to start / stop transport with space key
+      - Improved waveform sample resolution
+      - Fixed waveform component height
+      - Added a simple position playhead 
     - Improved SimpleDelay
       - Implemented tempo synced delay times
       - Create a VST version
