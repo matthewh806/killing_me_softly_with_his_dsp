@@ -45,9 +45,7 @@ void WaveformComponent::paint(juce::Graphics& g)
     }
     else
     {
-        g.setColour(juce::Colours::white);
-        g.fillRect(mThumbnailBounds);
-        g.setColour(juce::Colours::red);
+        g.setColour(juce::Colours::orange);
         mThumbnail.drawChannels(g, mThumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
     }
     
