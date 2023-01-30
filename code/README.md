@@ -154,8 +154,8 @@ This is another implementation of the freeverb VST3 plugin, however this time th
 
 ##### VST3 Note:
 
-As these are unsigned VST's we need a way to tell Apple to unquarantine them, otherwise they load properly in a DAW. In order to enable them open a terminal
-and run the following command 
+As these are unsigned VST's we need a way to tell Apple to unquarantine them, otherwise they wont load properly in a DAW. 
+In order to enable them open a terminal and run the following command 
 
 ```
 sudo xattr -rd com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/MattVerb.vst3/
