@@ -39,7 +39,7 @@ using namespace OUS;
 // GetPluginFactory function!
 //------------------------------------------------------------------------
 
-BEGIN_FACTORY_DEF ("The Office of Unspecified Services", 
+BEGIN_FACTORY_DEF ("TheOfficeOfUnspecifiedServices", 
 			       "http://theofficeofunspecifiedservices.com", 
 			       "mailto:")
 
