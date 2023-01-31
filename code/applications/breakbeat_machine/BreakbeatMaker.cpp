@@ -9,6 +9,7 @@
 */
 
 #include "BreakbeatMaker.h"
+#include "BinaryData.h"
 
 BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
 : juce::AudioAppComponent(audioDeviceManager)
@@ -370,7 +371,8 @@ void BreakbeatContentComponent::resized()
 
 void BreakbeatContentComponent::paint(juce::Graphics& g)
 {
-    juce::ignoreUnused(g);
+    auto backgroundImg = juce::ImageCache::getFromMemory(BinaryData::breakbeat_machine_ui_png, BinaryData::breakbeat_machine_ui_pngSize);
+    g.drawImage(backgroundImg, getLocalBounds().toFloat());
 }
 
 void BreakbeatContentComponent::lookAndFeelChanged()

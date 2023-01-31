@@ -36,10 +36,15 @@ target_include_directories(BreakbeatMachine PRIVATE ${CMAKE_SOURCE_DIR}/dependen
 target_include_directories(BreakbeatMachine PRIVATE /usr/local/include/aubio)
 target_include_directories(BreakbeatMachine PRIVATE /usr/include/aubio)
 
+juce_add_binary_data(BreakMakerBinaryData SOURCES
+    ${CMAKE_SOURCE_DIR}/applications/assets/breakbeat_machine_ui.png
+)
+
 target_link_libraries(BreakbeatMachine
     PRIVATE
         juce::juce_audio_utils
         juce::juce_gui_extra
+        BreakMakerBinaryData
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
