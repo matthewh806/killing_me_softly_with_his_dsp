@@ -23,6 +23,19 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 , mRetriggerSampleProbabilitySlider("Retrigger slice", "%", 0.3)
 , mRecentFiles(recentFiles)
 {
+    LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypefaceName("Retro Gaming");
+    
+    Font titleFont(getLookAndFeel().getLabelFont (mApplicationTitle));
+    titleFont.setHeight(42);
+    titleFont.setTypefaceName("Retro Gaming");
+    mApplicationTitle.setFont(titleFont);
+    addAndMakeVisible(mApplicationTitle);
+    
+    Font probabilityFont(getLookAndFeel().getLabelFont(mProbabilityTitle));
+    probabilityFont.setHeight(35);
+    mProbabilityTitle.setFont(probabilityFont);
+    addAndMakeVisible(mProbabilityTitle);
+    
     addAndMakeVisible(mSliceTypeCombobox);
     mSliceTypeCombobox.comboBox.addItem("Div", 1);
     mSliceTypeCombobox.comboBox.addItem("Transient", 2);
@@ -235,27 +248,27 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     
     addAndMakeVisible(mSampleDesiredLengthSeconds);
     mSampleDesiredLengthSeconds.setNumberOfDecimals(3);
-    mSampleDesiredLengthSeconds.setRange({0.1, 10.0}, juce::NotificationType::dontSendNotification);
-    mSampleDesiredLengthSeconds.onValueChanged = [this](double value)
-    {
-        changeState(TransportState::Stopping);
-        mPlayButton.setEnabled(false);
-        
-        auto const stretchFactor = static_cast<float>(value / mAudioSource.getSliceManager().getFileLength());
-        auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
-        mAudioSource.getSliceManager().performTimestretch(stretchFactor, pitchFactor, [this]()
-        {
-            mPlayButton.setEnabled(true);
-            mAudioSource.getSliceManager().clearSlices();
-            mAudioSource.getSliceManager().performSlice();
-            mAudioSource.setNextReadPosition(0);
-            updateWaveform();
-        });
-        
-        // TODO: Handle this better
-        mAudioSource.getSliceManager().sanitiseSlices();
-    };
-    
+//    mSampleDesiredLengthSeconds.setRange({0.1, 10.0}, juce::NotificationType::dontSendNotification);
+//    mSampleDesiredLengthSeconds.onValueChanged = [this](double value)
+//    {
+//        changeState(TransportState::Stopping);
+//        mPlayButton.setEnabled(false);
+//
+//        auto const stretchFactor = static_cast<float>(value / mAudioSource.getSliceManager().getFileLength());
+//        auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
+//        mAudioSource.getSliceManager().performTimestretch(stretchFactor, pitchFactor, [this]()
+//        {
+//            mPlayButton.setEnabled(true);
+//            mAudioSource.getSliceManager().clearSlices();
+//            mAudioSource.getSliceManager().performSlice();
+//            mAudioSource.setNextReadPosition(0);
+//            updateWaveform();
+//        });
+//        
+//        // TODO: Handle this better
+//        mAudioSource.getSliceManager().sanitiseSlices();
+//    };
+//    
     addAndMakeVisible(mStopButton);
     mStopButton.setButtonText("Stop");
     mStopButton.onClick = [this]()
@@ -312,61 +325,23 @@ BreakbeatContentComponent::~BreakbeatContentComponent()
 }
 
 void BreakbeatContentComponent::resized()
-{
-    auto bounds = getLocalBounds();
-    bounds.reduce(20, 20);
+{    
+    mApplicationTitle.setBounds(80, 23, 421, 78);
+    mProbabilityTitle.setBounds(50, 155, 178, 38);
     
-    auto const twoFieldRowElementWidth = bounds.getWidth() / 3;
-    auto const twoFieldRowSpacing = bounds.getWidth() - twoFieldRowElementWidth * 2;
+    mReverseSampleProbabilitySlider.setBounds(44, 198, 92, 92);
+    mRetriggerSampleProbabilitySlider.setBounds(134, 198, 92, 92);
+    mChangeSampleProbabilitySlider.setBounds(44, 302, 92, 92);
     
-    auto const threeFieldRowElementWidth = bounds.getWidth() / 4;
-    auto const threeFieldRowSpacing = static_cast<int>((bounds.getWidth() - threeFieldRowElementWidth * 3) / 2.0);
+    mPitchShiftSlider.setBounds(267, 192, 92, 92);
+    mCrossFadeSlider.setBounds(382, 192, 92, 92);
+    mSliceTypeCombobox.setBounds(267, 319, 108, 42);
+    mSliceDivsorSlider.setBounds(382, 295, 92, 92);
     
-    auto firstRowBounds = bounds.removeFromTop(20);
-    mSliceTypeCombobox.setBounds(firstRowBounds.removeFromRight(static_cast<int>(threeFieldRowElementWidth * 1.5)));
-    
-    bounds.removeFromTop(20);
-    
-    auto secondRowBounds = bounds.removeFromTop(100);
-    mPitchShiftSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
-    secondRowBounds.removeFromLeft(threeFieldRowSpacing);
-    mCrossFadeSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
-    secondRowBounds.removeFromLeft(threeFieldRowSpacing);
-    mSliceDivsorSlider.setBounds(secondRowBounds.removeFromLeft(threeFieldRowElementWidth));
-    mSliceTransientThresholdSlider.setBounds(mSliceDivsorSlider.getBounds());
-    
-    bounds.removeFromTop(20);
-    
-    auto thirdRowBounds = bounds.removeFromTop(100);
-    mChangeSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(threeFieldRowElementWidth));
-    thirdRowBounds.removeFromLeft(threeFieldRowSpacing);
-    mRetriggerSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(threeFieldRowElementWidth));
-    thirdRowBounds.removeFromLeft(threeFieldRowSpacing);
-    mReverseSampleProbabilitySlider.setBounds(thirdRowBounds.removeFromLeft(threeFieldRowElementWidth));
-    
-    bounds.removeFromTop(20);
-    
-    auto fourthRowBounds = bounds.removeFromTop(220);
-    mWaveformComponent.setBounds(fourthRowBounds.removeFromTop(200));
-    mFileNameLabel.setBounds(fourthRowBounds.removeFromLeft(twoFieldRowElementWidth));
-    fourthRowBounds.removeFromLeft(twoFieldRowSpacing);
-    mFileSampleRateLabel.setBounds(fourthRowBounds.removeFromLeft(twoFieldRowElementWidth));
-    
-    bounds.removeFromTop(20);
-    
-    auto fifthRowBounds = bounds.removeFromTop(20);
-    mSampleLengthSeconds.setBounds(fifthRowBounds.removeFromLeft(twoFieldRowElementWidth));
-    fifthRowBounds.removeFromLeft(twoFieldRowSpacing);
-    mSampleDesiredLengthSeconds.setBounds(fifthRowBounds.removeFromLeft(twoFieldRowElementWidth));
-    
-    bounds.removeFromTop(20);
-    
-    auto sixthRowBounds = bounds.removeFromTop(20);
-    mPlayButton.setBounds(sixthRowBounds.removeFromLeft(threeFieldRowElementWidth));
-    sixthRowBounds.removeFromLeft(threeFieldRowSpacing);
-    mRecordButton.setBounds(sixthRowBounds.removeFromLeft(threeFieldRowElementWidth));
-    sixthRowBounds.removeFromLeft(threeFieldRowSpacing);
-    mStopButton.setBounds(sixthRowBounds.removeFromLeft(threeFieldRowElementWidth));
+    mFileNameLabel.setBounds(55, 439, 200, 19);
+    mSampleLengthSeconds.setBounds(310, 439, 50, 19);
+    mSampleDesiredLengthSeconds.setBounds(395, 439, 80, 19);
+    mWaveformComponent.setBounds(44, 454, 418, 121);
 }
 
 void BreakbeatContentComponent::paint(juce::Graphics& g)
@@ -449,12 +424,12 @@ void BreakbeatContentComponent::handleAsyncUpdate()
     mFileNameLabel.setText(mAudioSource.getSliceManager().getSampleFileName(), juce::NotificationType::dontSendNotification);
     mFileSampleRateLabel.setText(juce::String(mAudioSource.getSliceManager().getSampleSampleRate()), juce::NotificationType::dontSendNotification);
     
-    mSampleLengthSeconds.setValue(mAudioSource.getSliceManager().getFileLength(), juce::NotificationType::sendNotification);
+    mSampleLengthSeconds.setText(juce::String(mAudioSource.getSliceManager().getFileLength()), juce::NotificationType::sendNotification);
     
     auto const pitchFactor = static_cast<float>(std::pow(2.0, mPitchShiftSlider.getValue() / 12.0));
     mAudioSource.getSliceManager().performTimestretch(1.0f, pitchFactor, [this]()
     {
-        mSampleDesiredLengthSeconds.setValue(mAudioSource.getSliceManager().getBufferLength(), juce::NotificationType::dontSendNotification);
+        mSampleDesiredLengthSeconds.setText(juce::String(mAudioSource.getSliceManager().getBufferLength()), juce::NotificationType::dontSendNotification);
         mPlayButton.setEnabled(true);
         mAudioSource.getSliceManager().performSlice();
         mAudioSource.setNextReadPosition(0);

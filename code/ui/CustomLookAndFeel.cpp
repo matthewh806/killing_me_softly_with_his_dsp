@@ -1,5 +1,22 @@
 #include "CustomLookAndFeel.h"
 
+CustomLookAndFeel::CustomLookAndFeel()
+{
+    setColour (ComboBox::backgroundColourId, Colours::transparentBlack);
+    setColour (ComboBox::buttonColourId, Colours::transparentBlack);
+    setColour (ComboBox::arrowColourId, Colours::white);
+    setColour (ComboBox::textColourId, Colours::black);
+    setColour (ComboBox::outlineColourId, Colours::transparentBlack);
+    
+    setColour (PopupMenu::backgroundColourId, Colours::black);
+    setColour (PopupMenu::highlightedBackgroundColourId, Colours::black);
+    setColour (PopupMenu::highlightedTextColourId, Colours::white);
+    setColour (PopupMenu::textColourId, Colours::white.withAlpha (0.8f));
+    setColour (PopupMenu::headerTextColourId, Colours::white);
+    
+    setDefaultSansSerifTypefaceName("Avenir Next");
+}
+
 void CustomLookAndFeel::drawRotarySlider (juce::Graphics& g,
                                           int x, int y, int width, int height,
                                           float sliderPosProportional,
@@ -9,11 +26,11 @@ void CustomLookAndFeel::drawRotarySlider (juce::Graphics& g,
 {
     auto bounds = juce::Rectangle<float>(x, y, width, height);
     
-    g.setColour(juce::Colour(97u, 18u, 167u));
-    g.fillEllipse(bounds);
-    
-    g.setColour(juce::Colour(255u, 154u, 1u));
-    g.drawEllipse(bounds, 1.0f);
+//    g.setColour(juce::Colour(97u, 18u, 167u));
+//    g.fillEllipse(bounds);
+//
+//    g.setColour(juce::Colour(255u, 154u, 1u));
+//    g.drawEllipse(bounds, 1.0f);
     
     if(auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
     {
@@ -67,7 +84,7 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
         r.setSize(g.getCurrentFont().getStringWidth(sliderLabel), getTextHeight());
         r.setCentre(getLocalBounds().getCentre().getX(), 0);
         r.setY(2);
-        g.setColour(juce::Colour(0u, 172u, 1u));
+        g.setColour(juce::Colours::black);
         g.setFont(getTextHeight());
         g.drawFittedText(sliderLabel, r.toNearestInt(), juce::Justification::centred, 1);
         
@@ -85,7 +102,7 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
     auto center = sliderBounds.toFloat().getCentre();
     auto radius = sliderBounds.getWidth() * 0.5f;
     
-    g.setColour(juce::Colour(0u, 172u, 1u));
+    g.setColour(juce::Colours::black);
     g.setFont(getTextHeight());
     
     auto const numChoices = mLabels.size();
@@ -123,7 +140,7 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
 
 int RotarySliderWithLabels::getTextHeight() const
 {
-    return 14;
+    return 12;
 }
 
 juce::String RotarySliderWithLabels::getDisplayString() const
@@ -266,7 +283,20 @@ ComboBoxWithLabel::ComboBoxWithLabel(juce::String const& paramName)
     mParamLabel.setText(paramName, juce::NotificationType::dontSendNotification);
     addAndMakeVisible(mParamLabel);
     
+    mParamLabel.setColour(Label::textColourId, juce::Colours::black);
+    
+//    auto curLookAndFeel = comboBox.getLookAndFeel();
+//    curLookAndFeel.
+    
     addAndMakeVisible(comboBox);
+    
+//    auto* rootPopup = comboBox.getRootMenu();
+//    if(!rootPopup)
+//    {
+//        return;
+//    }
+//
+//    rootPopup->setLookAndFeel(<#LookAndFeel *newLookAndFeel#>)
 }
 
 void ComboBoxWithLabel::resized()
@@ -276,4 +306,27 @@ void ComboBoxWithLabel::resized()
     mParamLabel.setBounds(bounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.45)));
     bounds.removeFromLeft(static_cast<int>(2));
     comboBox.setBounds(bounds);
+}
+
+void ComboBoxWithLabel::paint(juce::Graphics& g)
+{
+    auto const width = getWidth();
+    auto const height = getHeight();
+//    auto cornerSize = findParentComponentOfClass<ChoicePropertyComponent>() != nullptr ? 0.0f : 3.0f;
+    Rectangle<int> boxBounds (0, 0, width, height);
+
+//    g.setColour (findColour (ComboBox::backgroundColourId));
+//    g.fillRoundedRectangle (boxBounds.toFloat(), cornerSize);
+
+//    g.setColour (findColour (ComboBox::outlineColourId));
+//    g.drawRoundedRectangle (boxBounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 1.0f);
+
+    Rectangle<int> arrowZone (width - 30, 0, 20, height);
+    Path path;
+    path.startNewSubPath ((float) arrowZone.getX() + 3.0f, (float) arrowZone.getCentreY() - 2.0f);
+    path.lineTo ((float) arrowZone.getCentreX(), (float) arrowZone.getCentreY() + 3.0f);
+    path.lineTo ((float) arrowZone.getRight() - 3.0f, (float) arrowZone.getCentreY() - 2.0f);
+
+    g.setColour (findColour (ComboBox::arrowColourId).withAlpha ((isEnabled() ? 0.9f : 0.2f)));
+    g.strokePath (path, PathStrokeType (2.0f));
 }

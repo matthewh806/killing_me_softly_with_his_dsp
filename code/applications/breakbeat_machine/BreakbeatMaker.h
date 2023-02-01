@@ -97,11 +97,13 @@ private:
     RotarySliderWithLabels mReverseSampleProbabilitySlider;
     RotarySliderWithLabels mRetriggerSampleProbabilitySlider;
     
+    juce::Label mApplicationTitle { "BreakbeatMaker", "Breakbeat Maker" };
+    juce::Label mProbabilityTitle { "Probaility", "Probabilities" };
     juce::Label mFileNameLabel;
     juce::Label mFileSampleRateLabel;
     
-    NumberFieldWithLabel mSampleLengthSeconds {"File Length", "s", 3, false};
-    NumberFieldWithLabel mSampleDesiredLengthSeconds {"New Length", "s", 3, true};
+    NumberField mSampleLengthSeconds {"s", 3, false};
+    NumberField mSampleDesiredLengthSeconds {"s", 3, true};
     
     juce::TextButton mStopButton;
     juce::TextButton mPlayButton;

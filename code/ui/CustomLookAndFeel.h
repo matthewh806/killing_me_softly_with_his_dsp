@@ -5,6 +5,8 @@
 class CustomLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
+    CustomLookAndFeel();
+    
     void drawRotarySlider (juce::Graphics&,
                            int x, int y, int width, int height,
                            float sliderPosProportional,
@@ -95,10 +97,12 @@ public:
     ComboBoxWithLabel(juce::String const& paramName);
     ComboBoxWithLabel() = default;
     
+    void paint(juce::Graphics& g) override;
     void resized() override;
     
     juce::ComboBox comboBox;
 private:
+    
     juce::Label mParamLabel;
     
 };
