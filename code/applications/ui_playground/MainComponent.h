@@ -4,12 +4,16 @@
 #include "../../ui/CustomLookAndFeel.h"
 
 //==============================================================================
-class MainComponent   : public juce::Component
+class MainComponent   : public juce::AudioAppComponent
 {
 public:
     //==============================================================================
-    MainComponent();
+    MainComponent(juce::AudioDeviceManager& deviceManager);
     ~MainComponent();
+
+    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
+    void releaseResources() override;
+    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -17,6 +21,8 @@ public:
     
 private:
     //==============================================================================
+    int mBlockSize;
+    int mSampleRate;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

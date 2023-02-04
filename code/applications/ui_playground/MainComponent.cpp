@@ -1,14 +1,33 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent()
+MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
+: juce::AudioAppComponent(deviceManager)
 {
     setSize (600, 250);
+    setAudioChannels (2, 2);
 }
 
 MainComponent::~MainComponent()
 {
+    shutdownAudio();
 }   
+
+void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+{
+    mBlockSize = samplesPerBlockExpected;
+    mSampleRate = static_cast<int>(sampleRate);
+}
+
+void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+{
+    bufferToFill.clearActiveBufferRegion();
+}
+
+void MainComponent::releaseResources()
+{
+}
+
 
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)

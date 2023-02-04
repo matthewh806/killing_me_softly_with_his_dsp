@@ -17,7 +17,7 @@ public:
     void initialise (const juce::String& commandLine) override
     {
         juce::ignoreUnused (commandLine);
-        mainWindow.reset (new MainWindow (getApplicationName(), new MainComponent()));
+        mainWindow.reset (new MainWindow (getApplicationName(), new MainComponent(mDefaultDeviceManager), mDefaultDeviceManager));
         
         mainWindow->setLookAndFeel(&customLookAndFeel);
     }
@@ -43,6 +43,8 @@ public:
     }
 
 private:
+    juce::AudioDeviceManager mDefaultDeviceManager;
+    
     std::unique_ptr<MainWindow> mainWindow;
     CustomLookAndFeel customLookAndFeel;
 };
