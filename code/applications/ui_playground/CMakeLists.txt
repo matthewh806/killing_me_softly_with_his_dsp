@@ -27,6 +27,7 @@ target_link_libraries(UIPlayground
 PRIVATE
     juce::juce_audio_utils
     juce::juce_gui_extra
+    KMSWHDSPBinaryData
 PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags

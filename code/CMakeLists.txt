@@ -21,6 +21,11 @@ add_subdirectory(dependencies/freeverb)
 include(juce_shared_vst.cmake)
 include(aubio.cmake)
 
+juce_add_binary_data(KMSWHDSPBinaryData SOURCES 
+                     ${CMAKE_SOURCE_DIR}/assets/sync_button1.png 
+                     ${CMAKE_SOURCE_DIR}/assets/sync_button2.png
+)
+
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "TheOfficeOfUnspecifiedServices")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "http://theofficeofunspecifiedservices.com")
 

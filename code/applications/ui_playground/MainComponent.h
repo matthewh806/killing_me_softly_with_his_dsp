@@ -2,14 +2,15 @@
 
 #include "JuceHeader.h"
 #include "../../ui/CustomLookAndFeel.h"
-
 //==============================================================================
-class MainComponent   : public juce::AudioAppComponent
+
+class MainComponent
+: public juce::AudioAppComponent
 {
 public:
     //==============================================================================
     MainComponent(juce::AudioDeviceManager& deviceManager);
-    ~MainComponent();
+    ~MainComponent() override;
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void releaseResources() override;
@@ -23,6 +24,8 @@ private:
     //==============================================================================
     int mBlockSize;
     int mSampleRate;
+    
+    juce::ImageButton mTestButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
