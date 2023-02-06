@@ -10,6 +10,8 @@
 
 #include "ReferenceCountedForwardAndReverseBuffer.h"
 
+using namespace OUS;
+
 ReferenceCountedForwardAndReverseBuffer::ReferenceCountedForwardAndReverseBuffer(const juce::String& nameToUse, juce::AudioFormatReader* formatReader)
 : mName(nameToUse)
 , mForwardBuffer(static_cast<int>(formatReader->numChannels), static_cast<int>(formatReader->lengthInSamples))

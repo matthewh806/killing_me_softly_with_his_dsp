@@ -1,34 +1,38 @@
 #pragma once
 
-class ReferenceCountedBuffer  : public juce::ReferenceCountedObject
+namespace OUS
 {
-public:
-    typedef juce::ReferenceCountedObjectPtr<ReferenceCountedBuffer> Ptr;
-
-    ReferenceCountedBuffer (const juce::String& nameToUse,
-                            int numChannels,
-                            int numSamples)
-        : name (nameToUse),
-          buffer (numChannels, numSamples)
+    class ReferenceCountedBuffer  : public juce::ReferenceCountedObject
     {
-        DBG (juce::String ("Buffer named '") + name + "' constructed. numChannels = " + juce::String (numChannels) + ", numSamples = " + juce::String (numSamples));
-    }
+    public:
+        typedef juce::ReferenceCountedObjectPtr<ReferenceCountedBuffer> Ptr;
 
-    ~ReferenceCountedBuffer()
-    {
-        DBG (juce::String ("Buffer named '") + name + "' destroyed");
-    }
+        ReferenceCountedBuffer (const juce::String& nameToUse,
+                                int numChannels,
+                                int numSamples)
+            : name (nameToUse),
+            buffer (numChannels, numSamples)
+        {
+            DBG (juce::String ("Buffer named '") + name + "' constructed. numChannels = " + juce::String (numChannels) + ", numSamples = " + juce::String (numSamples));
+        }
 
-    juce::AudioSampleBuffer* getAudioSampleBuffer()
-    {
-        return &buffer;
-    }
+        ~ReferenceCountedBuffer()
+        {
+            DBG (juce::String ("Buffer named '") + name + "' destroyed");
+        }
 
-    int position = 0;
+        juce::AudioSampleBuffer* getAudioSampleBuffer()
+        {
+            return &buffer;
+        }
 
-private:
-    juce::String name;
-    juce::AudioSampleBuffer buffer;
+        int position = 0;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ReferenceCountedBuffer)
-};
+    private:
+        juce::String name;
+        juce::AudioSampleBuffer buffer;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ReferenceCountedBuffer)
+
+    };
+}
