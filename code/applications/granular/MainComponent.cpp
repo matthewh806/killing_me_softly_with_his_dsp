@@ -1,5 +1,7 @@
 #include "MainComponent.h"
 
+using namespace OUS;
+
 //==============================================================================
 MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
 : juce::AudioAppComponent(activeDeviceManager)
