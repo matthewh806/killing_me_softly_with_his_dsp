@@ -3,18 +3,21 @@
 #include <JuceHeader.h>
 #include "aubio.h"
 
-class AudioAnalyser
+namespace OUS
 {
-public:
-    struct DetectionSettings
+    class AudioAnalyser
     {
-        int windowSize = 1024;
-        int hopSize = 256;
-        int sampleRate = 44100;
-        smpl_t threshold = 0.3f;
+    public:
+        struct DetectionSettings
+        {
+            int windowSize = 1024;
+            int hopSize = 256;
+            int sampleRate = 44100;
+            smpl_t threshold = 0.3f;
+        };
+        
+        std::vector<size_t> static getOnsetPositions(juce::AudioBuffer<float> buffer, DetectionSettings settings);
+        
+    private:
     };
-    
-    std::vector<size_t> static getOnsetPositions(juce::AudioBuffer<float> buffer, DetectionSettings settings);
-    
-private:
-};
+}

@@ -1,5 +1,7 @@
 #include "AudioAnalyser.h"
 
+using namespace OUS;
+
 std::vector<size_t> AudioAnalyser::getOnsetPositions(juce::AudioBuffer<float> buffer, DetectionSettings settings)
 {
     juce::ignoreUnused(buffer, settings);
