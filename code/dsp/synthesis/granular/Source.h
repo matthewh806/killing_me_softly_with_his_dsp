@@ -3,69 +3,72 @@
 #include <iostream>
 #include "JuceHeader.h"
 
-class Source
+namespace OUS
 {
-public:
-    enum class SourceType
+    class Source
     {
-        sample,
-        synthetic
+    public:
+        enum class SourceType
+        {
+            sample,
+            synthetic
+        };
+        
+        struct Essence
+        {
+            virtual ~Essence() = default;
+        };
+        
+        virtual ~Source() = default;
+        
+        virtual size_t getLastPosition() const;
+        virtual double synthesize() = 0;
+        
+    protected:
+        SourceType mSourceType;
     };
-    
-    struct Essence
-    {
-        virtual ~Essence() = default;
-    };
-    
-    virtual ~Source() = default;
-    
-    virtual size_t getLastPosition() const;
-    virtual double synthesize() = 0;
-    
-protected:
-    SourceType mSourceType;
-};
 
-class SampleSource
-: public Source
-{
-public:
-    struct SampleEssence
-    : Essence
+    class SampleSource
+    : public Source
     {
-        juce::AudioSampleBuffer* audioSampleBuffer;
-        size_t position;
+    public:
+        struct SampleEssence
+        : Essence
+        {
+            juce::AudioSampleBuffer* audioSampleBuffer;
+            size_t position;
+        };
+        
+        SampleSource(SampleEssence* essence);
+        ~SampleSource() override = default;
+        
+        size_t getLastPosition() const override;
+        
+        double synthesize() override;
+
+    private:
+        juce::AudioSampleBuffer* mAudioSampleBuffer;
+        size_t mPosition {0};
     };
-    
-    SampleSource(SampleEssence* essence);
-    ~SampleSource() override = default;
-    
-    size_t getLastPosition() const override;
-    
-    double synthesize() override;
 
-private:
-    juce::AudioSampleBuffer* mAudioSampleBuffer;
-    size_t mPosition {0};
-};
-
-class SinewaveSource
-: public Source
-{
-public:
-    struct OscillatorEssence
-    : Essence
+    class SinewaveSource
+    : public Source
     {
-        double frequency;
+    public:
+        struct OscillatorEssence
+        : Essence
+        {
+            double frequency;
+        };
+        
+        SinewaveSource(OscillatorEssence* essence);
+        ~SinewaveSource() override = default;
+        
+        double synthesize() override;
+        
+    private:
+        double mFrequency {220.0};
+        double mCurrentPhase {0.0};
+        double mPhasePerSample {0.0};
     };
-    
-    SinewaveSource(OscillatorEssence* essence);
-    ~SinewaveSource() override = default;
-    
-    double synthesize() override;
-    
-private:
-    double mFrequency {220.0};
-    double mCurrentPhase {0.0};
-    double mPhasePerSample {0.0};
-};
+}

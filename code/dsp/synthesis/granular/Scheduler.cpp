@@ -1,5 +1,7 @@
 #include "Scheduler.h"
 
+using namespace OUS;
+
 Scheduler::Scheduler()
 : mGrainDuration(4096*2)
 {

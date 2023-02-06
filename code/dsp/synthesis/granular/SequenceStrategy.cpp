@@ -1,5 +1,7 @@
 #include "SequenceStrategy.h"
 
+using namespace OUS;
+
 SequenceStrategy::SequenceStrategy()
 {
     

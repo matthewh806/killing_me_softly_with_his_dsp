@@ -1,5 +1,7 @@
 #include "Grain.h"
 
+using namespace OUS;
+
 Grain::Grain()
 : mDuration(0)
 , mComplete(true)

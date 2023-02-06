@@ -1,5 +1,7 @@
 #include "Source.h"
 
+using namespace OUS;
+
 size_t Source::getLastPosition() const
 {
     return 0.0;
