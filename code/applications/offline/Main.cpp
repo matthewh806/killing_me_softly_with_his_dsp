@@ -2,54 +2,57 @@
 #include "../../ui/CustomLookAndFeel.h"
 #include "MainComponent.h"
 
-//==============================================================================
-class GuiAppApplication  : public juce::JUCEApplication
+namespace OUS
 {
-public:
     //==============================================================================
-    GuiAppApplication() {}
-    
-    const juce::String getApplicationName() override       { return JUCE_APPLICATION_NAME_STRING; }
-    const juce::String getApplicationVersion() override    { return JUCE_APPLICATION_VERSION_STRING; }
-    bool moreThanOneInstanceAllowed() override             { return true; }
-
-    //==============================================================================
-    void initialise (const juce::String& commandLine) override
+    class GuiAppApplication  : public juce::JUCEApplication
     {
-        juce::ignoreUnused (commandLine);
-        juce::ignoreUnused (commandLine);
-        mainWindow.reset (new MainWindow (getApplicationName(), new MainComponent(), mDefaultDeviceManager));
+    public:
+        //==============================================================================
+        GuiAppApplication() {}
         
-        mainWindow->setLookAndFeel(&customLookAndFeel);
-    }
+        const juce::String getApplicationName() override       { return JUCE_APPLICATION_NAME_STRING; }
+        const juce::String getApplicationVersion() override    { return JUCE_APPLICATION_VERSION_STRING; }
+        bool moreThanOneInstanceAllowed() override             { return true; }
 
-    void shutdown() override
-    {
-#if JUCE_MAC && (!defined(JUCE_IOS))
-        juce::MenuBarModel::setMacMainMenu(nullptr);
-#endif
-        mainWindow->setLookAndFeel(nullptr);
-        mainWindow = nullptr; // (deletes our window)
-    }
+        //==============================================================================
+        void initialise (const juce::String& commandLine) override
+        {
+            juce::ignoreUnused (commandLine);
+            juce::ignoreUnused (commandLine);
+            mainWindow.reset (new MainWindow (getApplicationName(), new MainComponent(), mDefaultDeviceManager));
+            
+            mainWindow->setLookAndFeel(&customLookAndFeel);
+        }
 
-    //==============================================================================
-    void systemRequestedQuit() override
-    {
-        quit();
-    }
+        void shutdown() override
+        {
+    #if JUCE_MAC && (!defined(JUCE_IOS))
+            juce::MenuBarModel::setMacMainMenu(nullptr);
+    #endif
+            mainWindow->setLookAndFeel(nullptr);
+            mainWindow = nullptr; // (deletes our window)
+        }
 
-    void anotherInstanceStarted (const juce::String& commandLine) override
-    {
-        juce::ignoreUnused (commandLine);
-    }
+        //==============================================================================
+        void systemRequestedQuit() override
+        {
+            quit();
+        }
 
-private:
-    juce::AudioDeviceManager mDefaultDeviceManager;
-    
-    std::unique_ptr<MainWindow> mainWindow;
-    CustomLookAndFeel customLookAndFeel;
-};
+        void anotherInstanceStarted (const juce::String& commandLine) override
+        {
+            juce::ignoreUnused (commandLine);
+        }
+
+    private:
+        juce::AudioDeviceManager mDefaultDeviceManager;
+        
+        std::unique_ptr<MainWindow> mainWindow;
+        CustomLookAndFeel customLookAndFeel;
+    };
+}
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION (GuiAppApplication)
+START_JUCE_APPLICATION (OUS::GuiAppApplication)
