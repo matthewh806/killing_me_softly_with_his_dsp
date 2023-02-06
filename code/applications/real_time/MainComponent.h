@@ -9,38 +9,41 @@
 #include "../../dsp/processors/RealTimeStretchProcessor.h"
 #include "../../ui/CustomLookAndFeel.h"
 
-//==============================================================================
-class MainComponent   : public juce::AudioAppComponent
+namespace OUS
 {
-public:
     //==============================================================================
-    MainComponent(juce::AudioDeviceManager& audioDeviceManager);
-    ~MainComponent() override;
-    
-    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    void releaseResources() override;
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
-    
-    //==============================================================================
-    void paint (juce::Graphics&) override;
-    void resized() override;
+    class MainComponent   : public juce::AudioAppComponent
+    {
+    public:
+        //==============================================================================
+        MainComponent(juce::AudioDeviceManager& audioDeviceManager);
+        ~MainComponent() override;
+        
+        void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
+        void releaseResources() override;
+        void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
+        
+        //==============================================================================
+        void paint (juce::Graphics&) override;
+        void resized() override;
 
-private:
-    void stretchValueChanged();
-    void pitchShiftValueChanged();
-    
-    //==============================================================================
-    
-    RotarySliderWithLabels mStretchFactorSlider;
-    RotarySliderWithLabels mPitchShiftSlider;
-    
-    RealTimeStretchProcessor mStretchProcessor;
-    
-    int mBlockSize;
-    int mSampleRate;
-    
-    int mMinfill = 0;
-    
+    private:
+        void stretchValueChanged();
+        void pitchShiftValueChanged();
+        
+        //==============================================================================
+        
+        RotarySliderWithLabels mStretchFactorSlider;
+        RotarySliderWithLabels mPitchShiftSlider;
+        
+        RealTimeStretchProcessor mStretchProcessor;
+        
+        int mBlockSize;
+        int mSampleRate;
+        
+        int mMinfill = 0;
+        
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
-};
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
+    };
+}

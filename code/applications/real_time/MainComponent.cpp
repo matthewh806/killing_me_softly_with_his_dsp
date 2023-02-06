@@ -1,6 +1,8 @@
 #include "MainComponent.h"
 #include <RubberBandStretcher.h>
 
+using namespace OUS;
+
 //==============================================================================
 MainComponent::MainComponent(juce::AudioDeviceManager& audioDeviceManager)
 : juce::AudioAppComponent(audioDeviceManager)
