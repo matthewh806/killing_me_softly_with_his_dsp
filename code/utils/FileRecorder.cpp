@@ -10,6 +10,8 @@
 
 #include "FileRecorder.h"
 
+using namespace OUS;
+
 FileRecorder::FileRecorder(juce::AudioFormatManager& audioFormatManager)
 : mFormatManager(audioFormatManager)
 , mBackgroundThread("Audio Recording Thread")
