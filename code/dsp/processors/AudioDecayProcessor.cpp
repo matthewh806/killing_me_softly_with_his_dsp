@@ -1,5 +1,7 @@
 #include "AudioDecayProcessor.h"
 
+using namespace OUS;
+
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new AudioDecayProcessor();

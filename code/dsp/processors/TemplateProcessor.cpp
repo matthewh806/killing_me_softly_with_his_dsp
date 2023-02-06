@@ -1,5 +1,7 @@
 #include "TemplateProcessor.h"
 
+using namespace OUS;
+
 TemplateProcessor::TemplateProcessor()
 : juce::AudioProcessor (BusesProperties().withInput  ("Input",     juce::AudioChannelSet::stereo())
                   .withOutput ("Output",    juce::AudioChannelSet::stereo())

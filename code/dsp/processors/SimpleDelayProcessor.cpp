@@ -2,6 +2,8 @@
 
 #define MAX_DELAY_SECONDS 2
 
+using namespace OUS;
+
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SimpleDelayProcessor();

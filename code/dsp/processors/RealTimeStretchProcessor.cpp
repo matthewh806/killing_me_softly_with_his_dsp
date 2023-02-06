@@ -1,5 +1,7 @@
 #include "RealTimeStretchProcessor.h"
 
+using namespace OUS;
+
 RealTimeStretchProcessor::RealTimeStretchProcessor()
 : juce::AudioProcessor (BusesProperties().withInput  ("Input",     juce::AudioChannelSet::stereo())
                   .withOutput ("Output",    juce::AudioChannelSet::stereo())
