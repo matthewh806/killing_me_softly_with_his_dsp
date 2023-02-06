@@ -1,5 +1,7 @@
 #include "BreakbeatWaveform.h"
 
+using namespace OUS;
+
 PlayheadPositionOverlayComponent::PlayheadPositionOverlayComponent(juce::AudioTransportSource& transportSource)
 : mTransportSource(transportSource)
 {

@@ -1,5 +1,7 @@
 #include "BreakbeatAudioSource.h"
 
+using namespace OUS;
+
 BreakbeatAudioSource::BreakbeatAudioSource(juce::AudioFormatManager& formatManager)
 : mSliceManager(formatManager)
 {

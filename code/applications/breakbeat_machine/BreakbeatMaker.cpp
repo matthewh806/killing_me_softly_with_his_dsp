@@ -10,6 +10,8 @@
 
 #include "BreakbeatMaker.h"
 
+using namespace OUS;
+
 BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& audioDeviceManager, juce::RecentlyOpenedFilesList& recentFiles)
 : juce::AudioAppComponent(audioDeviceManager)
 , juce::Thread("Background Thread")

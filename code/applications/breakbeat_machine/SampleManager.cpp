@@ -1,5 +1,7 @@
 #include "SampleManager.h"
 
+using namespace OUS;
+
 SampleManager::SampleManager(juce::AudioFormatManager& formatManager)
 : mFormatManager(formatManager)
 {

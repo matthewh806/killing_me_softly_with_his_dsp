@@ -1,6 +1,8 @@
 #include "SliceManager.h"
 #include <algorithm>
 
+using namespace OUS;
+
 SliceManager::SliceManager(juce::AudioFormatManager& formatManager, Method sliceMethod)
 : SampleManager(formatManager)
 , mSliceMethod(sliceMethod)

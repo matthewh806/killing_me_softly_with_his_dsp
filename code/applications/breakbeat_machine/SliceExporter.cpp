@@ -10,6 +10,8 @@
 
 #include "SliceExporter.h"
 
+using namespace OUS;
+
 SliceExporter::SliceExporter(juce::AudioFormatManager& audioFormatManager)
 : mFormatManager(audioFormatManager)
 {
