@@ -1,5 +1,7 @@
 #include "Waveform.h"
 
+using namespace OUS;
+
 WaveformComponent::WaveformComponent(juce::AudioFormatManager& formatManager)
 : mAudioFormatManager(formatManager)
 , mThumbnailCache(32)
