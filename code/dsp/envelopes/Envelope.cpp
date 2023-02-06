@@ -1,5 +1,7 @@
 #include "Envelope.h"
 
+using namespace OUS;
+
 Envelope::Envelope(size_t durationInSamples, Essence* essence)
 : mDuration(durationInSamples)
 , mGrainAmplitude(essence->grainAmplitude)
