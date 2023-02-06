@@ -14,6 +14,8 @@
 
 //==============================================================================
 
+using namespace OUS;
+
 PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p, AudioDeviceManager& deviceManager)
 : AudioProcessorEditor (&p)
 , mDeviceManager(deviceManager)

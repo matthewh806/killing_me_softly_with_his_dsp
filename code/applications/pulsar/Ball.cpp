@@ -10,6 +10,8 @@
 
 #include "Ball.h"
 
+using namespace OUS;
+
 Physics::Ball::Ball(b2World& world, b2Vec2 pos, int noteNumber, float velocity, double radius, float density, float restitution)
 {
     b2CircleShape circleShape;

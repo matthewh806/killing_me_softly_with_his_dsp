@@ -15,6 +15,8 @@
 #define DEGTORAD 0.0174532925199432957f
 #define RADTODEG 57.295779513082320876f
 
+using namespace OUS;
+
 Physics::PulsarWorld::PulsarWorld(AudioProcessor& parent, juce::Rectangle<float> worldRect, const b2Vec2& gravity)
 : mParent(parent), mWorld(gravity), mWorldRect(worldRect)
 {

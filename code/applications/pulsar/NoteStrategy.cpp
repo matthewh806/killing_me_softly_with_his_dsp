@@ -1,5 +1,7 @@
 #include "NoteStrategy.h"
 
+using namespace OUS;
+
 NoteStrategy::NoteStrategy()
 {
     

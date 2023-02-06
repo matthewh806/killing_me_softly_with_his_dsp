@@ -11,6 +11,8 @@
 #include "Polygon.h"
 #include "Utils.h"
 
+using namespace OUS;
+
 Physics::Polygon::Polygon(b2World& world, b2Vec2 pos, int32 nSides, double radius, float startAngle, b2Vec2 center)
 {
     mNumSides = nSides;

@@ -1,6 +1,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+using namespace OUS;
+
 //==============================================================================
 PulsarAudioProcessor::PulsarAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
