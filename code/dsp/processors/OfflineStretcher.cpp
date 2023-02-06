@@ -1,5 +1,7 @@
 #include "OfflineStretcher.h"
 
+using namespace OUS;
+
 OfflineStretchProcessor::OfflineStretchProcessor(TemporaryFile& file, juce::AudioSampleBuffer& stretchSrc, float stretchFactor, float pitchFactor, double sampleRate, std::function<void()> onThreadComplete)
 : juce::ThreadWithProgressWindow("Offline stretcher", true, false)
 , mFile(file)

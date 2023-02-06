@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "../../core/ReferenceCountedForwardAndReverseBuffer.h"
-#include "../../dsp/OfflineStretcher.h"
+#include "../../dsp/processors/OfflineStretcher.h"
 
 #define MAX_FILE_LENGTH 60.0 // seconds
 

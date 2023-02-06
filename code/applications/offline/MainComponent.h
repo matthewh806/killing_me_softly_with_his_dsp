@@ -1,7 +1,7 @@
 #pragma once
 
 #include "JuceHeader.h"
-#include "../../dsp/OfflineStretcher.h"
+#include "../../dsp/processors/OfflineStretcher.h"
 #include "../../core/RingBuffer.h"
 #include "../../ui/CustomLookAndFeel.h"
 
