@@ -1,5 +1,7 @@
 #include "RubberbandPitchShifter.h"
 
+using namespace OUS;
+
 RubberbandPitchShifter::RubberbandPitchShifter(int sampleRate, size_t numChannels, int blockSize)
 : mChannels(numChannels)
 , mOutputBuffer (numChannels)

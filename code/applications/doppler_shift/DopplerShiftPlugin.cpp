@@ -1,5 +1,7 @@
 #include "DopplerShiftPlugin.h"
 
+using namespace OUS;
+
 DopplerShiftProcessor::DopplerShiftProcessor()
 : AudioProcessor (BusesProperties().withInput  ("Input",  AudioChannelSet::stereo())
                                     .withOutput ("Output", AudioChannelSet::stereo()))
