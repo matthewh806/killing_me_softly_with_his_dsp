@@ -2,6 +2,7 @@
 
 ThisPath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_PATH="$ThisPath/../build"
+APP_VERSION=$(<$BUILD_PATH/version.txt)
 
 if [[ $1 == "Debug" ]]; then
   BUILD_TYPE=Debug
@@ -63,7 +64,7 @@ if [[ $BUILD_TYPE == "Release" ]]; then
 
   APP_NAME="KMSWHDSP"
 
-  DMG_PATH="$BUILD_PATH/$APP_NAME-v0.0.4.dmg"
+  DMG_PATH="$BUILD_PATH/$APP_NAME-v$APP_VERSION.dmg"
 
   test -f "$DMG_PATH" && rm "$DMG_PATH"
 

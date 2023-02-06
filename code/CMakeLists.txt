@@ -10,6 +10,7 @@ set(JUCE_COPY_PLUGIN_AFTER_BUILD ON)
 set(SMTG_RUN_VST_VALIDATOR OFF)
 
 project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.4)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt ${CMAKE_PROJECT_VERSION})
 
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
