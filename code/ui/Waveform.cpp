@@ -11,9 +11,7 @@ WaveformComponent::WaveformComponent(juce::AudioFormatManager& formatManager)
 
 WaveformComponent::~WaveformComponent()
 {
-    
 }
-
 
 juce::AudioThumbnail& WaveformComponent::getThumbnail()
 {
@@ -50,10 +48,10 @@ void WaveformComponent::paint(juce::Graphics& g)
         g.setColour(juce::Colours::orange);
         mThumbnail.drawChannels(g, mThumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
     }
-    
+
     if(!mThumbnail.isFullyLoaded())
     {
-        juce::Component::SafePointer<juce::Component> sp {this};
+        juce::Component::SafePointer<juce::Component> sp{this};
         juce::MessageManager::callAsync([sp]()
                                         {
                                             if(auto c = sp.getComponent())
@@ -64,29 +62,29 @@ void WaveformComponent::paint(juce::Graphics& g)
     }
 }
 
-bool WaveformComponent::isInterestedInFileDrag (const StringArray& files)
+bool WaveformComponent::isInterestedInFileDrag(const StringArray& files)
 {
     for(auto fileName : files)
     {
         if(!fileName.endsWith(".wav") && !fileName.endsWith(".aif") && !fileName.endsWith(".aiff"))
             return false;
     }
-    
+
     return true;
 }
 
-void WaveformComponent::filesDropped (const StringArray& files, int x, int y)
+void WaveformComponent::filesDropped(const StringArray& files, int x, int y)
 {
     // only deal with one file for now.
     juce::ignoreUnused(x, y);
-    
+
     auto const filePath = files[0];
-    juce::File f { filePath };
-    
+    juce::File f{filePath};
+
     if(f.existsAsFile())
     {
         auto path = f.getFullPathName();
-        
+
         if(onNewFileDropped != nullptr)
         {
             onNewFileDropped(path);

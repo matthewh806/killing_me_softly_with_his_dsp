@@ -2,21 +2,21 @@
 
 using namespace OUS;
 
-void CustomLookAndFeel::drawRotarySlider (juce::Graphics& g,
-                                          int x, int y, int width, int height,
-                                          float sliderPosProportional,
-                                          float rotaryStartAngle,
-                                          float rotaryEndAngle,
-                                          juce::Slider& slider)
+void CustomLookAndFeel::drawRotarySlider(juce::Graphics& g,
+                                         int x, int y, int width, int height,
+                                         float sliderPosProportional,
+                                         float rotaryStartAngle,
+                                         float rotaryEndAngle,
+                                         juce::Slider& slider)
 {
     auto bounds = juce::Rectangle<float>(x, y, width, height);
-    
+
     g.setColour(juce::Colour(97u, 18u, 167u));
     g.fillEllipse(bounds);
-    
+
     g.setColour(juce::Colour(255u, 154u, 1u));
     g.drawEllipse(bounds, 1.0f);
-    
+
     if(auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
     {
         auto center = bounds.getCentre();
@@ -25,25 +25,25 @@ void CustomLookAndFeel::drawRotarySlider (juce::Graphics& g,
         r.setRight(center.getX() + 2);
         r.setTop(bounds.getY());
         r.setBottom(center.getY() - rswl->getTextHeight() * 1.5f);
-        
+
         Path p;
         p.addRoundedRectangle(r, 2.0f);
-        
+
         jassert(rotaryStartAngle < rotaryEndAngle);
         auto sliderAngleRad = juce::jmap(sliderPosProportional, 0.0f, 1.0f, rotaryStartAngle, rotaryEndAngle);
         p.applyTransform(juce::AffineTransform().rotated(sliderAngleRad, center.getX(), center.getY()));
         g.fillPath(p);
-        
+
         g.setFont(rswl->getTextHeight());
         auto const text = rswl->getDisplayString();
         auto const strWidth = g.getCurrentFont().getStringWidth(text);
-        
+
         r.setSize(strWidth + 4, rswl->getTextHeight() + 2);
         r.setCentre(bounds.getCentre());
-        
+
         g.setColour(juce::Colours::black);
         g.fillRect(r);
-        
+
         g.setColour(juce::Colours::white);
         g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
     }
@@ -56,13 +56,13 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
 
     auto range = getRange();
     auto sliderBounds = getSliderBounds();
-    
+
     // For debugging purposes:
-//    g.setColour(juce::Colours::red);
-//    g.drawRect(getLocalBounds());
-//    g.setColour(Colours::yellow);
-//    g.drawRect(sliderBounds);
-    
+    //    g.setColour(juce::Colours::red);
+    //    g.drawRect(getLocalBounds());
+    //    g.setColour(Colours::yellow);
+    //    g.drawRect(sliderBounds);
+
     {
         juce::Rectangle<float> r;
         auto sliderLabel = mParamName;
@@ -72,7 +72,7 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
         g.setColour(juce::Colour(0u, 172u, 1u));
         g.setFont(getTextHeight());
         g.drawFittedText(sliderLabel, r.toNearestInt(), juce::Justification::centred, 1);
-        
+
         mLookAndFeel.drawRotarySlider(g,
                                       sliderBounds.getX(),
                                       sliderBounds.getY(),
@@ -83,29 +83,29 @@ void RotarySliderWithLabels::paint(juce::Graphics& g)
                                       endAngle,
                                       *this);
     }
-    
+
     auto center = sliderBounds.toFloat().getCentre();
     auto radius = sliderBounds.getWidth() * 0.5f;
-    
+
     g.setColour(juce::Colour(0u, 172u, 1u));
     g.setFont(getTextHeight());
-    
+
     auto const numChoices = mLabels.size();
     for(int i = 0; i < numChoices; ++i)
     {
         auto const pos = mLabels[i].pos;
         jassert(0.0f <= pos);
         jassert(pos <= 1.0f);
-        
+
         auto ang = jmap(pos, 0.0f, 1.0f, startAngle, endAngle);
         auto c = center.getPointOnCircumference(radius + getTextHeight() * 0.5f + 1.0f, ang);
-        
+
         juce::Rectangle<float> r;
         auto str = mLabels[i].label;
         r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
         r.setCentre(c);
         r.setY(r.getY() + getTextHeight());
-        
+
         g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
     }
 }
@@ -114,12 +114,12 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
 {
     auto const bounds = getLocalBounds();
     auto const size = juce::jmin(bounds.getWidth(), bounds.getHeight()) - getTextHeight() * 2;
-    
+
     juce::Rectangle<int> r;
     r.setSize(size, size);
     r.setCentre(bounds.getCentreX(), 0);
     r.setY(getTextHeight() + 2);
-    
+
     return r;
 }
 
@@ -135,7 +135,7 @@ juce::String RotarySliderWithLabels::getDisplayString() const
     {
         str << mSuffix;
     }
-    
+
     return str;
 }
 
@@ -144,7 +144,7 @@ juce::String RotarySliderWithLabels::getParameterName() const
     return mParamName;
 }
 
-NumberField::NumberField (juce::String const& unitSuffix, size_t const numberOfDecimals, bool editable, double defaultValue)
+NumberField::NumberField(juce::String const& unitSuffix, size_t const numberOfDecimals, bool editable, double defaultValue)
 : mNumberOfDecimals(numberOfDecimals)
 , mSuffix(unitSuffix)
 {
@@ -154,28 +154,28 @@ NumberField::NumberField (juce::String const& unitSuffix, size_t const numberOfD
 
 void NumberField::paint(juce::Graphics& g)
 {
-    g.fillAll (findColour (Label::backgroundColourId));
-    if (!isBeingEdited())
+    g.fillAll(findColour(Label::backgroundColourId));
+    if(!isBeingEdited())
     {
         auto alpha = isEnabled() ? 1.0f : 0.5f;
-        const Font font (getLookAndFeel().getLabelFont (*this));
+        const Font font(getLookAndFeel().getLabelFont(*this));
 
-        g.setColour (findColour (Label::textColourId).withMultipliedAlpha (alpha));
-        g.setFont (font);
+        g.setColour(findColour(Label::textColourId).withMultipliedAlpha(alpha));
+        g.setFont(font);
 
         juce::Rectangle<int> const textArea(getBorderSize().subtractedFrom(getLocalBounds()));
-        g.drawFittedText (getValueAsText(), textArea, getJustificationType(),
-                          jmax (1, (int) ((float) textArea.getHeight() / font.getHeight())),
-                          getMinimumHorizontalScale());
+        g.drawFittedText(getValueAsText(), textArea, getJustificationType(),
+                         jmax(1, (int)((float)textArea.getHeight() / font.getHeight())),
+                         getMinimumHorizontalScale());
 
-        g.setColour (findColour (Label::outlineColourId).withMultipliedAlpha (alpha));
+        g.setColour(findColour(Label::outlineColourId).withMultipliedAlpha(alpha));
     }
-    else if (isEnabled())
+    else if(isEnabled())
     {
-        g.setColour (findColour (Label::outlineColourId));
+        g.setColour(findColour(Label::outlineColourId));
     }
 
-    g.drawRect (getLocalBounds());
+    g.drawRect(getLocalBounds());
 }
 
 void NumberField::setNumberOfDecimals(size_t numberOfDecimals)
@@ -183,7 +183,7 @@ void NumberField::setNumberOfDecimals(size_t numberOfDecimals)
     if(numberOfDecimals != mNumberOfDecimals)
     {
         mNumberOfDecimals = numberOfDecimals;
-        
+
         if(mNumberOfDecimals == 0)
         {
             setKeyboardType(TextInputTarget::numericKeyboard);
@@ -192,11 +192,10 @@ void NumberField::setNumberOfDecimals(size_t numberOfDecimals)
         {
             setKeyboardType(TextInputTarget::decimalKeyboard);
         }
-        
+
         repaint();
     }
 }
-
 
 juce::String NumberField::getValueAsText() const
 {
@@ -210,14 +209,14 @@ NumberFieldWithLabel::NumberFieldWithLabel(juce::String const& paramName, juce::
     mParamLabel.setEditable(false);
     mParamLabel.setText(paramName, juce::NotificationType::dontSendNotification);
     addAndMakeVisible(mParamLabel);
-    
+
     addAndMakeVisible(mNumberField);
     mNumberField.onEditorShow = [this]()
     {
         auto* ed = mNumberField.getCurrentTextEditor();
         ed->setInputRestrictions(10, "1234567890.");
     };
-    
+
     mNumberField.onTextChange = [this]
     {
         setValue(getValue(), juce::NotificationType::sendNotification);
@@ -241,8 +240,7 @@ void NumberFieldWithLabel::setValue(const double value, const juce::Notification
 
 void NumberFieldWithLabel::setRange(juce::Range<double> const& range, juce::NotificationType notification)
 {
-    if(std::abs(range.getStart() - mRange.getStart()) >= std::numeric_limits<double>::epsilon()
-       || std::abs(range.getEnd() - mRange.getEnd()) >= std::numeric_limits<double>::epsilon())
+    if(std::abs(range.getStart() - mRange.getStart()) >= std::numeric_limits<double>::epsilon() || std::abs(range.getEnd() - mRange.getEnd()) >= std::numeric_limits<double>::epsilon())
     {
         mRange = range;
         setValue(getValue(), notification);
@@ -267,14 +265,14 @@ ComboBoxWithLabel::ComboBoxWithLabel(juce::String const& paramName)
     mParamLabel.setEditable(false);
     mParamLabel.setText(paramName, juce::NotificationType::dontSendNotification);
     addAndMakeVisible(mParamLabel);
-    
+
     addAndMakeVisible(comboBox);
 }
 
 void ComboBoxWithLabel::resized()
 {
     auto bounds = getLocalBounds();
-    
+
     mParamLabel.setBounds(bounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.45)));
     bounds.removeFromLeft(static_cast<int>(2));
     comboBox.setBounds(bounds);
