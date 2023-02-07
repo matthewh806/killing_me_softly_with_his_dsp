@@ -19,19 +19,20 @@ ReferenceCountedForwardAndReverseBuffer::ReferenceCountedForwardAndReverseBuffer
 {
     std::cout << "Buffer named: '" << mName << "' constructed. numChannels: " << formatReader->numChannels << ", numSamples" << formatReader->lengthInSamples << "\n";
     formatReader->read(&mForwardBuffer, 0, static_cast<int>(formatReader->lengthInSamples), 0, true, true);
-    
+
     for(auto ch = 0; ch < mReverseBuffer.getNumChannels(); ++ch)
     {
         mReverseBuffer.copyFrom(ch, 0, mForwardBuffer, ch, 0, mReverseBuffer.getNumSamples());
         mReverseBuffer.reverse(ch, 0, mReverseBuffer.getNumSamples());
     }
-    
+
     mActiveBuffer = &mForwardBuffer;
 }
 
 ReferenceCountedForwardAndReverseBuffer::~ReferenceCountedForwardAndReverseBuffer()
 {
-    std::cout << "Buffer named: '" << mName << "' destroyed." << "\n";
+    std::cout << "Buffer named: '" << mName << "' destroyed."
+              << "\n";
 }
 
 int ReferenceCountedForwardAndReverseBuffer::getPosition() const
