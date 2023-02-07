@@ -16,12 +16,12 @@ void PlayheadPositionOverlayComponent::paint(juce::Graphics& g)
 {
     g.setColour(juce::Colours::white);
     auto const audioLength = mTransportSource.getLengthInSeconds();
-    
+
     if(audioLength <= 0.0)
     {
         return;
     }
-    
+
     auto const playheadDrawPosition = static_cast<float>(mPlayheadPosition / audioLength * getWidth());
     g.drawLine(playheadDrawPosition, 0.0f, playheadDrawPosition, getHeight(), 2.0f);
 }
@@ -39,12 +39,10 @@ void PlayheadPositionOverlayComponent::timerCallback()
 SlicesOverlayComponent::SlicesOverlayComponent(juce::AudioTransportSource& transportSource)
 : mTransportSource(transportSource)
 {
-    
 }
 
 SlicesOverlayComponent::~SlicesOverlayComponent()
 {
-    
 }
 
 void SlicesOverlayComponent::paint(juce::Graphics& g)
@@ -53,38 +51,38 @@ void SlicesOverlayComponent::paint(juce::Graphics& g)
     {
         return;
     }
-    
+
     // paint all of the slices
     g.setColour(juce::Colours::black);
-    
+
     auto const audioLength = mTransportSource.getLengthInSeconds();
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
         auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / audioLength;
         auto const sliceX = static_cast<int>(getWidth() * startRatio);
         g.drawVerticalLine(sliceX, 0.0f, getBottom());
-        
+
         // draw the slice handle
         Path trianglePath;
         trianglePath.addTriangle(sliceX - 8.0f, 0.0f, sliceX + 8.0f, 0.0f, sliceX, 16.0f);
         g.fillPath(trianglePath);
     }
-    
+
     // paint active slice range;
     auto const activeSliceStart = mSlicePositions[mActiveSliceIndex];
     auto const activeSliceEnd = mActiveSliceIndex >= mSlicePositions.size() ? static_cast<size_t>(audioLength * mSampleRate) : mSlicePositions[mActiveSliceIndex + 1];
-    
-    juce::Range<size_t> sampleRange { activeSliceStart, activeSliceEnd };
+
+    juce::Range<size_t> sampleRange{activeSliceStart, activeSliceEnd};
     if(sampleRange.getLength() == 0)
     {
         return;
     }
-    
+
     auto const sampleStartRatio = static_cast<double>(sampleRange.getStart() / mSampleRate) / audioLength;
     auto const sampleSizeRatio = static_cast<double>(sampleRange.getLength() / mSampleRate) / audioLength;
-    
-    juce::Rectangle<int> clipBounds {static_cast<int>(getWidth() * sampleStartRatio), getY(), static_cast<int>(getWidth() * sampleSizeRatio), getHeight()};
-    
+
+    juce::Rectangle<int> clipBounds{static_cast<int>(getWidth() * sampleStartRatio), getY(), static_cast<int>(getWidth() * sampleSizeRatio), getHeight()};
+
     g.setColour(juce::Colours::blue.withAlpha(0.4f));
     g.fillRect(clipBounds);
 }
@@ -93,14 +91,14 @@ void SlicesOverlayComponent::setSlicePositions(std::vector<SliceManager::Slice> 
 {
     mSlicePositions.clear();
     mSlicePositions.resize(slices.size());
-    
+
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
         mSlicePositions[i] = std::get<1>(slices[i]);
     }
-    
+
     mActiveSliceIndex = activeSliceIndex;
-    
+
     repaint();
 }
 
@@ -121,28 +119,28 @@ std::optional<int> SlicesOverlayComponent::getSliceUnderMousePosition(int x, int
     {
         return {};
     }
-    
+
     // check all slices to check if its in the triangle bounds
     auto outSliceX = -1;
-    
+
     auto const audioLength = mTransportSource.getLengthInSeconds();
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
         auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / audioLength;
         auto const sliceX = static_cast<int>(getWidth() * startRatio);
-        
+
         if(x > sliceX - 8 && x < sliceX + 8)
         {
             outSliceX = sliceX;
             break;
         }
     }
-    
+
     if(outSliceX < 0)
     {
         return {};
     }
-    
+
     return outSliceX;
 }
 
@@ -153,15 +151,15 @@ BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager&
 , mPlayheadOverlayComponent(transportSource)
 {
     mWaveformComponent.getThumbnail().addChangeListener(this);
-    
+
     addAndMakeVisible(mWaveformComponent);
     addAndMakeVisible(mSliceOverlayComponent);
     addAndMakeVisible(mPlayheadOverlayComponent);
-    
+
     mPlayheadOverlayComponent.setInterceptsMouseClicks(false, false);
     mSliceOverlayComponent.setInterceptsMouseClicks(false, false);
     mWaveformComponent.setInterceptsMouseClicks(false, false);
-    
+
     mWaveformComponent.onNewFileDropped = [this](juce::String& path)
     {
         if(onNewFileDropped != nullptr)
@@ -175,7 +173,6 @@ BreakbeatWaveformComponent::~BreakbeatWaveformComponent()
 {
     mWaveformComponent.getThumbnail().removeChangeListener(this);
 }
-
 
 juce::AudioThumbnail& BreakbeatWaveformComponent::getThumbnail()
 {
@@ -194,7 +191,7 @@ void BreakbeatWaveformComponent::setActiveSlice(size_t sliceIndex)
 
 void BreakbeatWaveformComponent::clear()
 {
-    mWaveformComponent.clear(); 
+    mWaveformComponent.clear();
 }
 
 void BreakbeatWaveformComponent::setSampleRate(float sampleRate)
@@ -206,11 +203,11 @@ void BreakbeatWaveformComponent::resized()
 {
     auto componentBounds = getLocalBounds();
     mSliceOverlayComponent.setBounds(componentBounds);
-    
+
     // This reduction is done to give the slice markers some space at the top
     componentBounds.removeFromTop(18.0);
-    mWaveformComponent.setBounds (componentBounds);
-    mPlayheadOverlayComponent.setBounds (componentBounds);
+    mWaveformComponent.setBounds(componentBounds);
+    mPlayheadOverlayComponent.setBounds(componentBounds);
 }
 
 void BreakbeatWaveformComponent::paint(juce::Graphics& g)
@@ -232,7 +229,7 @@ void BreakbeatWaveformComponent::mouseDown(juce::MouseEvent const& event)
     {
         return;
     }
-    
+
     if(onSliceMarkerMouseDown != nullptr)
     {
         auto slice = mSliceOverlayComponent.getSliceUnderMousePosition(event.x, event.y);
@@ -256,7 +253,7 @@ void BreakbeatWaveformComponent::mouseUp(juce::MouseEvent const& event)
             }
         }
     }
-    
+
     if(onMouseUp != nullptr)
     {
         onMouseUp();
@@ -286,14 +283,12 @@ void BreakbeatWaveformComponent::changeListenerCallback(juce::ChangeBroadcaster*
 }
 
 // juce::FileDragAndDropTarget
-bool BreakbeatWaveformComponent::isInterestedInFileDrag (const StringArray& files)
+bool BreakbeatWaveformComponent::isInterestedInFileDrag(const StringArray& files)
 {
-        return mWaveformComponent.isInterestedInFileDrag(files);
+    return mWaveformComponent.isInterestedInFileDrag(files);
 }
 
-void BreakbeatWaveformComponent::filesDropped (const StringArray& files, int x, int y)
+void BreakbeatWaveformComponent::filesDropped(const StringArray& files, int x, int y)
 {
     mWaveformComponent.filesDropped(files, x, y);
 }
-
-

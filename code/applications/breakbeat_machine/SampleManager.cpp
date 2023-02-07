@@ -5,16 +5,15 @@ using namespace OUS;
 SampleManager::SampleManager(juce::AudioFormatManager& formatManager)
 : mFormatManager(formatManager)
 {
-    
 }
 
 bool SampleManager::loadNewSample(juce::String const& filePath, juce::String& error)
 {
     juce::File file(filePath);
-    std::unique_ptr<AudioFormatReader> reader { mFormatManager.createReaderFor(file) };
-    
+    std::unique_ptr<AudioFormatReader> reader{mFormatManager.createReaderFor(file)};
+
     error = juce::String();
-    
+
     if(reader != nullptr)
     {
         // get length
@@ -24,13 +23,13 @@ bool SampleManager::loadNewSample(juce::String const& filePath, juce::String& er
             // set up the file buffer
             mSampleFileName = file.getFileName();
             mSampleSampleRate = reader->sampleRate;
-            
+
             ReferenceCountedForwardAndReverseBuffer::Ptr newFileBuffer = new ReferenceCountedForwardAndReverseBuffer(mSampleFileName, reader.get());
             jassert(newFileBuffer != nullptr);
-                    
+
             mActiveFileBuffer = newFileBuffer;
             mFileBuffers.add(mActiveFileBuffer);
-            
+
             return true;
         }
         else
@@ -40,7 +39,7 @@ bool SampleManager::loadNewSample(juce::String const& filePath, juce::String& er
             return false;
         }
     }
-    
+
     error = "Failed to initialise file reader";
     return false;
 }
@@ -77,7 +76,7 @@ void SampleManager::setForwardBufferActive()
     {
         return;
     }
-    
+
     retainedBuffer->updateCurrentSampleBuffer(false);
 }
 
@@ -88,7 +87,7 @@ juce::AudioSampleBuffer* SampleManager::getForwardBuffer()
     {
         return nullptr;
     }
-    
+
     return retainedBuffer->getForwardAudioSampleBuffer();
 }
 
@@ -99,7 +98,7 @@ void SampleManager::setReverseBufferActive()
     {
         return;
     }
-    
+
     retainedBuffer->updateCurrentSampleBuffer(true);
 }
 
@@ -110,7 +109,7 @@ juce::AudioSampleBuffer* SampleManager::getActiveBuffer()
     {
         return nullptr;
     }
-    
+
     return mActiveBuffer->getCurrentAudioSampleBuffer();
 }
 
@@ -119,22 +118,22 @@ void SampleManager::clearFreeBuffers()
     for(auto i = mBuffers.size(); --i >= 0;)
     {
         ReferenceCountedForwardAndReverseBuffer::Ptr buffer(mBuffers.getUnchecked(i));
-        
+
         if(buffer->getReferenceCount() == 2)
         {
             mBuffers.remove(i);
         }
     }
-    
+
     for(auto i = mFileBuffers.size(); --i >= 0;)
     {
         ReferenceCountedForwardAndReverseBuffer::Ptr buffer(mFileBuffers.getUnchecked(i));
-        
+
         if(!buffer)
         {
             continue;
         }
-        
+
         if(buffer->getReferenceCount() == 2)
         {
             mFileBuffers.remove(i);
@@ -145,27 +144,30 @@ void SampleManager::clearFreeBuffers()
 void SampleManager::performTimestretch(float stretchFactor, float pitchFactor, std::function<void()> callback)
 {
     mCallback = callback;
-    
+
     // act on the ORIGINAL file
     if(!mActiveFileBuffer)
     {
         std::cout << "Nothing in the buffer the stretch...\n";
         return;
     }
-    
+
     std::cout << "Performing stretch: factor " << stretchFactor << "x, pitch " << pitchFactor << "\n";
-    mStretchTask=std::make_unique<OfflineStretchProcessor>(mTempStretchedFile,
-                                                              *mActiveFileBuffer->getForwardAudioSampleBuffer(),
-                                                              stretchFactor, pitchFactor,
-                                                              mSampleSampleRate,
-                                                              [this]() { onTimestretchComplete(); });
+    mStretchTask = std::make_unique<OfflineStretchProcessor>(mTempStretchedFile,
+                                                             *mActiveFileBuffer->getForwardAudioSampleBuffer(),
+                                                             stretchFactor, pitchFactor,
+                                                             mSampleSampleRate,
+                                                             [this]()
+                                                             {
+                                                                 onTimestretchComplete();
+                                                             });
     mStretchTask->launchThread();
 }
 
 void SampleManager::onTimestretchComplete()
 {
-    std::cout << "Stretch complete. Temp file: " <<  mTempStretchedFile.getFile().getFullPathName() << "\n";
-    std::unique_ptr<AudioFormatReader> reader { mFormatManager.createReaderFor(mTempStretchedFile.getFile()) };
+    std::cout << "Stretch complete. Temp file: " << mTempStretchedFile.getFile().getFullPathName() << "\n";
+    std::unique_ptr<AudioFormatReader> reader{mFormatManager.createReaderFor(mTempStretchedFile.getFile())};
 
     if(reader != nullptr)
     {
@@ -173,14 +175,14 @@ void SampleManager::onTimestretchComplete()
         mBufferNumSamples = static_cast<size_t>(reader->lengthInSamples);
         mBufferDuration = static_cast<double>(reader->lengthInSamples) / reader->sampleRate;
         std::cout << "New duration: " << mBufferDuration << "\n";
-        
+
         // TODO: clear existing?
         ReferenceCountedForwardAndReverseBuffer::Ptr newActiveBuffer = new ReferenceCountedForwardAndReverseBuffer(mSampleFileName + "stretched", reader.get());
         jassert(newActiveBuffer != nullptr);
-                    
+
         mActiveBuffer = newActiveBuffer;
         mBuffers.add(mActiveBuffer);
-        
+
         if(mCallback != nullptr)
         {
             mCallback();
