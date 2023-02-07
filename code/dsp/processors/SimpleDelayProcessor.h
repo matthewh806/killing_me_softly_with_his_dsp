@@ -2,6 +2,8 @@
 
 // clang-format off
 #include "JuceHeader.h"
+#include "PixelArtBinaryData.h"
+#include "SimpleDelayBinaryData.h"
 // clang-format on
 
 #include "../../core/CircularBuffer.h"
@@ -105,8 +107,8 @@ namespace OUS
             //==============================================================================
             void paint(juce::Graphics& g) override
             {
-                // (Our component is opaque, so we must completely fill the background with a solid colour)
-                g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+                auto backgroundImg = juce::ImageCache::getFromMemory(SimpleDelayBinaryData::simple_delay_background_png, SimpleDelayBinaryData::simple_delay_background_pngSize);
+                g.drawImage(backgroundImg, getLocalBounds().toFloat());
             }
 
             void resized() override
