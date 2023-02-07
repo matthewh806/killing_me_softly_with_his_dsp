@@ -14,10 +14,10 @@ const std::vector<float>& FFTWrapper::getPhases() const
 
 void FFTWrapper::performRealForwardTransform(float* data)
 {
-     mFFT.performRealOnlyForwardTransform(data);
-    
-    auto* complexOutput = reinterpret_cast<juce::dsp::Complex<float>*> (data);
-    for (size_t i = 0; i < FFTSize; ++i)
+    mFFT.performRealOnlyForwardTransform(data);
+
+    auto* complexOutput = reinterpret_cast<juce::dsp::Complex<float>*>(data);
+    for(size_t i = 0; i < FFTSize; ++i)
     {
         mMagnitudes[i] = std::abs(complexOutput[i]);
         mPhases[i] = std::arg(complexOutput[i]);
