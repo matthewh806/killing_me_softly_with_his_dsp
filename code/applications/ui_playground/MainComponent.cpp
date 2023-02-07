@@ -1,16 +1,15 @@
 #include "MainComponent.h"
 #include "BinaryData.h"
 
-
-using namespace OUS; 
+using namespace OUS;
 
 //==============================================================================
 MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
 : juce::AudioAppComponent(deviceManager)
 {
-    setSize (600, 250);
-    setAudioChannels (2, 2);
-    
+    setSize(600, 250);
+    setAudioChannels(2, 2);
+
     addAndMakeVisible(mTestButton);
     mTestButton.setImages(true,
                           true,
@@ -24,22 +23,22 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
                           juce::ImageCache::getFromMemory(BinaryData::sync_button2_png, BinaryData::sync_button2_pngSize),
                           1.0f,
                           juce::Colours::transparentBlack);
-    
+
     mTestButton.setClickingTogglesState(true);
 }
 
 MainComponent::~MainComponent()
 {
     shutdownAudio();
-}   
+}
 
-void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     mBlockSize = samplesPerBlockExpected;
     mSampleRate = static_cast<int>(sampleRate);
 }
 
-void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+void MainComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill)
 {
     bufferToFill.clearActiveBufferRegion();
 }
@@ -48,12 +47,11 @@ void MainComponent::releaseResources()
 {
 }
 
-
 //==============================================================================
-void MainComponent::paint (juce::Graphics& g)
+void MainComponent::paint(juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
 void MainComponent::resized()
