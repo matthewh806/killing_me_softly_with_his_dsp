@@ -6,24 +6,24 @@ using namespace OUS;
 MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
 : juce::AudioAppComponent(deviceManager)
 {
-    setSize (600, 250);
-    setAudioChannels (2, 2);
+    setSize(600, 250);
+    setAudioChannels(2, 2);
 }
 
 MainComponent::~MainComponent()
 {
     shutdownAudio();
-}   
+}
 
-void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     mBlockSize = samplesPerBlockExpected;
     mSampleRate = static_cast<int>(sampleRate);
-    
+
     mTemplateProcessor.prepareToPlay(sampleRate, samplesPerBlockExpected);
 }
 
-void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+void MainComponent::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill)
 {
     MidiBuffer midiBuffer;
     mTemplateProcessor.processBlock(*bufferToFill.buffer, midiBuffer);
@@ -34,16 +34,15 @@ void MainComponent::releaseResources()
     mTemplateProcessor.releaseResources();
 }
 
-
 //==============================================================================
-void MainComponent::paint (juce::Graphics& g)
+void MainComponent::paint(juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-    
-    g.setColour (juce::Colours::darkblue);
-    g.setFont (20.0f);
-    g.drawText ("Some people just do nothing", getLocalBounds(), juce::Justification::centred, true);
+    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+
+    g.setColour(juce::Colours::darkblue);
+    g.setFont(20.0f);
+    g.drawText("Some people just do nothing", getLocalBounds(), juce::Justification::centred, true);
 }
 
 void MainComponent::resized()
