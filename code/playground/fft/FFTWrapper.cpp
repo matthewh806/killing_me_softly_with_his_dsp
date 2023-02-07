@@ -1,5 +1,7 @@
 #include "FFTWrapper.h"
 
+using namespace OUS;
+
 const std::vector<float>& FFTWrapper::getMagnitudes() const
 {
     return mMagnitudes;

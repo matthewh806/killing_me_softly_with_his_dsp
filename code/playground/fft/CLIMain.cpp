@@ -1,17 +1,22 @@
 #include "JuceHeader.h"
 #include "FFTWrapper.h"
 
-void createSineWavetable(std::array<float, FFTWrapper::FFTSize * 2>& sineTable, size_t size)
+namespace OUS
 {
-    auto angleDelta = juce::MathConstants<double>::twoPi / (double) (size - 1);
-    auto currentAngle = 0.0;
-
-    for (unsigned int i = 0; i < size; ++i)
+    void createSineWavetable(std::array<float, FFTWrapper::FFTSize * 2>& sineTable, size_t size)
     {
-        sineTable[i] = static_cast<float>(std::sin (currentAngle));
-        currentAngle += angleDelta;
+        auto angleDelta = juce::MathConstants<double>::twoPi / (double) (size - 1);
+        auto currentAngle = 0.0;
+
+        for (unsigned int i = 0; i < size; ++i)
+        {
+            sineTable[i] = static_cast<float>(std::sin (currentAngle));
+            currentAngle += angleDelta;
+        }
     }
 }
+
+using namespace OUS;
 
 int main (int argc, char* argv[])
 {
@@ -36,4 +41,6 @@ int main (int argc, char* argv[])
     {
         std::cout << phase << ",";
     }
+    
+    return 0;
 }
