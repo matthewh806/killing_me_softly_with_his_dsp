@@ -33,13 +33,13 @@ int main (int argc, char* argv[])
     for(auto magnitude : magnitudes)
     {
         std::cout << magnitude << ", ";
-    }
-    std::cout << "\n";
-    
-    std::cout << "Phases: \n";
-    for(auto phase : phases)
-    {
-        std::cout << phase << ",";
+        std::cout << "\n";
+        
+        std::cout << "Phases: \n";
+        for(auto phase : phases)
+        {
+            std::cout << phase << ",";
+        }
     }
     
     return 0;
