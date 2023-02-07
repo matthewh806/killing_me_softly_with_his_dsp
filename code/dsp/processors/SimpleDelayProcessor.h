@@ -8,6 +8,7 @@
 
 #include "../../core/CircularBuffer.h"
 #include "../../ui/CustomLookAndFeel.h"
+#include "../../ui/PixelArtLookAndFeel.h"
 
 namespace OUS
 {
@@ -63,7 +64,7 @@ namespace OUS
         public:
             SimpleDelayPluginProcessorEditor(SimpleDelayProcessor& owner)
             : juce::AudioProcessorEditor(owner)
-            , mSyncToggle("Sync")
+            , mSyncToggle()
             , mDelayTimeSlider("Delay Time", "s")
             , mSyncedDelaySlider("Beat Fraction", "")
             , mWetDrySlider("Wet / Dry", "")
@@ -74,6 +75,16 @@ namespace OUS
             , mWetDryAttachment(owner.state, "wetdry", mWetDrySlider)
             , mFeedbackAttachment(owner.state, "feedback", mFeedbackSlider)
             {
+                addAndMakeVisible(mTitleLabel);
+                mTitleLabel.setText("Simple Delay", juce::NotificationType::dontSendNotification);
+                mTitleLabel.setEditable(false);
+                mTitleLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+                mTitleLabel.setJustificationType(juce::Justification::centred);
+                Font titleFont;
+                titleFont.setHeight(34);
+                titleFont.setTypefaceName("Retro Gaming");
+                mTitleLabel.setFont(titleFont);
+                
                 addAndMakeVisible(mSyncToggle);
                 owner.state.addParameterListener("sync", this);
 
@@ -109,27 +120,32 @@ namespace OUS
             {
                 auto backgroundImg = juce::ImageCache::getFromMemory(SimpleDelayBinaryData::simple_delay_background_png, SimpleDelayBinaryData::simple_delay_background_pngSize);
                 g.drawImage(backgroundImg, getLocalBounds().toFloat());
+                
+                // Debug
+//                g.setColour(juce::Colours::white);
+//                g.drawRect(panel_bounds);
             }
 
             void resized() override
             {
-                auto bounds = getLocalBounds();
-                bounds.removeFromTop(20);
+                auto textPanel = juce::Rectangle<int>(title_area_bounds);
+                mTitleLabel.setBounds(textPanel);
+                
+                auto panel = juce::Rectangle<int>(panel_bounds);
+                mSyncToggle.setBounds(panel.removeFromTop(40));
 
-                auto syncButtonBounds = bounds.removeFromTop(20);
-                mSyncToggle.setBounds(syncButtonBounds.removeFromLeft(static_cast<int>(bounds.getWidth() * 0.30)));
+                auto knobs = panel.removeFromTop(80);
+                auto const rotaryWidth = static_cast<int>(knobs.getWidth() * 0.30);
+                auto const spacing = static_cast<int>((knobs.getWidth() - (rotaryWidth * 3)) / 2.0);
 
-                auto const rotaryWidth = static_cast<int>(bounds.getWidth() * 0.30);
-                auto const spacing = static_cast<int>((bounds.getWidth() - (rotaryWidth * 3)) / 2.0);
-
-                auto delaySliderBounds = bounds.removeFromLeft(rotaryWidth);
+                auto delaySliderBounds = knobs.removeFromLeft(rotaryWidth);
                 mDelayTimeSlider.setBounds(delaySliderBounds);
                 mSyncedDelaySlider.setBounds(delaySliderBounds);
 
-                bounds.removeFromLeft(spacing);
-                mWetDrySlider.setBounds(bounds.removeFromLeft(rotaryWidth));
-                bounds.removeFromLeft(spacing);
-                mFeedbackSlider.setBounds(bounds.removeFromLeft(rotaryWidth));
+                knobs.removeFromLeft(spacing);
+                mWetDrySlider.setBounds(knobs.removeFromLeft(rotaryWidth));
+                knobs.removeFromLeft(spacing);
+                mFeedbackSlider.setBounds(knobs.removeFromLeft(rotaryWidth));
             }
 
         private:
@@ -157,8 +173,12 @@ namespace OUS
                     repaint();
                 }
             }
-
-            juce::ToggleButton mSyncToggle;
+            
+            juce::Rectangle<int> const title_area_bounds{158, 32, 282, 45};
+            juce::Rectangle<int> const panel_bounds{158, 102, 282, 125};
+            
+            juce::Label mTitleLabel;
+            UI::PixelArt::SyncButton mSyncToggle;
 
             RotarySliderWithLabels mDelayTimeSlider;
             SyncedDelayRotarySliderWithLabels mSyncedDelaySlider;
