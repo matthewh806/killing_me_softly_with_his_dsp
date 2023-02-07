@@ -10,7 +10,7 @@ OfflineStretchProcessor::OfflineStretchProcessor(TemporaryFile& file, juce::Audi
 , mPitchShiftFactor(pitchFactor)
 , mOnThreadComplete(onThreadComplete)
 {
-    std::unique_ptr<RubberBand::RubberBandStretcher> newBand (new RubberBand::RubberBandStretcher(static_cast<size_t>(sampleRate), static_cast<size_t>(2)));
+    std::unique_ptr<RubberBand::RubberBandStretcher> newBand(new RubberBand::RubberBandStretcher(static_cast<size_t>(sampleRate), static_cast<size_t>(2)));
     mRubberBandStretcher.reset(newBand.release());
 }
 
@@ -22,11 +22,11 @@ void OfflineStretchProcessor::run()
     {
         return;
     }
-    
+
     mRubberBandStretcher->reset();
     mRubberBandStretcher->setTimeRatio(mStretchFactor);
     mRubberBandStretcher->setPitchScale(mPitchShiftFactor);
-    
+
     // 1. phase 1 is study
     size_t sample = 0;
     size_t percent = 0;
@@ -124,7 +124,7 @@ void OfflineStretchProcessor::run()
         {
             percent = static_cast<size_t>(p);
             std::cout << "\r" << percent << "%\n";
-            
+
             setProgress(0.5 + 0.5 * static_cast<double>(percent)); // this is second half of the overall
         }
 
@@ -138,9 +138,9 @@ void OfflineStretchProcessor::run()
     while(mRubberBandStretcher->available() >= 0)
     {
         auto const availableSamples = mRubberBandStretcher->available();
-        
+
         jassert(availableSamples >= 0);
-        
+
         std::cout << "Completing: number remaining: " << availableSamples << "\n";
         auto stretchedBuffer = juce::AudioBuffer<float>(static_cast<int>(srcChannels), availableSamples);
         mRubberBandStretcher->retrieve(stretchedBuffer.getArrayOfWritePointers(), static_cast<size_t>(availableSamples));
@@ -165,34 +165,34 @@ void OfflineStretchProcessor::run()
         sampleOut += availableSamples;
     }
     std::cout << "Phase 3: Remaining samples complete\n";
-    
+
     // save to temp file.
     // assume wav for now
     juce::WavAudioFormat format;
     std::unique_ptr<juce::AudioFormatWriter> writer;
-    
-    if (auto fileStream = std::unique_ptr<FileOutputStream>(mFile.getFile().createOutputStream()))
+
+    if(auto fileStream = std::unique_ptr<FileOutputStream>(mFile.getFile().createOutputStream()))
     {
         if(fileStream->openedOk())
         {
-            fileStream->setPosition (0);
+            fileStream->setPosition(0);
             fileStream->truncate();
         }
-        
-        writer.reset (format.createWriterFor (fileStream.release(),
-                                              44100.0,
-                                              static_cast<unsigned int>(mStretchedBuffer.getNumChannels()),
-                                              24,
-                                              {},
-                                              0));
-        if (writer != nullptr)
+
+        writer.reset(format.createWriterFor(fileStream.release(),
+                                            44100.0,
+                                            static_cast<unsigned int>(mStretchedBuffer.getNumChannels()),
+                                            24,
+                                            {},
+                                            0));
+        if(writer != nullptr)
         {
-            writer->writeFromAudioSampleBuffer (mStretchedBuffer, 0, mStretchedBuffer.getNumSamples());
+            writer->writeFromAudioSampleBuffer(mStretchedBuffer, 0, mStretchedBuffer.getNumSamples());
         }
     }
 }
 
-void OfflineStretchProcessor::threadComplete (bool userPressedCancel)
+void OfflineStretchProcessor::threadComplete(bool userPressedCancel)
 {
     if(mOnThreadComplete != nullptr)
     {

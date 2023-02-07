@@ -23,17 +23,17 @@ double TrapezoidalEnvelope::synthesize()
     {
         return 0.0;
     }
-    
+
     // incmrement of 0 is the sustain portion
-    
+
     if(mPosition == 0 && mAttackSamples == 0)
     {
         mPreviousAmplitude = mGrainAmplitude;
     }
-    
+
     auto amplitudeIncrement = 0.0f;
     auto const previousAmplitude = mPreviousAmplitude;
-    
+
     if(mPosition < mAttackSamples)
     {
         amplitudeIncrement = mGrainAmplitude / static_cast<float>(mAttackSamples);
@@ -42,12 +42,11 @@ double TrapezoidalEnvelope::synthesize()
     {
         amplitudeIncrement = -mGrainAmplitude / static_cast<float>(mReleaseSamples);
     }
-    
-    
+
     auto const nextAmplitude = std::max(0.0f, std::min(1.0f, previousAmplitude + amplitudeIncrement));
     mPreviousAmplitude = nextAmplitude;
     mPosition++;
-    
+
     return nextAmplitude;
 }
 
@@ -65,6 +64,6 @@ double ParabolicEnvelope::synthesize()
 {
     mAmplitude = mAmplitude + mSlope;
     mSlope = mSlope + mCurve;
-    
+
     return mAmplitude;
 }
