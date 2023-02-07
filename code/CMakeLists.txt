@@ -21,7 +21,10 @@ add_subdirectory(dependencies/freeverb)
 include(juce_shared_vst.cmake)
 include(aubio.cmake)
 
-juce_add_binary_data(KMSWHDSPBinaryData SOURCES 
+juce_add_binary_data(PixelArtBinaryData 
+                    HEADER_NAME PixelArtBinaryData.h
+                    NAMESPACE PixelArtBinaryData
+                    SOURCES 
                      ${CMAKE_SOURCE_DIR}/assets/sync_button1.png 
                      ${CMAKE_SOURCE_DIR}/assets/sync_button2.png
 )

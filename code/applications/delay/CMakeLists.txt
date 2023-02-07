@@ -3,6 +3,13 @@ juce_add_plugin(SimpleDelay
     MICROPHONE_PERMISSION_ENABLED   TRUE
     FORMATS Standalone VST3)
 
+juce_add_binary_data(SimpleDelayBinaryData 
+                    HEADER_NAME SimpleDelayBinaryData.h
+                    NAMESPACE SimpleDelayBinaryData
+                    SOURCES 
+                    ${CMAKE_SOURCE_DIR}/applications/delay/assets/simple_delay_background.png 
+)
+
 juce_generate_juce_header(SimpleDelay)
 
 set(SimpleDelayApplicationSources
@@ -20,4 +27,8 @@ target_compile_definitions(SimpleDelay PRIVATE
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:SimpleDelay,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:SimpleDelay,JUCE_VERSION>")
 
-target_link_libraries(SimpleDelay PRIVATE Shared_VST_Target)
+target_link_libraries(SimpleDelay 
+    PRIVATE 
+    PixelArtBinaryData
+    SimpleDelayBinaryData
+    Shared_VST_Target)
