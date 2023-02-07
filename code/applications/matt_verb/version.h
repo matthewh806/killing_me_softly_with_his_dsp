@@ -25,12 +25,12 @@
 // Version without build number (example "1.0.3")
 #define VERSION_STR MAJOR_VERSION_STR "." SUB_VERSION_STR "." RELEASE_NUMBER_STR
 
-#define stringOriginalFilename	"MattVerb.vst3"
+#define stringOriginalFilename "MattVerb.vst3"
 #if SMTG_PLATFORM_64
-#define stringFileDescription	"MattVerb VST3 (64Bit)"
+#define stringFileDescription "MattVerb VST3 (64Bit)"
 #else
-#define stringFileDescription	"MattVerb VST3"
+#define stringFileDescription "MattVerb VST3"
 #endif
-#define stringCompanyName		"the office of unspecified services\0"
-#define stringLegalCopyright	"Copyright(c) 2022 the office of unspecified services."
-#define stringLegalTrademarks	"VST is a trademark of Steinberg Media Technologies GmbH"
+#define stringCompanyName "the office of unspecified services\0"
+#define stringLegalCopyright "Copyright(c) 2022 the office of unspecified services."
+#define stringLegalTrademarks "VST is a trademark of Steinberg Media Technologies GmbH"
