@@ -18,21 +18,23 @@
 using namespace OUS;
 
 Physics::PulsarWorld::PulsarWorld(AudioProcessor& parent, juce::Rectangle<float> worldRect, const b2Vec2& gravity)
-: mParent(parent), mWorld(gravity), mWorldRect(worldRect)
+: mParent(parent)
+, mWorld(gravity)
+, mWorldRect(worldRect)
 {
     startTimerHz(PHYSICS_STEP_FREQ);
-    
+
     b2BodyDef boundaryBodyDef;
     boundaryBodyDef.type = b2_staticBody;
     boundaryBodyDef.position.Set(0, 0);
     mWorldBoundary = mWorld.CreateBody(&boundaryBodyDef);
-    
+
     b2PolygonShape boundaryPolygonShape;
-    
+
     b2FixtureDef borderFixtureDef;
     borderFixtureDef.shape = &boundaryPolygonShape;
     borderFixtureDef.isSensor = true;
-    
+
     boundaryPolygonShape.SetAsBox(getRect().getWidth() * 0.5f, Utils::pixelsToMeters(1), {static_cast<float32>((getRect().getWidth() * 0.5f)), static_cast<float32>(getRect().getHeight())}, 0); // bottom
     mWorldBoundary->CreateFixture(&borderFixtureDef);
     boundaryPolygonShape.SetAsBox(getRect().getWidth() * 0.5f, Utils::pixelsToMeters(1), {static_cast<float32>((getRect().getWidth() * 0.5f)), static_cast<float32>(getRect().getY())}, 0); // top
@@ -41,9 +43,9 @@ Physics::PulsarWorld::PulsarWorld(AudioProcessor& parent, juce::Rectangle<float>
     mWorldBoundary->CreateFixture(&borderFixtureDef);
     boundaryPolygonShape.SetAsBox(Utils::pixelsToMeters(1), getRect().getHeight() * 0.5f, {static_cast<float32>((getRect().getRight())), static_cast<float32>(getRect().getHeight() * 0.5f)}, 0); // right
     mWorldBoundary->CreateFixture(&borderFixtureDef);
-    
+
     createPolygon(3);
-    
+
     mWorld.SetContactListener(this);
 }
 
@@ -81,31 +83,31 @@ void Physics::PulsarWorld::createPolygon(int nSides)
             mWorld.DestroyBody(b->getBody());
         }
         mBalls.clear();
-        
+
         mWorld.DestroyBody(mPolygon->getBody());
         mPolygon.release();
     }
-    
+
     mBalls.clear();
-    
+
     b2Vec2 polygonPos = {mWorldRect.getWidth() * 0.5f, mWorldRect.getHeight() * 0.5f};
     mPolygon = std::make_unique<Polygon>(mWorld, polygonPos, nSides, static_cast<float>(Utils::pixelsToMeters(120.0)));
 }
 
 void Physics::PulsarWorld::setPolygonRotationSpeed(double speed)
 {
-    mPolygon->setAngularVelocity( std::fmod(static_cast<float>(speed) * DEGTORAD, 360 * DEGTORAD ));
+    mPolygon->setAngularVelocity(std::fmod(static_cast<float>(speed) * DEGTORAD, 360 * DEGTORAD));
 }
 
 void Physics::PulsarWorld::incrementPolygonRotationSpeed()
 {
     auto const curAngVelocity = mPolygon->getAngularVelocity();
-    mPolygon->setAngularVelocity( std::fmod(curAngVelocity + 45 * DEGTORAD, 360 * DEGTORAD ));
+    mPolygon->setAngularVelocity(std::fmod(curAngVelocity + 45 * DEGTORAD, 360 * DEGTORAD));
 }
 
 void Physics::PulsarWorld::setGravity(float gravityY)
 {
-    auto const g = b2Vec2 {0.0f, std::clamp(gravityY, GRAV_MIN, GRAV_MAX)};
+    auto const g = b2Vec2{0.0f, std::clamp(gravityY, GRAV_MIN, GRAV_MAX)};
     mWorld.SetGravity(g);
 }
 
@@ -124,7 +126,7 @@ void Physics::PulsarWorld::decreaseEdgeSeparation()
     mPolygon->increaseEdgeSeparation(-2);
 }
 
-bool Physics::PulsarWorld::testPointInPolygon(b2Vec2 const &p)
+bool Physics::PulsarWorld::testPointInPolygon(b2Vec2 const& p)
 {
     return mPolygon->testPoint(p);
 }
@@ -133,7 +135,7 @@ Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, float radius, int not
 {
     Ball* b = new Ball{mWorld, pos, noteNumber, velocity, radius};
     mBalls.push_back(b);
-    
+
     return b;
 }
 
@@ -145,7 +147,7 @@ Physics::Ball* Physics::PulsarWorld::spawnBall(b2Vec2 pos, int noteNumber, float
     auto constexpr minRadius = 2.0f;
     auto constexpr maxRadius = 10.0f;
     auto const radius = velocity / 127 * (maxRadius - minRadius) + minRadius;
-    
+
     return spawnBall(pos, Utils::pixelsToMeters(radius), noteNumber, velocity);
 }
 
@@ -160,7 +162,7 @@ void Physics::PulsarWorld::removeBalls()
     {
         removeBall(*it);
     }
-    
+
     mBallsToRemove.clear();
 }
 
@@ -168,43 +170,43 @@ void Physics::PulsarWorld::BeginContact(b2Contact* contact)
 {
     void* userAData = contact->GetFixtureA()->GetBody()->GetUserData();
     void* userBData = contact->GetFixtureB()->GetBody()->GetUserData();
-    
+
     if(!contact->GetFixtureA()->IsSensor() && !contact->GetFixtureB()->IsSensor())
     {
         if(userAData)
         {
             auto* ball = static_cast<Ball*>(userAData);
             auto const midiData = ball->getMidiData();
-        
+
             auto pulsarAudioEditor = dynamic_cast<PulsarAudioProcessor*>(&mParent);
             pulsarAudioEditor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity);
         }
-        
+
         if(userBData)
         {
             auto* ball = static_cast<Ball*>(userBData);
             auto const midiData = ball->getMidiData();
-        
+
             auto pulsarAudioEditor = dynamic_cast<PulsarAudioProcessor*>(&mParent);
-                pulsarAudioEditor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity);
+            pulsarAudioEditor->sendNoteOnMessage(midiData.noteNumber, midiData.velocity);
         }
-        
+
         return;
     }
-    
+
     if(contact->GetFixtureA()->IsSensor() && !contact->GetFixtureB()->IsSensor())
     {
         auto* ball = static_cast<Ball*>(userBData);
         mBallsToRemove.insert(ball);
-        
+
         return;
     }
-    
+
     if(contact->GetFixtureB()->IsSensor() && !contact->GetFixtureA()->IsSensor())
     {
         auto* ball = static_cast<Ball*>(userAData);
         mBallsToRemove.insert(ball);
-        
+
         return;
     }
 }

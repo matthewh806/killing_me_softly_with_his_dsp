@@ -8,23 +8,23 @@
   ==============================================================================
 */
 
-#include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
 #include "Utils.h"
 
 //==============================================================================
 
 using namespace OUS;
 
-PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p, AudioDeviceManager& deviceManager)
-: AudioProcessorEditor (&p)
+PulsarAudioProcessorEditor::PulsarAudioProcessorEditor(PulsarAudioProcessor& p, AudioDeviceManager& deviceManager)
+: AudioProcessorEditor(&p)
 , mDeviceManager(deviceManager)
 {
     mInformationScreen.setSize(300, 300);
-    setSize (500, 500);
-    
+    setSize(500, 500);
+
     addKeyListener(this);
-    
+
     auto& pulsarProcessor = static_cast<PulsarAudioProcessor&>(processor);
     if(juce::JUCEApplication::isStandaloneApp())
     {
@@ -32,7 +32,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         addAndMakeVisible(mMidiInputChannelList);
         addAndMakeVisible(mMidiOutputDeviceList);
         addAndMakeVisible(mMidiOutputChannelList);
-        
+
         mMidiInputDeviceList.comboBox.setTextWhenNoChoicesAvailable("No Midi Inputs Enabled");
         auto midiInputs = MidiInput::getAvailableDevices();
         mMidiInputDeviceList.comboBox.onChange = [&]
@@ -41,47 +41,50 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
             auto const inputs = MidiInput::getAvailableDevices();
             pulsarProcessor.setMidiInput(inputs[index].identifier);
         };
-        
+
         for(int i = 0; i < midiInputs.size(); ++i)
         {
-            mMidiInputDeviceList.comboBox.addItem(midiInputs[i].name, i+1);
+            mMidiInputDeviceList.comboBox.addItem(midiInputs[i].name, i + 1);
             if(mDeviceManager.isMidiInputDeviceEnabled(midiInputs[i].identifier))
             {
                 static_cast<PulsarAudioProcessor&>(processor).setMidiInput(midiInputs[i].identifier);
-                mMidiInputDeviceList.comboBox.setSelectedId(i+1);
+                mMidiInputDeviceList.comboBox.setSelectedId(i + 1);
             }
         }
-        
+
         for(int i = 1; i <= 16; ++i)
         {
             mMidiInputChannelList.comboBox.addItem(juce::String(i), i);
             mMidiOutputChannelList.comboBox.addItem(juce::String(i), i);
         }
-        
-        mMidiInputChannelList.comboBox.onChange = [&] {
+
+        mMidiInputChannelList.comboBox.onChange = [&]
+        {
             pulsarProcessor.setMidiInputChannel(mMidiInputChannelList.comboBox.getSelectedId());
         };
-        
-        mMidiOutputChannelList.comboBox.onChange = [&] {
+
+        mMidiOutputChannelList.comboBox.onChange = [&]
+        {
             pulsarProcessor.setMidiOutputChannel(mMidiOutputChannelList.comboBox.getSelectedId());
         };
-        
+
         mMidiOutputDeviceList.comboBox.setTextWhenNoChoicesAvailable("No Midi Outputs Enabled");
         auto midiOutputs = MidiOutput::getAvailableDevices();
-        mMidiOutputDeviceList.comboBox.onChange = [&] {
+        mMidiOutputDeviceList.comboBox.onChange = [&]
+        {
             auto const index = mMidiOutputDeviceList.comboBox.getSelectedItemIndex();
             auto const outputs = MidiOutput::getAvailableDevices();
             pulsarProcessor.setMidiOutput(outputs[index].identifier);
         };
-        
+
         for(int i = 0; i < midiOutputs.size(); ++i)
         {
-            mMidiOutputDeviceList.comboBox.addItem(midiOutputs[i].name, i+1);
-            
+            mMidiOutputDeviceList.comboBox.addItem(midiOutputs[i].name, i + 1);
+
             if(mDeviceManager.getDefaultMidiOutputIdentifier() == midiOutputs[i].identifier)
             {
                 pulsarProcessor.setMidiOutput(midiOutputs[i].identifier);
-                mMidiOutputDeviceList.comboBox.setSelectedId(i+1);
+                mMidiOutputDeviceList.comboBox.setSelectedId(i + 1);
             }
         }
     }
@@ -90,9 +93,9 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         pulsarProcessor.setMidiInputChannel(1);
         pulsarProcessor.setMidiOutputChannel(1);
     }
-    
+
     pulsarProcessor.getWorld().setRect({0, 0, Physics::Utils::pixelsToMeters(static_cast<float>(getWidth())), Physics::Utils::pixelsToMeters(static_cast<float>(getHeight()))});
-    
+
     addAndMakeVisible(mGravityField);
     mGravityField.setRange({GRAV_MIN, GRAV_MAX}, juce::NotificationType::dontSendNotification);
     mGravityField.setValue(pulsarProcessor.getWorld().getGravity(), juce::NotificationType::dontSendNotification);
@@ -100,7 +103,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
     {
         pulsarProcessor.getWorld().setGravity(static_cast<float>(value));
     };
-    
+
     addAndMakeVisible(mNoteStrategyList);
     mNoteStrategyList.comboBox.addItem("Random", 1);
     mNoteStrategyList.comboBox.addItem("Major", 2);
@@ -118,7 +121,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         auto const strategy = static_cast<NoteStrategy::Strategy>(mNoteStrategyList.comboBox.getSelectedItemIndex());
         mNoteStrategy.setStrategy(strategy);
     };
-    
+
     addAndMakeVisible(mNoteKey);
     mNoteKey.comboBox.addItemList({"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}, 1);
     mNoteKey.comboBox.onChange = [this]()
@@ -126,7 +129,7 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         auto const noteName = mNoteKey.comboBox.getItemText(mNoteKey.comboBox.getSelectedItemIndex());
         mNoteStrategy.setKey(noteName.toStdString());
     };
-    
+
     addAndMakeVisible(mMinOctave);
     mMinOctave.setRange({0, 7}, juce::NotificationType::dontSendNotification);
     mMinOctave.setValue(mNoteStrategy.getOctaveRange().getStart(), juce::NotificationType::dontSendNotification);
@@ -135,11 +138,11 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         auto const curRange = mNoteStrategy.getOctaveRange();
         auto const minValue = std::clamp(static_cast<int>(value), OCTAVE_MIN, curRange.getEnd() - 1);
         mNoteStrategy.setOctaveRange({minValue, curRange.getEnd()});
-        
+
         // Update UI value after clamp
         mMinOctave.setValue(minValue, juce::NotificationType::dontSendNotification);
     };
-    
+
     addAndMakeVisible(mMaxOctave);
     mMaxOctave.setRange({0, 7}, juce::NotificationType::dontSendNotification);
     mMaxOctave.setValue(mNoteStrategy.getOctaveRange().getEnd(), juce::NotificationType::sendNotification);
@@ -148,11 +151,11 @@ PulsarAudioProcessorEditor::PulsarAudioProcessorEditor (PulsarAudioProcessor& p,
         auto const curRange = mNoteStrategy.getOctaveRange();
         auto const maxValue = std::clamp(static_cast<int>(value + 1), curRange.getStart() + 1, OCTAVE_MAX);
         mNoteStrategy.setOctaveRange({curRange.getStart(), maxValue});
-        
+
         // Update UI value after clamp. The ui value is reduced by 1 to account for the exclusive range end
         mMaxOctave.setValue(maxValue - 1, juce::NotificationType::dontSendNotification);
     };
-    
+
     addAndMakeVisible(mMaxOctave);
 }
 
@@ -163,14 +166,14 @@ PulsarAudioProcessorEditor::~PulsarAudioProcessorEditor()
 
 //==============================================================================
 
-void PulsarAudioProcessorEditor::paint (Graphics& g)
+void PulsarAudioProcessorEditor::paint(Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
-    g.setColour (Colours::white);
-    
+    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+    g.setColour(Colours::white);
+
     g.drawSingleLineText("Number of balls: " + juce::String(static_cast<PulsarAudioProcessor&>(processor).getWorld().getNumberOfBalls()), 20, getHeight() - 80);
-    
+
     auto& pulsarProcessor = static_cast<PulsarAudioProcessor&>(processor);
     Box2DRenderer box2DRenderer;
     box2DRenderer.render(g,
@@ -186,33 +189,33 @@ void PulsarAudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
     bounds.reduced(20, 20);
-    
+
     if(juce::JUCEApplication::isStandaloneApp())
     {
         auto ioBounds = bounds.removeFromTop(40);
         auto midiInputBounds = ioBounds.removeFromTop(static_cast<int>(ioBounds.getHeight() * 0.5));
         auto midiOutputBounds = ioBounds;
-        
+
         mMidiInputDeviceList.setBounds(midiInputBounds.removeFromLeft(static_cast<int>(midiInputBounds.getWidth() * 0.5)));
         mMidiInputChannelList.setBounds(midiInputBounds);
-        
+
         mMidiOutputDeviceList.setBounds(midiOutputBounds.removeFromLeft(static_cast<int>(midiOutputBounds.getWidth() * 0.5)));
         mMidiOutputChannelList.setBounds(midiOutputBounds);
     }
-    
+
     auto gravityBounds = bounds.removeFromBottom(70);
     auto const halfScreenWidth = static_cast<int>(gravityBounds.getWidth() * 0.5);
-    
+
     mGravityField.setBounds(gravityBounds.removeFromTop(20).removeFromLeft(halfScreenWidth));
-    
+
     gravityBounds.removeFromTop(5);
-    
+
     auto scaleKeyBounds = gravityBounds.removeFromTop(20);
     mNoteStrategyList.setBounds(scaleKeyBounds.removeFromLeft(halfScreenWidth));
     mNoteKey.setBounds(scaleKeyBounds.removeFromLeft(halfScreenWidth));
-    
+
     scaleKeyBounds.removeFromTop(5);
-    
+
     auto octaveRangeBounds = gravityBounds.removeFromTop(20);
     mMinOctave.setBounds(octaveRangeBounds.removeFromLeft(halfScreenWidth));
     mMaxOctave.setBounds(octaveRangeBounds.removeFromLeft(halfScreenWidth));
@@ -225,11 +228,11 @@ bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
     {
         pulsarProcessor.getWorld().incrementPolygonRotationSpeed();
     }
-    else if (key == 73) // i
+    else if(key == 73) // i
     {
         pulsarProcessor.getWorld().increaseEdgeSeparation();
     }
-    else if (key == 68) // d
+    else if(key == 68) // d
     {
         pulsarProcessor.getWorld().decreaseEdgeSeparation();
     }
@@ -262,24 +265,24 @@ bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key)
     {
         pulsarProcessor.getWorld().createPolygon(8);
     }
-    
+
     return true;
 }
 
-bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key, juce::Component *originatingComponent)
+bool PulsarAudioProcessorEditor::keyPressed(juce::KeyPress const& key, juce::Component* originatingComponent)
 {
     juce::ignoreUnused(originatingComponent);
     return keyPressed(key);
 }
 
-void PulsarAudioProcessorEditor::mouseUp (juce::MouseEvent const& event)
+void PulsarAudioProcessorEditor::mouseUp(juce::MouseEvent const& event)
 {
-    b2Vec2 const worldPos {Physics::Utils::pixelsToMeters(event.position.x), Physics::Utils::pixelsToMeters(event.position.y)};
+    b2Vec2 const worldPos{Physics::Utils::pixelsToMeters(event.position.x), Physics::Utils::pixelsToMeters(event.position.y)};
     if(static_cast<PulsarAudioProcessor&>(processor).getWorld().testPointInPolygon(worldPos))
     {
         int const midiNote = mNoteStrategy.getMidiNote();
         int const velocity = mRandom.nextInt(127);
-        
+
         static_cast<PulsarAudioProcessor&>(processor).getWorld().spawnBall(worldPos, midiNote, velocity);
     }
 }
@@ -288,7 +291,7 @@ void PulsarAudioProcessorEditor::showInformationScreen()
 {
     juce::DialogWindow::LaunchOptions o;
     o.dialogTitle = juce::translate("Pulsar Information");
-    
+
     o.content.setNonOwned(&mInformationScreen);
     o.componentToCentreAround = nullptr;
     o.dialogBackgroundColour = juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId);
@@ -296,6 +299,6 @@ void PulsarAudioProcessorEditor::showInformationScreen()
     o.useNativeTitleBar = false;
     o.resizable = false;
     o.useBottomRightCornerResizer = false;
-    
+
     o.launchAsync();
 }

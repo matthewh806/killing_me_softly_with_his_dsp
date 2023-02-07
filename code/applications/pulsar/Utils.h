@@ -12,18 +12,19 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-namespace OUS {
+namespace OUS
+{
 
     namespace Physics
     {
-        #define    RAND_LIMIT 32767
-        
-        // TODO: Move into separate file (constants.h?)
-        #define GRAV_MIN 0.0f
-        #define GRAV_MAX 100.0f
-        #define OCTAVE_MIN 0
-        #define OCTAVE_MAX 8
-        #define PHYSICS_STEP_FREQ 60 // Physics / renderer refresh in Hz
+#define RAND_LIMIT 32767
+
+// TODO: Move into separate file (constants.h?)
+#define GRAV_MIN 0.0f
+#define GRAV_MAX 100.0f
+#define OCTAVE_MIN 0
+#define OCTAVE_MAX 8
+#define PHYSICS_STEP_FREQ 60 // Physics / renderer refresh in Hz
 
         class Utils
         {
@@ -40,14 +41,14 @@ namespace OUS {
 
             static b2Vec2 pixelsToMeters(float xPixels, float yPixels)
             {
-                return b2Vec2( xPixels / pixelsPerMeter, yPixels / pixelsPerMeter);
+                return b2Vec2(xPixels / pixelsPerMeter, yPixels / pixelsPerMeter);
             }
 
             static b2Vec2 metersToPixels(float xMeters, float yMeters)
             {
                 return b2Vec2(xMeters * pixelsPerMeter, yMeters * pixelsPerMeter);
             }
-            
+
             static float RandomFloat(float lo, float hi)
             {
                 float r = (float)(rand() & (RAND_LIMIT));
@@ -56,8 +57,7 @@ namespace OUS {
                 return r;
             }
 
-            
             constexpr static const float pixelsPerMeter = 125;
         };
-    }
-}
+    } // namespace Physics
+} // namespace OUS
