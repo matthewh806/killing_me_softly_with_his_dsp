@@ -1,5 +1,5 @@
 #include "MainComponent.h"
-#include "BinaryData.h"
+#include "PixelArtBinaryData.h"
 
 using namespace OUS;
 
@@ -10,21 +10,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     setSize(600, 250);
     setAudioChannels(2, 2);
 
-    addAndMakeVisible(mTestButton);
-    mTestButton.setImages(true,
-                          true,
-                          true,
-                          juce::ImageCache::getFromMemory(BinaryData::sync_button1_png, BinaryData::sync_button1_pngSize),
-                          1.0f,
-                          juce::Colours::transparentBlack,
-                          juce::ImageCache::getFromMemory(BinaryData::sync_button1_png, BinaryData::sync_button1_pngSize),
-                          1.0f,
-                          juce::Colours::transparentBlack,
-                          juce::ImageCache::getFromMemory(BinaryData::sync_button2_png, BinaryData::sync_button2_pngSize),
-                          1.0f,
-                          juce::Colours::transparentBlack);
-
-    mTestButton.setClickingTogglesState(true);
+    addAndMakeVisible(mSyncButton);
 }
 
 MainComponent::~MainComponent()
@@ -57,5 +43,5 @@ void MainComponent::paint(juce::Graphics& g)
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds().reduced(20, 20);
-    mTestButton.setBounds(bounds.removeFromTop(60));
+    mSyncButton.setBounds(bounds.removeFromTop(60));
 }

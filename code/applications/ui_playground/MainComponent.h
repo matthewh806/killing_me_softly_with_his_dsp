@@ -4,7 +4,7 @@
 #include "JuceHeader.h"
 // clang-format on
 
-#include "../../ui/CustomLookAndFeel.h"
+#include "../../ui/PixelArtLookAndFeel.h"
 //==============================================================================
 
 namespace OUS
@@ -30,7 +30,7 @@ namespace OUS
         int mBlockSize;
         int mSampleRate;
 
-        juce::ImageButton mTestButton;
+        UI::PixelArt::SyncButton mSyncButton;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };
