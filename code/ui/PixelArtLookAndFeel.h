@@ -25,6 +25,8 @@ namespace OUS
             juce::Font getComboBoxFont(juce::ComboBox& box) override;
             juce::Font getPopupMenuFont() override;
             
+            void drawComboBox(Graphics &, int width, int height, bool isButtonDown, int buttonX, int buttonY, int buttonW, int buttonH, ComboBox &) override;
+            
         private:
             
         };
@@ -78,6 +80,7 @@ namespace OUS
             ~SelectorComponent() override = default;
             
             void paint(juce::Graphics& g) override;
+            void paintOverChildren (Graphics& g) override;
             void resized() override;
             
             // Label methods
