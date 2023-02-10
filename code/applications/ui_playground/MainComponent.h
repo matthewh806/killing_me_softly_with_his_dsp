@@ -32,6 +32,9 @@ namespace OUS
         
         UI::PixelArt::TitleLabel mTitleLabel;
         UI::PixelArt::SyncButton mSyncButton;
+        UI::PixelArt::PlayButton mPlayButton;
+        UI::PixelArt::PauseButton mPauseButton;
+        UI::PixelArt::RecordButton mRecordButton;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };

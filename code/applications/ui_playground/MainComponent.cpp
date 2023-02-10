@@ -15,6 +15,9 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     mTitleLabel.setJustificationType(juce::Justification::centred);
     
     addAndMakeVisible(mSyncButton);
+    addAndMakeVisible(mPlayButton);
+    addAndMakeVisible(mPauseButton);
+    addAndMakeVisible(mRecordButton);
 }
 
 MainComponent::~MainComponent()
@@ -50,4 +53,15 @@ void MainComponent::resized()
     mTitleLabel.setBounds(bounds.removeFromTop(50));
     bounds.removeFromTop(10);
     mSyncButton.setBounds(bounds.removeFromTop(60));
+    bounds.removeFromTop(10);
+    
+    auto transportButtonBounds = bounds.removeFromTop(60);
+    auto const width = transportButtonBounds.getWidth();
+    auto const transportButtonWidth = static_cast<int>(width * 0.25f);
+    auto const transportButtonSpacing = static_cast<int>(width * 0.125f);
+    mPlayButton.setBounds(transportButtonBounds.removeFromLeft(transportButtonWidth));
+    transportButtonBounds.removeFromLeft(transportButtonSpacing);
+    mPauseButton.setBounds(transportButtonBounds.removeFromLeft(transportButtonWidth));
+    transportButtonBounds.removeFromLeft(transportButtonSpacing);
+    mRecordButton.setBounds(transportButtonBounds.removeFromLeft(transportButtonWidth));
 }
