@@ -10,6 +10,10 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     setSize(600, 250);
     setAudioChannels(2, 2);
 
+    addAndMakeVisible(mTitleLabel);
+    mTitleLabel.setText("UI Playground", juce::NotificationType::dontSendNotification);
+    mTitleLabel.setJustificationType(juce::Justification::centred);
+    
     addAndMakeVisible(mSyncButton);
 }
 
@@ -43,5 +47,7 @@ void MainComponent::paint(juce::Graphics& g)
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds().reduced(20, 20);
+    mTitleLabel.setBounds(bounds.removeFromTop(50));
+    bounds.removeFromTop(10);
     mSyncButton.setBounds(bounds.removeFromTop(60));
 }

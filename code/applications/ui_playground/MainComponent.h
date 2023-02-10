@@ -29,7 +29,8 @@ namespace OUS
         //==============================================================================
         int mBlockSize;
         int mSampleRate;
-
+        
+        UI::PixelArt::TitleLabel mTitleLabel;
         UI::PixelArt::SyncButton mSyncButton;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)

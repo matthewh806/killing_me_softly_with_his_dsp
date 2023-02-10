@@ -1,4 +1,4 @@
-#include "../../ui/CustomLookAndFeel.h"
+#include "../../ui/PixelArtLookAndFeel.h"
 #include "../../ui/MainWindow.h"
 #include "MainComponent.h"
 
@@ -48,7 +48,7 @@ namespace OUS
         juce::AudioDeviceManager mDefaultDeviceManager;
 
         std::unique_ptr<MainWindow> mainWindow;
-        CustomLookAndFeel customLookAndFeel;
+        UI::PixelArt::CustomLookAndFeel customLookAndFeel;
     };
 } // namespace OUS
 
