@@ -33,6 +33,10 @@ juce_add_binary_data(PixelArtBinaryData
                     ${CMAKE_SOURCE_DIR}/assets/pause_button2.png
                     ${CMAKE_SOURCE_DIR}/assets/record_button1.png
                     ${CMAKE_SOURCE_DIR}/assets/record_button2.png
+                    ${CMAKE_SOURCE_DIR}/assets/up_arrow_button1.png
+                    ${CMAKE_SOURCE_DIR}/assets/up_arrow_button2.png
+                    ${CMAKE_SOURCE_DIR}/assets/down_arrow_button1.png
+                    ${CMAKE_SOURCE_DIR}/assets/down_arrow_button2.png
 )
 
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "TheOfficeOfUnspecifiedServices")
