@@ -20,7 +20,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     addAndMakeVisible(mRecordButton);
     
     addAndMakeVisible(mSelectorComponent);
-    mSelectorComponent.setText("Chop Type", juce::NotificationType::dontSendNotification);
+    mSelectorComponent.setText("CHOP", juce::NotificationType::dontSendNotification);
     mSelectorComponent.addItem("Manual", 1);
     mSelectorComponent.addItem("Threshold", 2);
     mSelectorComponent.addItem("Division", 3);
