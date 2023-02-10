@@ -25,8 +25,14 @@ juce_add_binary_data(PixelArtBinaryData
                     HEADER_NAME PixelArtBinaryData.h
                     NAMESPACE PixelArtBinaryData
                     SOURCES 
-                     ${CMAKE_SOURCE_DIR}/assets/sync_button1.png 
-                     ${CMAKE_SOURCE_DIR}/assets/sync_button2.png
+                    ${CMAKE_SOURCE_DIR}/assets/sync_button1.png 
+                    ${CMAKE_SOURCE_DIR}/assets/sync_button2.png
+                    ${CMAKE_SOURCE_DIR}/assets/play_button1.png
+                    ${CMAKE_SOURCE_DIR}/assets/play_button2.png
+                    ${CMAKE_SOURCE_DIR}/assets/pause_button1.png
+                    ${CMAKE_SOURCE_DIR}/assets/pause_button2.png
+                    ${CMAKE_SOURCE_DIR}/assets/record_button1.png
+                    ${CMAKE_SOURCE_DIR}/assets/record_button2.png
 )
 
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "TheOfficeOfUnspecifiedServices")

@@ -39,16 +39,53 @@ SyncButton::SyncButton()
 PlayButton::PlayButton()
 {
     setClickingTogglesState(true);
+    
+    setImages(true,
+              true,
+              true,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::play_button1_png, PixelArtBinaryData::play_button1_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::play_button1_png, PixelArtBinaryData::play_button1_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::play_button2_png, PixelArtBinaryData::play_button2_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack);
 }
 
 PauseButton::PauseButton()
 {
-    setClickingTogglesState(true);
+    setImages(true,
+              true,
+              true,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::pause_button1_png, PixelArtBinaryData::pause_button1_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::pause_button1_png, PixelArtBinaryData::pause_button1_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::pause_button2_png, PixelArtBinaryData::pause_button2_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack);
 }
 
 RecordButton::RecordButton()
 {
     setClickingTogglesState(true);
+    
+    setImages(true,
+              true,
+              true,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::record_button1_png, PixelArtBinaryData::record_button1_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::record_button1_png, PixelArtBinaryData::record_button1_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack,
+              juce::ImageCache::getFromMemory(PixelArtBinaryData::record_button2_png, PixelArtBinaryData::record_button2_pngSize),
+              1.0f,
+              juce::Colours::transparentBlack);
 }
 
 TitleLabel::TitleLabel()
