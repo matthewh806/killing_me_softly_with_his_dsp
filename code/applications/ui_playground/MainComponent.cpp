@@ -7,7 +7,7 @@ using namespace OUS;
 MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
 : juce::AudioAppComponent(deviceManager)
 {
-    setSize(600, 250);
+    setSize(600, 400);
     setAudioChannels(2, 2);
 
     addAndMakeVisible(mTitleLabel);
@@ -18,6 +18,12 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     addAndMakeVisible(mPlayButton);
     addAndMakeVisible(mPauseButton);
     addAndMakeVisible(mRecordButton);
+    
+    addAndMakeVisible(mSelectorComponent);
+    mSelectorComponent.setText("Chop Type", juce::NotificationType::dontSendNotification);
+    mSelectorComponent.addItem("Manual", 1);
+    mSelectorComponent.addItem("Threshold", 2);
+    mSelectorComponent.addItem("Division", 3);
 }
 
 MainComponent::~MainComponent()
@@ -64,4 +70,7 @@ void MainComponent::resized()
     mPauseButton.setBounds(transportButtonBounds.removeFromLeft(transportButtonWidth));
     transportButtonBounds.removeFromLeft(transportButtonSpacing);
     mRecordButton.setBounds(transportButtonBounds.removeFromLeft(transportButtonWidth));
+    bounds.removeFromTop(10);
+    
+    mSelectorComponent.setBounds(bounds.removeFromTop(30).removeFromLeft(200));
 }
