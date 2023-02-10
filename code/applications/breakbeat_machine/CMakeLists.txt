@@ -6,10 +6,11 @@ juce_generate_juce_header(BreakbeatMachine)
 target_sources(BreakbeatMachine
     PRIVATE
         ${CoreSources}
-        ${DspSources}
         ${AnalysisSources}
         ${UISources}
         ${UtilsSources}
+        ${CMAKE_SOURCE_DIR}/dsp/processors/OfflineStretcher.h
+        ${CMAKE_SOURCE_DIR}/dsp/processors/OfflineStretcher.cpp
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SampleManager.h
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SampleManager.cpp
         ${CMAKE_SOURCE_DIR}/applications/breakbeat_machine/SliceManager.h
@@ -42,6 +43,7 @@ target_link_libraries(BreakbeatMachine
     PRIVATE
         juce::juce_audio_utils
         juce::juce_gui_extra
+        PixelArtBinaryData
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
