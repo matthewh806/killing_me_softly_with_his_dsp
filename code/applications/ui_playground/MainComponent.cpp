@@ -24,6 +24,12 @@ MainComponent::MainComponent(juce::AudioDeviceManager& deviceManager)
     mSelectorComponent.addItem("Manual", 1);
     mSelectorComponent.addItem("Threshold", 2);
     mSelectorComponent.addItem("Division", 3);
+    
+    addAndMakeVisible(mRotarySlider);
+    mRotarySlider.mLabels.add({0.0, "0"});
+    mRotarySlider.mLabels.add({1.0, "200"});
+    mRotarySlider.setRange(0.0f, 200.0f);
+    mRotarySlider.setValue(20.0f, juce::NotificationType::dontSendNotification);
 }
 
 MainComponent::~MainComponent()
@@ -73,4 +79,8 @@ void MainComponent::resized()
     bounds.removeFromTop(10);
     
     mSelectorComponent.setBounds(bounds.removeFromTop(30).removeFromLeft(200));
+    bounds.removeFromTop(10);
+    
+    auto rotaryBounds = bounds;
+    mRotarySlider.setBounds(rotaryBounds);
 }

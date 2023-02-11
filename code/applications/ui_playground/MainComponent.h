@@ -36,6 +36,7 @@ namespace OUS
         UI::PixelArt::PauseButton mPauseButton;
         UI::PixelArt::RecordButton mRecordButton;
         UI::PixelArt::SelectorComponent mSelectorComponent;
+        UI::PixelArt::RotarySliderWithLabels mRotarySlider{"Delay Time", "ms", 20.0f};
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };
