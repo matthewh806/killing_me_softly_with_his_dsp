@@ -25,6 +25,13 @@ namespace OUS
             juce::Font getComboBoxFont(juce::ComboBox& box) override;
             juce::Font getPopupMenuFont() override;
             
+            void drawRotarySlider(juce::Graphics&,
+                                  int x, int y, int width, int height,
+                                  float sliderPosProportional,
+                                  float rotaryStartAngle,
+                                  float rotaryEndAngle,
+                                  juce::Slider& slider) override;
+            
             void drawComboBox(Graphics &, int width, int height, bool isButtonDown, int buttonX, int buttonY, int buttonW, int buttonH, ComboBox &) override;
             
         private:
@@ -101,6 +108,34 @@ namespace OUS
             juce::ComboBox mComboBox;
             ArrowButton mUpButton;
             ArrowButton mDownButton{true};
+        };
+    
+        class RotarySliderWithLabels
+        : public juce::Slider
+        {
+        public:
+            RotarySliderWithLabels(juce::String const& paramName, juce::String const& unitSuffix, double defaultValue = 0.0);
+            ~RotarySliderWithLabels() override;
+            
+            struct LabelPos
+            {
+                float pos;
+                juce::String label;
+            };
+
+            void paint(juce::Graphics& g) override;
+            juce::Rectangle<int> getSliderBounds() const;
+            int getTextHeight() const;
+            virtual juce::String getDisplayString() const;
+            juce::String getParameterName() const;
+
+            juce::Array<LabelPos> mLabels;
+            
+        private:
+            CustomLookAndFeel mLookAndFeel;
+            
+            juce::String mParamName;
+            juce::String mSuffix;
         };
         
     }

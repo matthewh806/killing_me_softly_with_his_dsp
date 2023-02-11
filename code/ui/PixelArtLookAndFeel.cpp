@@ -24,6 +24,52 @@ OUS::UI::PixelArt::CustomLookAndFeel::CustomLookAndFeel()
     setColour(juce::PopupMenu::textColourId, juce::Colours::black);
 }
 
+void OUS::UI::PixelArt::CustomLookAndFeel::drawRotarySlider(juce::Graphics& g,
+                                         int x, int y, int width, int height,
+                                         float sliderPosProportional,
+                                         float rotaryStartAngle,
+                                         float rotaryEndAngle,
+                                         juce::Slider& slider)
+{
+    g.setColour(juce::Colours::black);
+    auto const rect = juce::Rectangle<float>(x, y, width, height);
+    g.drawImage(juce::ImageCache::getFromMemory(PixelArtBinaryData::rotary_knob_base_png, PixelArtBinaryData::rotary_knob_base_pngSize), rect.reduced(10, 10));
+    
+    if(auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
+    {
+        auto center = rect.getCentre();
+        juce::Rectangle<float> r;
+        r.setLeft(center.getX() - 3);
+        r.setRight(center.getX() + 3);
+        r.setTop(rect.getY() + 2);
+        r.setBottom(center.getY() + 2 - rswl->getTextHeight() * 1.5f);
+        
+        Path p;
+        p.addRoundedRectangle(r, 2.0f);
+        
+        g.setColour(juce::Colours::black);
+        jassert(rotaryStartAngle < rotaryEndAngle);
+        auto sliderAngleRad = juce::jmap(sliderPosProportional, 0.0f, 1.0f, rotaryStartAngle, rotaryEndAngle);
+        p.applyTransform(juce::AffineTransform().rotation(sliderAngleRad, center.getX(), center.getY()));
+        g.fillPath(p);
+        
+        auto font = FontManager::getDefaultLabelFont();
+        font.setHeight(rswl->getTextHeight() * 0.8f);
+        g.setFont(font);
+        auto const text = rswl->getDisplayString();
+        auto const strWidth = g.getCurrentFont().getStringWidth(text);
+        
+        r.setSize(strWidth + 4, rswl->getTextHeight() * 0.8f + 2);
+        r.setCentre(rect.getCentre());
+        
+        g.setColour(juce::Colours::black);
+        g.fillRect(r);
+        
+        g.setColour(juce::Colours::white);
+        g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
+    }
+}
+
 juce::Font OUS::UI::PixelArt::CustomLookAndFeel::getComboBoxFont(juce::ComboBox& box)
 {
     return juce::Font("Retro Gaming", jmin (15.0f, (float) box.getHeight() * 0.85f), juce::Font::FontStyleFlags::plain);
@@ -247,3 +293,117 @@ void SelectorComponent::addItem(const String& newItemText, int newItemId)
 {
     mComboBox.addItem(newItemText, newItemId);
 }
+
+RotarySliderWithLabels::RotarySliderWithLabels(juce::String const& paramName, juce::String const& unitSuffix, double defaultValue)
+: juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox)
+, mParamName(paramName)
+, mSuffix(unitSuffix)
+{
+    setLookAndFeel(&mLookAndFeel);
+    setDoubleClickReturnValue(true, defaultValue, juce::ModifierKeys::noModifiers);
+}
+
+RotarySliderWithLabels::~RotarySliderWithLabels()
+{
+    setLookAndFeel(nullptr);
+}
+
+void RotarySliderWithLabels::paint(juce::Graphics& g)
+{
+    auto startAngle = juce::degreesToRadians(180.0f + 45.0f);
+    auto endAngle = juce::degreesToRadians(180.0f - 45.0f) + juce::MathConstants<float>::twoPi;
+
+    auto range = getRange();
+    auto sliderBounds = getSliderBounds();
+
+    // For debugging purposes:
+    //    g.setColour(juce::Colours::red);
+    //    g.drawRect(getLocalBounds());
+    //    g.setColour(Colours::yellow);
+    //    g.drawRect(sliderBounds);
+
+    {
+        juce::Rectangle<float> r;
+        auto sliderLabel = mParamName;
+        r.setSize(g.getCurrentFont().getStringWidth(sliderLabel), getTextHeight());
+        r.setCentre(getLocalBounds().getCentre().getX(), 0);
+        r.setY(2);
+        g.setColour(juce::Colours::white);
+        auto font = FontManager::getDefaultLabelFont();
+        font.setHeight(getTextHeight());
+        g.setFont(font);
+        g.drawFittedText(sliderLabel, r.toNearestInt(), juce::Justification::centred, 1);
+
+        mLookAndFeel.drawRotarySlider(g,
+                                      sliderBounds.getX(),
+                                      sliderBounds.getY(),
+                                      sliderBounds.getWidth(),
+                                      sliderBounds.getHeight(),
+                                      static_cast<float>(juce::jmap(getValue(), range.getStart(), range.getEnd(), 0.0, 1.0)),
+                                      startAngle,
+                                      endAngle,
+                                      *this);
+    }
+
+    auto center = sliderBounds.toFloat().getCentre();
+    auto radius = sliderBounds.getWidth() * 0.5f;
+
+    g.setColour(juce::Colours::white);
+    auto font = FontManager::getDefaultLabelFont();
+    font.setHeight(getTextHeight());
+    g.setFont(font);
+
+    auto const numChoices = mLabels.size();
+    for(int i = 0; i < numChoices; ++i)
+    {
+        auto const pos = mLabels[i].pos;
+        jassert(0.0f <= pos);
+        jassert(pos <= 1.0f);
+
+        auto ang = jmap(pos, 0.0f, 1.0f, startAngle, endAngle);
+        auto c = center.getPointOnCircumference(radius + getTextHeight() * 0.5f + 1.0f, ang);
+
+        juce::Rectangle<float> r;
+        auto str = mLabels[i].label;
+        r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+        r.setCentre(c);
+        r.setY(r.getY() + getTextHeight());
+
+        g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
+    }
+}
+
+juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const
+{
+    auto const bounds = getLocalBounds();
+    auto const size = juce::jmin(bounds.getWidth(), bounds.getHeight()) - getTextHeight() * 2;
+
+    juce::Rectangle<int> r;
+    r.setSize(size, size);
+    r.setCentre(bounds.getCentreX(), 0);
+    r.setY(getTextHeight() + 2);
+
+    return r;
+}
+
+int RotarySliderWithLabels::getTextHeight() const
+{
+    return 14;
+}
+
+juce::String RotarySliderWithLabels::getDisplayString() const
+{
+    auto str = juce::String(getValue(), 2);
+    if(mSuffix.isNotEmpty())
+    {
+        str << mSuffix;
+    }
+
+    return str;
+}
+
+juce::String RotarySliderWithLabels::getParameterName() const
+{
+    return mParamName;
+}
+
