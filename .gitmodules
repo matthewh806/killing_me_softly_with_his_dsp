@@ -4,3 +4,6 @@
 [submodule "code/dependencies/vst3sdk"]
 	path = code/dependencies/vst3sdk
 	url = https://github.com/steinbergmedia/vst3sdk
+[submodule "code/dependencies/aubio"]
+	path = code/dependencies/aubio
+	url = https://github.com/aubio/aubio.git
