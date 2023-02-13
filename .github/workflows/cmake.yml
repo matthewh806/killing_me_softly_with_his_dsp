@@ -44,7 +44,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install libsamplerate aubio
+        brew install libsamplerate
         brew install node
         npm install -g appdmg
 
