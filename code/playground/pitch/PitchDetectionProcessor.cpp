@@ -11,10 +11,10 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 
 PitchDetectionProcessor::PitchDetectionProcessor()
 : juce::AudioProcessor(BusesProperties().withInput("Input", juce::AudioChannelSet::stereo()).withOutput("Output", juce::AudioChannelSet::stereo()).withInput("Sidechain", juce::AudioChannelSet::stereo()))
-, state(*this, nullptr, "state",
+, mState(*this, nullptr, "state",
         {std::make_unique<juce::AudioParameterFloat>("detectedpitch", "Detected Pitch", 0.0f, 22050.0f, 0.0f)})
 {
-    state.state.addChild({"uiState", {{"width", 400}, {"height", 250}}, {}}, -1, nullptr);
+    mState.state.addChild({"uiState", {{"width", 400}, {"height", 250}}, {}}, -1, nullptr);
 }
 
 //==============================================================================
@@ -31,17 +31,18 @@ void PitchDetectionProcessor::prepareToPlay(double sampleRate,
     mSampleRate = static_cast<int>(sampleRate);
     
     jassert(HOP_SIZE <= maximumExpectedSamplesPerBlock);
-    
+
     mAudioPitch = new_aubio_pitch("yin", static_cast<uint_t>(maximumExpectedSamplesPerBlock), HOP_SIZE, static_cast<uint_t>(sampleRate));
     assert(mAudioPitch != nullptr);
 }
 
 void PitchDetectionProcessor::releaseResources()
 {
-//    if(mAudioPitch != nullptr)
-//    {
-//        del_aubio_pitch(mAudioPitch);
-//    }
+    if(mAudioPitch != nullptr)
+    {
+        del_aubio_pitch(mAudioPitch);
+        mAudioPitch = nullptr;
+    }
 }
 
 void PitchDetectionProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
@@ -55,7 +56,7 @@ void PitchDetectionProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     auto inputVector = new_fvec(HOP_SIZE);
     auto outputVector = new_fvec(1);
     
-    auto lastDetectedPitchPtr = static_cast<juce::AudioParameterFloat*>(state.getParameter("detectedpitch"));
+    auto lastDetectedPitchPtr = static_cast<juce::AudioParameterFloat*>(mState.getParameter("detectedpitch"));
     auto sampleOffset = 0;
     while(samplesRemaining > 0)
     {

@@ -21,9 +21,6 @@ namespace OUS
     class PitchDetectionProcessor : public juce::AudioProcessor
     {
     public:
-        // TODO: Make this private
-        juce::AudioProcessorValueTreeState state;
-
         //==============================================================================
         PitchDetectionProcessor();
 
@@ -36,7 +33,7 @@ namespace OUS
         void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) override;
 
         //==============================================================================
-        juce::AudioProcessorEditor* createEditor() override { return new PitchDetectionProcessorEditor(*this); }
+        juce::AudioProcessorEditor* createEditor() override { return new PitchDetectionProcessorEditor(*this, mState); }
         bool hasEditor() const override { return true; }
         const String getName() const override { return "PitchDetection"; }
         bool acceptsMidi() const override { return false; }
@@ -61,16 +58,17 @@ namespace OUS
         , private juce::AudioProcessorValueTreeState::Listener
         {
         public:
-            PitchDetectionProcessorEditor(PitchDetectionProcessor& owner)
+            PitchDetectionProcessorEditor(PitchDetectionProcessor& owner, juce::AudioProcessorValueTreeState& state)
             : juce::AudioProcessorEditor(owner)
+            , mState(state)
             {
-                owner.state.addParameterListener("detectedpitch", this);
+                mState.addParameterListener("detectedpitch", this);
                 setSize(650, 400);
             }
 
             ~PitchDetectionProcessorEditor() override
             {
-//                state.removeParameterListener("detectedpitch", this);
+                mState.removeParameterListener("detectedpitch", this);
             }
 
             //==============================================================================
@@ -113,6 +111,7 @@ namespace OUS
             }
 
         private:
+            juce::AudioProcessorValueTreeState& mState;
             float mLastDetectedPitch{0.0f};
         };
 
@@ -120,7 +119,9 @@ namespace OUS
         int mBlockSize;
         int mSampleRate;
         
-        aubio_pitch_t* mAudioPitch;
+        juce::AudioProcessorValueTreeState mState;
+        
+        aubio_pitch_t* mAudioPitch = nullptr;
 
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PitchDetectionProcessor)
