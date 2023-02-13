@@ -16,13 +16,11 @@ target_sources(PitchTests PRIVATE
     ${ApplicationSources}
 )
 
-target_include_directories(PitchTests PRIVATE /usr/local/include/aubio)
-
 target_compile_definitions(PitchTests PRIVATE
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:AudioDecay,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:AudioDecay,JUCE_VERSION>")
 
 target_link_libraries(PitchTests 
     PRIVATE 
-    ${AUBIO}
+    aubio
     Shared_VST_Target)

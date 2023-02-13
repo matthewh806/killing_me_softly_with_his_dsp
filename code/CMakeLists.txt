@@ -18,6 +18,7 @@ add_subdirectory(dependencies/vst3sdk)
 add_subdirectory(dependencies/freeverb)
 
 include(juce_shared_vst.cmake)
+include(aubio.cmake)
 
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "TheOfficeOfUnspecifiedServices")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "http://theofficeofunspecifiedservices.com")
@@ -25,8 +26,6 @@ set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "http://theofficeofunsp
 if(UNIX AND NOT APPLE)
     set_property(TARGET rubberband PROPERTY CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 endif()
-
-find_library(AUBIO NAMES aubio)
 
 set(CoreSources
     ${CMAKE_SOURCE_DIR}/core/Allocators.h
