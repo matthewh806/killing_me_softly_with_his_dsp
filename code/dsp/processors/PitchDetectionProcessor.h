@@ -5,6 +5,7 @@
 // clang-format on
 
 #include "aubio.h"
+#include "../../core/CircularBuffer.h"
 
 // 1. prepare audio thread
 //      create aubio objects before entering the audio processing thread
@@ -63,6 +64,10 @@ namespace OUS
         
         fvec_t* mInputSamples = nullptr;
         fvec_t* mOutputVector = nullptr;
+        
+        // TODO: Maybe just wrap fvec_t* in a circular buffer wrapper to avoid having
+        // to use this separate buffer at all
+        CircularBuffer<float> mCircularBuffer;
 
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PitchDetectionProcessor)

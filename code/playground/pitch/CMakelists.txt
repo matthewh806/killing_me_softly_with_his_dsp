@@ -7,6 +7,7 @@ juce_generate_juce_header(PitchDetection)
 
 set(ApplicationSources
     ${UISources}
+    ${CMAKE_SOURCE_DIR}/core/CircularBuffer.h
     ${CMAKE_SOURCE_DIR}/playground/pitch/PitchDetectionPlugin.h
     ${CMAKE_SOURCE_DIR}/playground/pitch/PitchDetectionPlugin.cpp
     ${CMAKE_SOURCE_DIR}/dsp/processors/PitchDetectionProcessor.h

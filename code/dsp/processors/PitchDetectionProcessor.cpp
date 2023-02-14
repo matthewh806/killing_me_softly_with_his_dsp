@@ -1,8 +1,14 @@
 #include "PitchDetectionProcessor.h"
 
-#define HOP_SIZE 256
+#define HOP_SIZE 256 // Note: This is unused anyway for the "yin" pitch detector mode
+#define MIN_DETECTABLE_FREQUENCY 27.50f // This is the minimum frequency we can reliably find (affects latency!)
 
 using namespace OUS;
+
+static float getMinBlockSizeToDetectFrequency(float frequency, float sampleRate)
+{
+    return 2.0f * sampleRate / frequency;
+}
 
 PitchDetectionProcessor::PitchDetectionProcessor()
 : juce::AudioProcessor(BusesProperties().withInput("Input", juce::AudioChannelSet::stereo()))
@@ -37,8 +43,12 @@ void PitchDetectionProcessor::prepareToPlay(double sampleRate,
         mInputSamples = nullptr;
     }
     
-    mInputSamples = new_fvec(static_cast<uint_t>(maximumExpectedSamplesPerBlock));
-    mAudioPitch = new_aubio_pitch("yin", static_cast<uint_t>(maximumExpectedSamplesPerBlock), HOP_SIZE, static_cast<uint_t>(sampleRate));
+    auto const pitchProcessorBlockSize = static_cast<int>(std::ceil(getMinBlockSizeToDetectFrequency(MIN_DETECTABLE_FREQUENCY, static_cast<float>(sampleRate))));
+    setLatencySamples(pitchProcessorBlockSize);
+    mInputSamples = new_fvec(static_cast<uint_t>(pitchProcessorBlockSize));
+    mCircularBuffer.createCircularBuffer(static_cast<uint_t>(pitchProcessorBlockSize));
+    
+    mAudioPitch = new_aubio_pitch("yin", static_cast<uint_t>(pitchProcessorBlockSize), HOP_SIZE, static_cast<uint_t>(sampleRate));
     assert(mAudioPitch != nullptr);
 }
 
@@ -62,27 +72,23 @@ void PitchDetectionProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     // TODO: Stereo ?
     
     auto const numSamples = buffer.getNumSamples();
-    auto samplesRemaining = numSamples;
+    
+    // Copy new samples into buffer
+    for(int i = 0; i < numSamples; ++i)
+    {
+        mCircularBuffer.writeBuffer(buffer.getSample(0, i));
+    }
+    
+    auto const latency = getLatencySamples();
+    for(int i = 0; i < static_cast<int>(mInputSamples->length); ++i)
+    {
+        fvec_set_sample(mInputSamples, mCircularBuffer.readBuffer(latency - i), static_cast<uint_t>(i));
+    }
+    
+    aubio_pitch_do(mAudioPitch, mInputSamples, mOutputVector);
     
     auto lastDetectedPitchPtr = static_cast<juce::AudioParameterFloat*>(mState.getParameter("detectedpitch"));
-    auto sampleOffset = 0;
-    while(samplesRemaining > 0)
-    {
-        // TODO: What if we have less than HOP_SIZE? Does it still work?
-        auto const numThisTime = std::max(HOP_SIZE, samplesRemaining);
-        
-        assert(sampleOffset + numThisTime <= numSamples);
-        // copy samples into input Vector (or just point to them?)
-        for(int i = 0; i < numThisTime; ++i)
-        {
-            fvec_set_sample(mInputSamples, buffer.getSample(0, sampleOffset + i), static_cast<uint_t>(i));
-        }
-        aubio_pitch_do(mAudioPitch, mInputSamples, mOutputVector);
-        *lastDetectedPitchPtr = *mOutputVector->data;
-        
-        samplesRemaining -= numThisTime;
-        sampleOffset += numThisTime;
-    }
+    *lastDetectedPitchPtr = *mOutputVector->data;
 }
 
 void PitchDetectionProcessor::getStateInformation(MemoryBlock& destData)
