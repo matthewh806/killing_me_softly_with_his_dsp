@@ -21,14 +21,13 @@ Dependencies will vary between different targets within the subproject. [JUCE](h
 [Rubberband](https://breakfastquay.com/rubberband/) is a dependency of the timestretch applications is similarly included as a dependency and
 compiled / linked as part of the cmake build system.
 
-There are two prerequisites necessary `libsamplerate` which is used by the Rubberband library & `aubio` which is used for marker detection
-in the Breakbeat maker (I would like to include this in the CMake build stage but haven't figured out how to make it compile)
+There is one necessary prerequisite `libsamplerate` which is used by the Rubberband library and needs to be installed on the system:
 
 ```
-brew install libsamplerate aubio
+brew install libsamplerate
 ```
 
-CMake build system
+before running the CMake build system
 
 #### MacOS
 ```
@@ -39,39 +38,10 @@ cmake .. -GXcode
 
 This will generate a single monolithic xcode project with individual targets for each executable.
 
-#### Linux
-This has only been tested on Ubuntu 21.04 64-bit
-
-In order to compile install the [JUCE dependencies](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md).
-For rubberband to compile its also necessary to have `libsamplerate` installed
-
-```
-sudo apt-get install libsamplerate-dev
-```
-These can both be removed as dependencies in `dependencies/rubberband/CMakeLists.txt` but I haven't tried this out
-
-Then to compile:
-```
-cd code
-mkdir build; cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-```
-
 ### Contents
 #### Applications
 ##### Breakbeat Machine
 This was a project I made a while ago for chopping up an audio sample into fractional slices and play them at random. I imported this as is and need to refactor it. Though it does work as expected
-
-###### Possible improvements
-- [ ] Slice by transient - investigate a good method for this. Is a simple amp threshold sufficient?
-   - [ ] https://github.com/adamstark/Gist or https://github.com/aubio/aubio to handle this perhaps
-- [ ] Slice manually by clicking on the waveform
-- [ ] Zoom on waveform?
-- [ ] Expand / Shrink signal to fit into a certain period
-  - [ ] Resampling temporal shifting (involves a pitch shift)
-  - [ ] Rubberband spectral shifting
-- [ ] Apply envelopes (e.g. fade in / out)
-- [ ] Draw individual slices on the waveform
 
 ##### Delay
 This is an implementation of a very simple delay algorithm from the Pirkle book. It works, but would benefit from the inclusion of further more interesting algorithms
@@ -85,11 +55,6 @@ Interesting...
 
 ##### Offline Timestretch
 This is quite simple to implement. All we need to do is load in an audio file and apply the timestretch transformation & save it to a new file.
-
-###### Possible improvements
-- [ ] Currently there is only support for stretching + saving wav files, it might be nicer to allow for other formats
-- [ ] I'm just using the time stretch factor + pitch shift amt sliders as parameters exposed to the user, but RubberBand has many more to play with.
-- [ ] Put the pitch shift in more meaningful units perhaps? It's just a multiplication factor for now.
 
 ##### Audio Decay
 This is a simple plugin with just a couple of knobs. The theory is a bit more complex though.
