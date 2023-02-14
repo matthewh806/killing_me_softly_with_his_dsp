@@ -1,26 +1,28 @@
-juce_add_plugin(PitchTests
-    PRODUCT_NAME "Pitch Tests"
+juce_add_plugin(PitchDetection
+    PRODUCT_NAME "Pitch Detection"
     MICROPHONE_PERMISSION_ENABLED   TRUE
     FORMATS Standalone VST3)
 
-juce_generate_juce_header(PitchTests)
+juce_generate_juce_header(PitchDetection)
 
 set(ApplicationSources
     ${UISources}
-    ${CMAKE_SOURCE_DIR}/playground/pitch/PitchDetectionProcessor.h
-    ${CMAKE_SOURCE_DIR}/playground/pitch/PitchDetectionProcessor.cpp
+    ${CMAKE_SOURCE_DIR}/playground/pitch/PitchDetectionPlugin.h
+    ${CMAKE_SOURCE_DIR}/playground/pitch/PitchDetectionPlugin.cpp
+    ${CMAKE_SOURCE_DIR}/dsp/processors/PitchDetectionProcessor.h
+    ${CMAKE_SOURCE_DIR}/dsp/processors/PitchDetectionProcessor.cpp
 )
 source_group("Source/ApplicationSources" FILES ${ApplicationSources})
 
-target_sources(PitchTests PRIVATE
+target_sources(PitchDetection PRIVATE
     ${ApplicationSources}
 )
 
-target_compile_definitions(PitchTests PRIVATE
-    JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:AudioDecay,JUCE_PRODUCT_NAME>"
-    JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:AudioDecay,JUCE_VERSION>")
+target_compile_definitions(PitchDetection PRIVATE
+    JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:PitchDetection,JUCE_PRODUCT_NAME>"
+    JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:PitchDetection,JUCE_VERSION>")
 
-target_link_libraries(PitchTests 
+target_link_libraries(PitchDetection 
     PRIVATE 
     aubio
     Shared_VST_Target)

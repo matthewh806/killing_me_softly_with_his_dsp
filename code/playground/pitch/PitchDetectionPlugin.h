@@ -4,25 +4,19 @@
 #include "JuceHeader.h"
 // clang-format on
 
-#include "aubio.h"
 #include "../../ui/CustomLookAndFeel.h"
-
-// 1. prepare audio thread
-//      create aubio objects before entering the audio processing thread
-//      delete these objects when the audio thread exits
-// 2. update audio thread
-//      in your audio processing function, copy (or point) the samples coming from Qt into an aubio fvect_t
-//      still in your audio processing function, execute the aubio_..._do function
-// 3. do something with the results!
+#include "../../dsp/processors/PitchDetectionProcessor.h"
 
 namespace OUS
 {
     //==============================================================================
-    class PitchDetectionProcessor : public juce::AudioProcessor
+    class PitchDetectionPlugin
+    : public juce::AudioProcessor
+    , private juce::Timer
     {
     public:
         //==============================================================================
-        PitchDetectionProcessor();
+        PitchDetectionPlugin();
 
         //==============================================================================
         bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
@@ -33,9 +27,9 @@ namespace OUS
         void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) override;
 
         //==============================================================================
-        juce::AudioProcessorEditor* createEditor() override { return new PitchDetectionProcessorEditor(*this, mState); }
+        juce::AudioProcessorEditor* createEditor() override { return new PitchDetectionPluginEditor(*this, mState); }
         bool hasEditor() const override { return true; }
-        const String getName() const override { return "PitchDetection"; }
+        const String getName() const override { return "PitchDetectionPlugin"; }
         bool acceptsMidi() const override { return false; }
         bool producesMidi() const override { return false; }
         double getTailLengthSeconds() const override { return 0.0; }
@@ -49,26 +43,33 @@ namespace OUS
         //==============================================================================
         void getStateInformation(MemoryBlock& destData) override;
         void setStateInformation(const void* data, int sizeInBytes) override;
+        
+        // juce::Timer
+        //==============================================================================
+        void timerCallback() override;
 
     private:
         //==============================================================================
-        class PitchDetectionProcessorEditor
+        class PitchDetectionPluginEditor
         : public juce::AudioProcessorEditor
-        , private juce::AsyncUpdater
-        , private juce::AudioProcessorValueTreeState::Listener
         {
         public:
-            PitchDetectionProcessorEditor(PitchDetectionProcessor& owner, juce::AudioProcessorValueTreeState& state)
+            PitchDetectionPluginEditor(PitchDetectionPlugin& owner, juce::AudioProcessorValueTreeState& state)
             : juce::AudioProcessorEditor(owner)
             , mState(state)
             {
-                mState.addParameterListener("detectedpitch", this);
                 setSize(650, 400);
             }
 
-            ~PitchDetectionProcessorEditor() override
+            ~PitchDetectionPluginEditor() override
             {
-                mState.removeParameterListener("detectedpitch", this);
+            }
+            
+            //==============================================================================
+            void setPitch(float pitch)
+            {
+                mLastDetectedPitch = pitch;
+                repaint();
             }
 
             //==============================================================================
@@ -92,23 +93,6 @@ namespace OUS
                 auto bounds = getLocalBounds();
                 bounds.removeFromTop(20);
             }
-            
-            //==============================================================================
-            void handleAsyncUpdate() override
-            {
-                repaint();
-            }
-            
-            //==============================================================================
-            void parameterChanged (const String& parameterID, float newValue) override
-            {
-                juce::ignoreUnused(parameterID, newValue);
-                if(parameterID == "detectedpitch")
-                {
-                    mLastDetectedPitch = newValue;
-                    triggerAsyncUpdate();
-                }
-            }
 
         private:
             juce::AudioProcessorValueTreeState& mState;
@@ -120,10 +104,11 @@ namespace OUS
         int mSampleRate;
         
         juce::AudioProcessorValueTreeState mState;
+        PitchDetectionProcessor mPitchDetectionProcessor;
         
         aubio_pitch_t* mAudioPitch = nullptr;
 
         //==============================================================================
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PitchDetectionProcessor)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PitchDetectionPlugin)
     };
 } // namespace OUS
