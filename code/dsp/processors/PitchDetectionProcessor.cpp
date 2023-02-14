@@ -9,6 +9,8 @@ PitchDetectionProcessor::PitchDetectionProcessor()
 , mState(*this, nullptr, "pitchdetectionprocessorstate",
          {std::make_unique<juce::AudioParameterFloat>("detectedpitch", "Detected Pitch", 0.0f, 22050.0f, 0.0f)})
 {
+    mOutputVector = new_fvec(1);
+    assert(mOutputVector != nullptr);
 }
 
 float PitchDetectionProcessor::getMostRecentPitch() const
@@ -28,15 +30,26 @@ void PitchDetectionProcessor::prepareToPlay(double sampleRate,
 {
     mBlockSize = maximumExpectedSamplesPerBlock;
     mSampleRate = static_cast<int>(sampleRate);
-    
-    jassert(HOP_SIZE <= maximumExpectedSamplesPerBlock);
 
+    if(mInputSamples != nullptr)
+    {
+        del_fvec(mInputSamples);
+        mInputSamples = nullptr;
+    }
+    
+    mInputSamples = new_fvec(static_cast<uint_t>(maximumExpectedSamplesPerBlock));
     mAudioPitch = new_aubio_pitch("yin", static_cast<uint_t>(maximumExpectedSamplesPerBlock), HOP_SIZE, static_cast<uint_t>(sampleRate));
     assert(mAudioPitch != nullptr);
 }
 
 void PitchDetectionProcessor::releaseResources()
 {
+    if(mInputSamples != nullptr)
+    {
+        del_fvec(mInputSamples);
+        mInputSamples = nullptr;
+    }
+    
     if(mAudioPitch != nullptr)
     {
         del_aubio_pitch(mAudioPitch);
@@ -51,10 +64,6 @@ void PitchDetectionProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     auto const numSamples = buffer.getNumSamples();
     auto samplesRemaining = numSamples;
     
-    // store these as members for efficiency
-    auto inputVector = new_fvec(HOP_SIZE);
-    auto outputVector = new_fvec(1);
-    
     auto lastDetectedPitchPtr = static_cast<juce::AudioParameterFloat*>(mState.getParameter("detectedpitch"));
     auto sampleOffset = 0;
     while(samplesRemaining > 0)
@@ -64,12 +73,12 @@ void PitchDetectionProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
         
         assert(sampleOffset + numThisTime <= numSamples);
         // copy samples into input Vector (or just point to them?)
-        for(int i = 0; i  < numThisTime; ++i)
+        for(int i = 0; i < numThisTime; ++i)
         {
-            fvec_set_sample(inputVector, buffer.getSample(0, sampleOffset + i), static_cast<uint_t>(i));
+            fvec_set_sample(mInputSamples, buffer.getSample(0, sampleOffset + i), static_cast<uint_t>(i));
         }
-        aubio_pitch_do(mAudioPitch, inputVector, outputVector);
-        *lastDetectedPitchPtr = *outputVector->data;
+        aubio_pitch_do(mAudioPitch, mInputSamples, mOutputVector);
+        *lastDetectedPitchPtr = *mOutputVector->data;
         
         samplesRemaining -= numThisTime;
         sampleOffset += numThisTime;
