@@ -27,7 +27,7 @@ namespace OUS
         void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) override;
 
         //==============================================================================
-        juce::AudioProcessorEditor* createEditor() override { return new PitchDetectionPluginEditor(*this, mState); }
+        juce::AudioProcessorEditor* createEditor() override { return new PitchDetectionPluginEditor(*this); }
         bool hasEditor() const override { return true; }
         const String getName() const override { return "PitchDetectionPlugin"; }
         bool acceptsMidi() const override { return false; }
@@ -54,9 +54,8 @@ namespace OUS
         : public juce::AudioProcessorEditor
         {
         public:
-            PitchDetectionPluginEditor(PitchDetectionPlugin& owner, juce::AudioProcessorValueTreeState& state)
+            PitchDetectionPluginEditor(PitchDetectionPlugin& owner)
             : juce::AudioProcessorEditor(owner)
-            , mState(state)
             {
                 setSize(650, 400);
             }
@@ -95,7 +94,6 @@ namespace OUS
             }
 
         private:
-            juce::AudioProcessorValueTreeState& mState;
             float mLastDetectedPitch{0.0f};
         };
 
