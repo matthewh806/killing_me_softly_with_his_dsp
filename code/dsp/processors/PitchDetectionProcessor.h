@@ -4,8 +4,8 @@
 #include "JuceHeader.h"
 // clang-format on
 
-#include "aubio.h"
 #include "../../core/CircularBuffer.h"
+#include "aubio.h"
 
 // 1. prepare audio thread
 //      create aubio objects before entering the audio processing thread
@@ -24,7 +24,7 @@ namespace OUS
     public:
         //==============================================================================
         PitchDetectionProcessor();
-        
+
         //==============================================================================
         float getMostRecentPitch() const;
 
@@ -58,13 +58,13 @@ namespace OUS
         //==============================================================================
         int mBlockSize;
         int mSampleRate;
-        
+
         juce::AudioProcessorValueTreeState mState;
         aubio_pitch_t* mAudioPitch = nullptr;
-        
+
         fvec_t* mInputSamples = nullptr;
         fvec_t* mOutputVector = nullptr;
-        
+
         // TODO: Maybe just wrap fvec_t* in a circular buffer wrapper to avoid having
         // to use this separate buffer at all
         CircularBuffer<float> mCircularBuffer;
