@@ -1,6 +1,10 @@
 #include "PitchDetectionProcessor.h"
 
-#define MIN_DETECTABLE_FREQUENCY 27.50f // This is the minimum frequency we can reliably find (affects latency!)
+#ifdef NDEBUG
+    #define MIN_DETECTABLE_FREQUENCY 22.50f // This is the minimum frequency we can reliably find (affects latency!)
+#else
+    #define MIN_DETECTABLE_FREQUENCY 220.0f // This is larger purely to speed up VST tests
+#endif
 
 using namespace OUS;
 
