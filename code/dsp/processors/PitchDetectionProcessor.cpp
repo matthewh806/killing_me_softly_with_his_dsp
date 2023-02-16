@@ -1,6 +1,5 @@
 #include "PitchDetectionProcessor.h"
 
-#define HOP_SIZE 256                    // Note: This is unused anyway for the "yin" pitch detector mode
 #define MIN_DETECTABLE_FREQUENCY 27.50f // This is the minimum frequency we can reliably find (affects latency!)
 
 using namespace OUS;
@@ -48,7 +47,7 @@ void PitchDetectionProcessor::prepareToPlay(double sampleRate,
     mInputSamples = new_fvec(static_cast<uint_t>(pitchProcessorBlockSize));
     mCircularBuffer.createCircularBuffer(static_cast<uint_t>(pitchProcessorBlockSize));
 
-    mAudioPitch = new_aubio_pitch("yin", static_cast<uint_t>(pitchProcessorBlockSize), HOP_SIZE, static_cast<uint_t>(sampleRate));
+    mAudioPitch = new_aubio_pitch("yin", static_cast<uint_t>(pitchProcessorBlockSize), static_cast<uint_t>(pitchProcessorBlockSize), static_cast<uint_t>(sampleRate));
     assert(mAudioPitch != nullptr);
 }
 
