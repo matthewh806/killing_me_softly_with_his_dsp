@@ -81,7 +81,7 @@ void DopplerShiftProcessor::setCurrentProgram(int)
 
 const String DopplerShiftProcessor::getProgramName(int)
 {
-    return {};
+    return "None";
 }
 
 void DopplerShiftProcessor::changeProgramName(int, const String&)

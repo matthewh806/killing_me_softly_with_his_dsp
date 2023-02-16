@@ -73,7 +73,7 @@ void PulsarAudioProcessor::setCurrentProgram(int index)
 const String PulsarAudioProcessor::getProgramName(int index)
 {
     juce::ignoreUnused(index);
-    return {};
+    return "None";
 }
 
 void PulsarAudioProcessor::changeProgramName(int index, const juce::String& newName)
