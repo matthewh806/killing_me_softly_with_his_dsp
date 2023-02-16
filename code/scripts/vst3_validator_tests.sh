@@ -48,3 +48,9 @@ done
 
 echo '\033[0;34m' "Found errors in $failed_count VST3s"
 echo '\033[0m'
+
+if [[ $failed_count > 0 ]]; then
+  exit 1
+fi
+
+exit 0
