@@ -73,6 +73,12 @@ namespace OUS
         {
             return kResultOk;
         }
+        
+        // TODO: Hack to prevent mono FIX!!!
+        if(data.numInputs == 1 || data.numOutputs == 1)
+        {
+            return kResultOk;
+        }
 
         //--- First : Read inputs parameter changes-----------
         if(data.inputParameterChanges)
