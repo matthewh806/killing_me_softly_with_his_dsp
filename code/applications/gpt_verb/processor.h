@@ -139,7 +139,18 @@ namespace OUS
             }
 
             // Process audio
-            m_reverb->processreplace(inL, inR, outL, outR, data.numSamples, 1);
+            if(data.numSamples > 0)
+            {
+                Steinberg::Vst::SpeakerArrangement arr;
+                getBusArrangement(Steinberg::Vst::kOutput, 0, arr);
+                int numChannels = Steinberg::Vst::SpeakerArr::getChannelCount(arr);
+                if(numChannels == 1)
+                {
+                    return Steinberg::kResultOk;
+                }
+                
+                m_reverb->processreplace(inL, inR, outL, outR, data.numSamples, 1);
+            }
 
             return Steinberg::kResultOk;
         }
