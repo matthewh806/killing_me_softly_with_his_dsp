@@ -4,8 +4,8 @@
 #include "JuceHeader.h"
 // clang-format on
 
-#include "../../ui/CustomLookAndFeel.h"
 #include "../../dsp/processors/PitchDetectionProcessor.h"
+#include "../../ui/CustomLookAndFeel.h"
 
 namespace OUS
 {
@@ -43,7 +43,7 @@ namespace OUS
         //==============================================================================
         void getStateInformation(MemoryBlock& destData) override;
         void setStateInformation(const void* data, int sizeInBytes) override;
-        
+
         // juce::Timer
         //==============================================================================
         void timerCallback() override;
@@ -63,7 +63,7 @@ namespace OUS
             ~PitchDetectionPluginEditor() override
             {
             }
-            
+
             //==============================================================================
             void setPitch(float pitch)
             {
@@ -78,11 +78,11 @@ namespace OUS
                 g.setColour(juce::Colours::white);
                 g.fillAll();
                 g.setColour(juce::Colours::black);
-                
+
                 auto font = g.getCurrentFont();
                 font.setHeight(100);
                 g.setFont(font);
-                
+
                 auto const bounds = getLocalBounds();
                 g.drawText(juce::String(mLastDetectedPitch, 1) + " Hz", bounds, juce::Justification::centred);
             }
@@ -100,10 +100,10 @@ namespace OUS
         //==============================================================================
         int mBlockSize;
         int mSampleRate;
-        
+
         juce::AudioProcessorValueTreeState mState;
         PitchDetectionProcessor mPitchDetectionProcessor;
-        
+
         aubio_pitch_t* mAudioPitch = nullptr;
 
         //==============================================================================

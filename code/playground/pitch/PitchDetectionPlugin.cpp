@@ -27,7 +27,7 @@ void PitchDetectionPlugin::prepareToPlay(double sampleRate,
 {
     mBlockSize = maximumExpectedSamplesPerBlock;
     mSampleRate = static_cast<int>(sampleRate);
-    
+
     mPitchDetectionProcessor.prepareToPlay(sampleRate, maximumExpectedSamplesPerBlock);
 }
 
