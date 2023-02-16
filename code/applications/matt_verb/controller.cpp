@@ -157,7 +157,7 @@ namespace OUS
             return kResultFalse;
 
         float dryWetSaveParam = 0.0f;
-        float bypassSaveParam = 0.0f;
+        bool bypassSaveParam = false;
         float modeSaveParam = 0.0f;
         float dampingSaveParam = 0.0f;
         float widthSaveParam = 0.0f;
@@ -166,7 +166,7 @@ namespace OUS
 
         IBStreamer streamer(state, kLittleEndian);
 
-        if(streamer.readFloat(dryWetSaveParam) == false || streamer.readFloat(bypassSaveParam) == false || streamer.readFloat(modeSaveParam) == false || streamer.readFloat(dampingSaveParam) == false || streamer.readFloat(widthSaveParam) == false || streamer.readFloat(roomSizeSaveParam) == false || streamer.readFloat(preDelaySaveParam) == false)
+        if(streamer.readFloat(dryWetSaveParam) == false || streamer.readBool(bypassSaveParam) == false || streamer.readFloat(modeSaveParam) == false || streamer.readFloat(dampingSaveParam) == false || streamer.readFloat(widthSaveParam) == false || streamer.readFloat(roomSizeSaveParam) == false || streamer.readFloat(preDelaySaveParam) == false)
         {
             return kResultFalse;
         }
@@ -201,23 +201,6 @@ namespace OUS
         }
 
         return kResultOk;
-    }
-
-    //------------------------------------------------------------------------
-    tresult PLUGIN_API MattVerbController::setState(IBStream* state)
-    {
-        // Here you get the state of the controller
-
-        return kResultTrue;
-    }
-
-    //------------------------------------------------------------------------
-    tresult PLUGIN_API MattVerbController::getState(IBStream* state)
-    {
-        // Here you are asked to deliver the state of the controller (if needed)
-        // Note: the real state of your plug-in is saved in the processor
-
-        return kResultTrue;
     }
 
     //------------------------------------------------------------------------

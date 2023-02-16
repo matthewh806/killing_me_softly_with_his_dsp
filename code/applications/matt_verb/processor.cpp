@@ -69,17 +69,6 @@ namespace OUS
     //------------------------------------------------------------------------
     tresult PLUGIN_API MattVerbProcessor::process(Vst::ProcessData& data)
     {
-        if(data.numInputs == 0 || data.numOutputs == 0)
-        {
-            return kResultOk;
-        }
-        
-        // TODO: Hack to prevent mono FIX!!!
-        if(data.numInputs == 1 || data.numOutputs == 1)
-        {
-            return kResultOk;
-        }
-
         //--- First : Read inputs parameter changes-----------
         if(data.inputParameterChanges)
         {
@@ -164,6 +153,11 @@ namespace OUS
                 }
             }
         }
+        
+        if(data.numInputs == 0 || data.numOutputs == 0)
+        {
+            return kResultOk;
+        }
 
         if(data.numSamples > 0)
         {
@@ -173,6 +167,11 @@ namespace OUS
 
             float** inputChannels = data.inputs[0].channelBuffers32;
             float** outputChannels = data.outputs[0].channelBuffers32;
+            
+            if(numChannels == 1)
+            {
+                return kResultOk;
+            }
 
             if(mBypass)
             {
@@ -226,18 +225,19 @@ namespace OUS
         IBStreamer streamer(state, kLittleEndian);
 
         float dryWetSaveParam = 0.0f;
-        float bypassSaveParam = 0.0f;
+        bool bypassSaveParam = false;
         float modeSaveParam = 0.0f;
         float dampingSaveParam = 0.0f;
         float widthSaveParam = 0.0f;
         float roomSizeSaveParam = 0.0f;
         float preDelaySaveParam = 0.0f;
 
-        if(streamer.readFloat(dryWetSaveParam) == false || streamer.readFloat(bypassSaveParam) == false || streamer.readFloat(modeSaveParam) == false || streamer.readFloat(dampingSaveParam) == false || streamer.readFloat(widthSaveParam) == false || streamer.readFloat(roomSizeSaveParam) == false || streamer.readFloat(preDelaySaveParam) == false)
+        if(streamer.readFloat(dryWetSaveParam) == false || streamer.readBool(bypassSaveParam) == false || streamer.readFloat(modeSaveParam) == false || streamer.readFloat(dampingSaveParam) == false || streamer.readFloat(widthSaveParam) == false || streamer.readFloat(roomSizeSaveParam) == false || streamer.readFloat(preDelaySaveParam) == false)
         {
             return kResultFalse;
         }
 
+        mBypass = bypassSaveParam;
         rev.setwet(dryWetSaveParam);
         rev.setdry(1.0 - dryWetSaveParam);
         rev.setmode(modeSaveParam);
@@ -254,7 +254,7 @@ namespace OUS
     {
         // save model
         float dryWetSaveParam = rev.getwet();
-        float bypassSaveParam = mBypass;
+        bool bypassSaveParam = mBypass;
         float modeSaveParam = rev.getmode();
         float dampingSaveParam = rev.getdamp();
         float widthSaveParam = rev.getwidth();
@@ -263,7 +263,7 @@ namespace OUS
 
         IBStreamer streamer(state, kLittleEndian);
         streamer.writeFloat(dryWetSaveParam);
-        streamer.writeFloat(bypassSaveParam);
+        streamer.writeBool(bypassSaveParam);
         streamer.writeFloat(modeSaveParam);
         streamer.writeFloat(dampingSaveParam);
         streamer.writeFloat(widthSaveParam);
