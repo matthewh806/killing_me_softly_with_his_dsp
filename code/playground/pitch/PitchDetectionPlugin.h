@@ -104,8 +104,6 @@ namespace OUS
         juce::AudioProcessorValueTreeState mState;
         PitchDetectionProcessor mPitchDetectionProcessor;
 
-        aubio_pitch_t* mAudioPitch = nullptr;
-
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PitchDetectionPlugin)
     };
