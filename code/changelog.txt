@@ -1,3 +1,12 @@
+v0.0.5
+  Tagged on: ??
+
+  -GENERAL
+    - Compile aubio directly as part of the CMake build process
+      (avoids the need for it to be preinstalled on users machine)
+    - Add simple test audio generatio script (Note: uses SoX)
+    - Added PitchDetector plugin to Playground (internal for now)
+
 v0.0.4
   Tagged on: 03/02/2023
   - CODE
