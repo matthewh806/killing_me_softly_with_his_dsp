@@ -38,7 +38,7 @@ namespace OUS
         int getNumPrograms() override { return 1; }
         int getCurrentProgram() override { return 0; }
         void setCurrentProgram(int) override {}
-        const String getProgramName(int) override { return {}; }
+        const String getProgramName(int) override { return "None"; }
         void changeProgramName(int, const String&) override {}
         bool isVST2() const noexcept { return (wrapperType == wrapperType_VST); }
 
