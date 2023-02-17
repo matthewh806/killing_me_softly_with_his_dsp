@@ -302,18 +302,6 @@ void PulsarAudioProcessor::handleAsyncUpdate()
         messages.swapWith(mIncomingMessages);
     }
 
-    auto* editor = getActiveEditor();
-    if(editor == nullptr)
-    {
-        return;
-    }
-
-    auto* pulsarEditor = static_cast<PulsarAudioProcessorEditor*>(editor);
-    if(pulsarEditor == nullptr)
-    {
-        return;
-    }
-
     for(auto& m : messages)
     {
         if(m.getChannel() != getMidiInputChannel())
