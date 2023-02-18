@@ -24,16 +24,20 @@ float BreakbeatAudioSource::getPlayheadPosition()
     }
     
     auto playheadPosition = static_cast<size_t>(getNextReadPosition());
+    auto slice = mSliceManager.getCurrentSlice();
+    auto const sliceStart = std::get<1>(slice);
+    auto const sliceEnd = std::get<2>(slice);
+    
     if(mReversing)
     {
-        auto slice = mSliceManager.getCurrentSlice();
-        auto const sliceStart = std::get<1>(slice);
-        auto const sliceEnd = std::get<2>(slice);
         playheadPosition = sliceStart + sliceEnd - playheadPosition;
     }
-    else if(mRetriggering)
+    if(mRetriggering)
     {
+        auto const sliceSampleSize = sliceEnd - sliceStart;
+        auto const retriggerEndPos = sliceSampleSize / RETRIGGER_DIVISION_FACTOR;
         
+        playheadPosition = sliceStart + (playheadPosition % retriggerEndPos);
     }
     
     return static_cast<float>(playheadPosition / mSampleRate);
