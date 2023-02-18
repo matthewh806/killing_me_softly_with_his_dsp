@@ -104,12 +104,13 @@ void BreakbeatAudioSource::getNextAudioBlock(const AudioSourceChannelInfo& buffe
     auto currentOutputBufferPosition = outputStart;
     while(samplesRemaining > 0)
     {
+        sliceStartPosition = std::get<1>(slice);
+        sliceEndPosition = std::get<2>(slice);
+        
         auto const changePerc = Random::getSystemRandom().nextFloat();
-
-        jassert(currentPosition <= sliceEndPosition);
-        bool const atSliceEnd = currentPosition == sliceEndPosition;
+        bool const atSliceEnd = currentPosition >= sliceEndPosition;
         bool const willChange = atSliceEnd && changePerc > sliceChangeThreshold;
-
+        
         if(willChange)
         {
             mRetriggering = false;
@@ -117,6 +118,8 @@ void BreakbeatAudioSource::getNextAudioBlock(const AudioSourceChannelInfo& buffe
             slice = mSliceManager.setRandomSlice();
             sliceStartPosition = std::get<1>(slice);
             sliceEndPosition = std::get<2>(slice);
+            
+            currentPosition = sliceStartPosition;
 
             // TODO: This assertion should be enabled
             // Annoyingly this can be true since the loaded slices
@@ -152,14 +155,19 @@ void BreakbeatAudioSource::getNextAudioBlock(const AudioSourceChannelInfo& buffe
         {
             auto const sliceSampleSize = sliceEndPosition - sliceStartPosition;
             auto const retriggerEndPos = sliceStartPosition + sliceSampleSize / RETRIGGER_DIVISION_FACTOR;
-
-            currentRetriggerPosition = (currentRetriggerPosition == retriggerEndPos) ? sliceStartPosition : currentRetriggerPosition;
+            currentRetriggerPosition = (currentRetriggerPosition >= retriggerEndPos) ? sliceStartPosition : currentRetriggerPosition;
+            
             numThisTime = std::min(static_cast<int>(retriggerEndPos - currentRetriggerPosition), samplesRemaining);
             numThisTime = std::min(numThisTime, static_cast<int>(readBufferEnd - currentPosition));
+            
+            assert(numThisTime >= 0);
+            
             for(auto ch = 0; ch < numChannels; ++ch)
             {
                 bufferToFill.buffer->copyFrom(ch, outputStart, *retainedBuffer, ch, static_cast<int>(currentRetriggerPosition), static_cast<int>(numThisTime));
             }
+            
+            assert(currentRetriggerPosition + numThisTime <= sliceEndPosition);
         }
         else
         {

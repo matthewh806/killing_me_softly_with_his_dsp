@@ -116,7 +116,7 @@ size_t SliceManager::getCurrentSliceIndex() const
 
 SliceManager::Slice& SliceManager::getCurrentSlice()
 {
-    return mCurrentSlice;
+    return mSlices[mCurrentSliceIndex];
 }
 
 SliceManager::Slice* SliceManager::getSliceById(juce::Uuid& id)
@@ -166,18 +166,11 @@ SliceManager::Slice* SliceManager::getSliceAtSamplePosition(size_t pos, int tole
 // Sets the current slice to a random one and returns it
 SliceManager::Slice SliceManager::setRandomSlice()
 {
-    // this is a hack to prevent a threading issue
-    if(mSlices.size() == 0)
-    {
-        return mCurrentSlice;
-    }
-
     auto const sliceIndex = static_cast<size_t>(Random::getSystemRandom().nextInt(static_cast<int>(mSlices.size())));
-    mCurrentSlice = mSlices[sliceIndex];
     mCurrentSliceIndex = sliceIndex;
 
     sendChangeMessage();
-    return mCurrentSlice;
+    return getCurrentSlice();
 }
 
 std::vector<SliceManager::Slice> const& SliceManager::getSlices() const
@@ -220,7 +213,6 @@ void SliceManager::performSlice()
         }
 
         mCurrentSliceIndex = 0;
-        mCurrentSlice = mSlices[mCurrentSliceIndex];
     }
     else if(mSliceMethod == transients)
     {
@@ -250,7 +242,6 @@ void SliceManager::performSlice()
         }
 
         mCurrentSliceIndex = 0;
-        mCurrentSlice = mSlices[mCurrentSliceIndex];
     }
     else if(mSliceMethod == manual)
     {
@@ -260,7 +251,6 @@ void SliceManager::performSlice()
             mSlices.push_back({juce::Uuid(), 0, getBufferNumSamples()});
 
             mCurrentSliceIndex = 0;
-            mCurrentSlice = mSlices[mCurrentSliceIndex];
         }
 
         // sort in ascending order as we add them into a random position

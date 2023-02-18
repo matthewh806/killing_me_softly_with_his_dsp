@@ -62,7 +62,6 @@ namespace OUS
 
     private:
         size_t mCurrentSliceIndex{0};
-        Slice mCurrentSlice;
 
         Method mSliceMethod;
 
