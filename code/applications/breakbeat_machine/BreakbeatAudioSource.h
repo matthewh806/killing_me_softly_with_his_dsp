@@ -17,6 +17,15 @@ namespace OUS
 
         size_t getNumSlices() const;
         int64_t getStartReadPosition() const;
+        
+        /*
+            This returns the playhead position in seconds and takes into
+            account reverse play and retrigger modes
+         */
+        float getPlayheadPosition();
+        
+        bool isReversing() const;
+        bool isRetriggering() const;
 
         SliceManager& getSliceManager();
 
@@ -33,7 +42,7 @@ namespace OUS
         void toggleRandomDirection();
 
         // juce::AudioAppComponent
-        void prepareToPlay(int, double) override;
+        void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
         void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;
         void releaseResources() override;
 
@@ -46,6 +55,8 @@ namespace OUS
         void clear();
 
     private:
+        double mSampleRate{0.0};
+        
         SliceManager mSliceManager;
 
         std::atomic<int64_t> mNextReadPosition{0};
@@ -60,6 +71,7 @@ namespace OUS
         std::atomic<bool> mRandomDirection{false};
 
         bool mRetriggering{false};
+        bool mReversing{false};
 
         std::atomic<float> mCrossFade{100.0f}; // ms
     };

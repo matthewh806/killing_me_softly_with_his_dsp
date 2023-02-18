@@ -123,7 +123,7 @@ namespace OUS
 
         SliceExporter mSliceExporter{mFormatManager};
 
-        BreakbeatWaveformComponent mWaveformComponent{mFormatManager, mTransportSource};
+        BreakbeatWaveformComponent mWaveformComponent{mFormatManager, mTransportSource, mAudioSource};
 
         juce::String mChosenPath;
 

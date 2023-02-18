@@ -16,6 +16,39 @@ size_t BreakbeatAudioSource::getNumSlices() const
     return mSliceManager.getNumberOfSlices();
 }
 
+float BreakbeatAudioSource::getPlayheadPosition()
+{
+    if(mSampleRate <= 0.0)
+    {
+        return 0.0;
+    }
+    
+    auto playheadPosition = static_cast<size_t>(getNextReadPosition());
+    if(mReversing)
+    {
+        auto slice = mSliceManager.getCurrentSlice();
+        auto const sliceStart = std::get<1>(slice);
+        auto const sliceEnd = std::get<2>(slice);
+        playheadPosition = sliceStart + sliceEnd - playheadPosition;
+    }
+    else if(mRetriggering)
+    {
+        
+    }
+    
+    return static_cast<float>(playheadPosition / mSampleRate);
+}
+
+bool BreakbeatAudioSource::isReversing() const
+{
+    return mReversing;
+}
+
+bool BreakbeatAudioSource::isRetriggering() const
+{
+    return mRetriggering;
+}
+
 SliceManager& BreakbeatAudioSource::getSliceManager()
 {
     return mSliceManager;
@@ -70,8 +103,10 @@ void BreakbeatAudioSource::toggleRandomDirection()
     mRandomDirection.exchange(!status);
 }
 
-void BreakbeatAudioSource::prepareToPlay(int, double)
+void BreakbeatAudioSource::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
+    juce::ignoreUnused(samplesPerBlockExpected);
+    mSampleRate = sampleRate;
 }
 
 void BreakbeatAudioSource::getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill)
@@ -138,10 +173,12 @@ void BreakbeatAudioSource::getNextAudioBlock(const AudioSourceChannelInfo& buffe
             if(reversePerc > sliceReverseThreshold)
             {
                 mSliceManager.setReverseBufferActive();
+                mReversing = true;
             }
             else
             {
                 mSliceManager.setForwardBufferActive();
+                mReversing = false;
             }
         };
 

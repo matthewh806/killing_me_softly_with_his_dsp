@@ -2,8 +2,9 @@
 
 using namespace OUS;
 
-PlayheadPositionOverlayComponent::PlayheadPositionOverlayComponent(juce::AudioTransportSource& transportSource)
+PlayheadPositionOverlayComponent::PlayheadPositionOverlayComponent(juce::AudioTransportSource& transportSource, BreakbeatAudioSource& audioSource)
 : mTransportSource(transportSource)
+, mAudioSource(audioSource)
 {
     startTimer(40);
 }
@@ -28,7 +29,7 @@ void PlayheadPositionOverlayComponent::paint(juce::Graphics& g)
 
 void PlayheadPositionOverlayComponent::timerCallback()
 {
-    auto const playheadPosition = static_cast<float>(mTransportSource.getCurrentPosition());
+    auto const playheadPosition = mAudioSource.getPlayheadPosition();
     if(std::abs(mPlayheadPosition - playheadPosition) > std::numeric_limits<float>::epsilon())
     {
         mPlayheadPosition = playheadPosition;
@@ -70,7 +71,7 @@ void SlicesOverlayComponent::paint(juce::Graphics& g)
 
     // paint active slice range;
     auto const activeSliceStart = mSlicePositions[mActiveSliceIndex];
-    auto const activeSliceEnd = mActiveSliceIndex >= mSlicePositions.size() ? static_cast<size_t>(audioLength * mSampleRate) : mSlicePositions[mActiveSliceIndex + 1];
+    auto const activeSliceEnd = mActiveSliceIndex + 1 >= mSlicePositions.size() ? static_cast<size_t>(audioLength * mSampleRate) : mSlicePositions[mActiveSliceIndex + 1];
 
     juce::Range<size_t> sampleRange{activeSliceStart, activeSliceEnd};
     if(sampleRange.getLength() == 0)
@@ -144,11 +145,11 @@ std::optional<int> SlicesOverlayComponent::getSliceUnderMousePosition(int x, int
     return outSliceX;
 }
 
-BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager& formatManager, juce::AudioTransportSource& transportSource)
+BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager& formatManager, juce::AudioTransportSource& transportSource, BreakbeatAudioSource& audioSource)
 : mAudioFormatManager(formatManager)
 , mWaveformComponent(formatManager)
 , mSliceOverlayComponent(transportSource)
-, mPlayheadOverlayComponent(transportSource)
+, mPlayheadOverlayComponent(transportSource, audioSource)
 {
     mWaveformComponent.getThumbnail().addChangeListener(this);
 

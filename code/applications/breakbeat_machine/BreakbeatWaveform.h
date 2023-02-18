@@ -1,8 +1,12 @@
 #pragma once
 
+//clang-format off
+#include <JuceHeader.h>
+//clang-format on
+
 #include "../../ui/Waveform.h"
 #include "SliceManager.h"
-#include <JuceHeader.h>
+#include "BreakbeatAudioSource.h"
 
 namespace OUS
 {
@@ -11,7 +15,7 @@ namespace OUS
     , private juce::Timer
     {
     public:
-        PlayheadPositionOverlayComponent(juce::AudioTransportSource& transportSource);
+        PlayheadPositionOverlayComponent(juce::AudioTransportSource& transportSource, BreakbeatAudioSource& audioSource);
         ~PlayheadPositionOverlayComponent() override;
 
         void paint(juce::Graphics& g) override;
@@ -20,6 +24,8 @@ namespace OUS
         void timerCallback() override;
 
         juce::AudioTransportSource& mTransportSource;
+        BreakbeatAudioSource& mAudioSource;
+        
         float mPlayheadPosition{0.0f};
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayheadPositionOverlayComponent)
@@ -59,7 +65,7 @@ namespace OUS
     , private juce::ChangeListener
     {
     public:
-        BreakbeatWaveformComponent(juce::AudioFormatManager& formatManager, juce::AudioTransportSource& transportSource);
+        BreakbeatWaveformComponent(juce::AudioFormatManager& formatManager, juce::AudioTransportSource& transportSource, BreakbeatAudioSource& audioSource);
         ~BreakbeatWaveformComponent() override;
 
         juce::AudioThumbnail& getThumbnail();
