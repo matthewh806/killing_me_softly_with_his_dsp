@@ -7,17 +7,17 @@
 */
 
 #include "../../ui/CustomLookAndFeel.h"
-#include "../../ui/MainWindow.h"
+#include "BreakbeatMainWindow.h"
 #include "BreakbeatMaker.h"
 #include <JuceHeader.h>
 
 namespace OUS
 {
-    class Application : public juce::JUCEApplication
+    class BreakbeatMakerApplication : public juce::JUCEApplication
     {
     public:
         //==============================================================================
-        Application() {}
+        BreakbeatMakerApplication() {}
 
         const juce::String getApplicationName() override { return JUCE_APPLICATION_NAME_STRING; }
         const juce::String getApplicationVersion() override { return JUCE_APPLICATION_VERSION_STRING; }
@@ -29,7 +29,7 @@ namespace OUS
             mBreakbeatContentComponent = new BreakbeatContentComponent(mDefaultDeviceManager, mRecentFiles);
 
             loadProperties();
-            mMainWindow.reset(new MainWindow(getApplicationName(), mBreakbeatContentComponent, mDefaultDeviceManager));
+            mMainWindow.reset(new BreakbeatMainWindow(getApplicationName(), mBreakbeatContentComponent, mDefaultDeviceManager));
             mMainWindow->setLookAndFeel(&mCustomLookAndFeel);
 
             juce::MessageManager::callAsync([this]()
@@ -96,7 +96,7 @@ namespace OUS
             mRecentFiles.removeNonExistentFiles();
         }
 
-        std::unique_ptr<MainWindow> mMainWindow;
+        std::unique_ptr<BreakbeatMainWindow> mMainWindow;
 
         juce::RecentlyOpenedFilesList mRecentFiles;
         juce::File mPropertyFile;
@@ -109,4 +109,4 @@ namespace OUS
 } // namespace OUS
 
 //==============================================================================
-START_JUCE_APPLICATION(OUS::Application)
+START_JUCE_APPLICATION(OUS::BreakbeatMakerApplication)
