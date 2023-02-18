@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    FileExporter.cpp
+    SliceExporter.cpp
     Created: 20 Jul 2020 12:35:28am
     Author:  Matthew
 
@@ -17,14 +17,11 @@ SliceExporter::SliceExporter(juce::AudioFormatManager& audioFormatManager)
 {
 }
 
-void SliceExporter::startExport(juce::AudioSampleBuffer* readBuffer, juce::String& fileName, juce::String& absoluteDirectoryPath, int64_t sliceSize, int numSlices, int numChannels, double sampleRate, int bitDepth, const int blockSize)
+void SliceExporter::startExport(juce::AudioSampleBuffer* readBuffer, juce::String& fileName, juce::String& absoluteDirectoryPath, std::vector<SliceManager::Slice> const& slices, int numChannels, double sampleRate, int bitDepth, const int blockSize)
 {
-    jassert(sliceSize > 0 && numSlices > 0 && readBuffer != nullptr);
-    if(sliceSize <= 0)
-    {
-        throw std::runtime_error("The slice size is <= 0");
-    }
-
+    auto const numSlices = slices.size();
+    
+    jassert(numSlices > 0 && readBuffer != nullptr);
     if(numSlices <= 0)
     {
         throw std::runtime_error("The number of slices is <= 0");
@@ -48,15 +45,15 @@ void SliceExporter::startExport(juce::AudioSampleBuffer* readBuffer, juce::Strin
         mReadBuffer.copyFrom(ch, 0, *readBuffer, ch, 0, readBuffer->getNumSamples());
     }
 
-    std::cout << "SliceExpoter::startExport: " << fileName << ", " << absoluteDirectoryPath << ", slice num / size: " << numSlices << " / " << sliceSize << "\n";
+    std::cout << "SliceExpoter::startExport: " << fileName << ", " << absoluteDirectoryPath << ", slice num / size: " << numSlices << "\n";
 
-    for(int i = 0; i < numSlices; i++)
+    for(size_t i = 0; i < numSlices; i++)
     {
         auto filePath = absoluteDirectoryPath + "/" + fileName + "_" + (i < 10 ? "0" : "") + juce::String(i) + ".wav";
         juce::File f{filePath};
 
-        auto sliceStart = i * sliceSize;
-        auto sliceEnd = std::min(static_cast<int>(sliceStart + sliceSize), readBuffer->getNumSamples());
+        auto sliceStart = static_cast<int>(std::get<1>(slices[i]));
+        auto sliceEnd = std::min(static_cast<int>(std::get<2>(slices[i])), readBuffer->getNumSamples());
 
         jassert(sliceStart >= 0 && sliceEnd >= sliceStart);
 
@@ -84,7 +81,6 @@ void SliceExporter::startExport(juce::AudioSampleBuffer* readBuffer, juce::Strin
             mThread.join();
         }
 
-        std::unique_lock<std::mutex> lock(mMutex);
         mThread = std::thread([this, sliceStart, sliceEnd, blockSize, writer = std::move(audioFormatWriter)]()
                               {
                                   run(writer, {sliceStart, sliceEnd}, blockSize);

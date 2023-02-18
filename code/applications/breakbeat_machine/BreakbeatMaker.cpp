@@ -508,25 +508,30 @@ void BreakbeatContentComponent::setFileOutputPath()
 
 void BreakbeatContentComponent::exportAudioSlices()
 {
-    // TODO: REIMPLEMENT THIS
-    //    juce::FileChooser fileChooser("Export slices to file(s)...", juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.wav");
-    //    if(!fileChooser.browseForFileToSave(true))
-    //    {
-    //        return;
-    //    }
-    //
-    //    auto file = fileChooser.getResult();
-    //    try
-    //    {
-    ////        auto* readBuffer = mAudioSource.getCurrentBuffer();
-    ////        auto fileName = file.getFileNameWithoutExtension();
-    ////        auto path = file.getParentDirectory().getFullPathName();
-    ////        mSliceExporter.startExport(readBuffer, fileName, path, mAudioSource.getSliceSize(), mAudioSource.getNumSlices(), 2, 44100.0, 32);
-    //    }
-    //    catch (std::exception e)
-    //    {
-    //        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Failed to export slices", e.what());
-    //    }
+    mFileChooser = std::make_unique<juce::FileChooser>("Export slices to file(s)...",
+                                                       juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.wav");
+    
+    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](juce::FileChooser const& chooser)
+    {
+        auto file(chooser.getResult());
+        try
+        {
+            auto* readBuffer = mAudioSource.getSliceManager().getForwardBuffer();
+            auto fileName = file.getFileNameWithoutExtension();
+            auto path = file.getParentDirectory().getFullPathName();
+            mSliceExporter.startExport(readBuffer, fileName, path, mAudioSource.getSliceManager().getSlices(), 2, 44100.0, 32);
+        }
+        catch (std::exception e)
+        {
+            juce::AlertWindow::showAsync(MessageBoxOptions()
+                                             .withIconType(MessageBoxIconType::WarningIcon)
+                                             .withTitle("Failed to export slices")
+                                             .withMessage(e.what())
+                                             .withButton("OK"),
+                                         nullptr);
+        }
+    });
 }
 
 void BreakbeatContentComponent::changeState(TransportState state)
