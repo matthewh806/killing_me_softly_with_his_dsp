@@ -20,7 +20,7 @@ namespace OUS
         virtual ~FileRecorder() = default;
 
         bool startRecording(juce::File file, int numChannels, double sampleRate, int bitDepth);
-        void stopRecording();
+        void stopRecording(std::function<void()> onStopped = nullptr);
         bool isRecording() const;
         void processBlock(juce::AudioBuffer<float> const& buffer);
 

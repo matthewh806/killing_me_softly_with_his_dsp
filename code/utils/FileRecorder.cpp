@@ -45,6 +45,16 @@ bool FileRecorder::startRecording(juce::File file, int numChannels, double sampl
         stopRecording();
         return false;
     }
+    
+    if(!outputStream->openedOk())
+    {
+        stopRecording();
+        return false;
+    }
+    
+    // Allows us to overwrite an existing file
+    outputStream->setPosition(0);
+    outputStream->truncate();
 
     auto writer = std::unique_ptr<juce::AudioFormatWriter>(audioFormat->createWriterFor(outputStream.get(), sampleRate, static_cast<unsigned int>(numChannels), bitDepth, {}, 0));
     if(writer == nullptr)
@@ -77,7 +87,7 @@ bool FileRecorder::startRecording(juce::File file, int numChannels, double sampl
     return true;
 }
 
-void FileRecorder::stopRecording()
+void FileRecorder::stopRecording(std::function<void()> onStopped)
 {
     std::cout << "Stop Recording on background thread\n";
 
@@ -87,6 +97,11 @@ void FileRecorder::stopRecording()
                                         {
                                         }
                                     });
+    
+    if(onStopped != nullptr)
+    {
+        onStopped();
+    }
 }
 
 void FileRecorder::processBlock(juce::AudioBuffer<float> const& buffer)
