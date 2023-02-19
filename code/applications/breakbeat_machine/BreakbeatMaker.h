@@ -87,7 +87,9 @@ namespace OUS
 
         void updateWaveform();
         //==========================================================================
-
+        
+        void saveRecording();
+        
         ComboBoxWithLabel mSliceTypeCombobox{"Slice type"};
 
         RotarySliderWithLabels mPitchShiftSlider;

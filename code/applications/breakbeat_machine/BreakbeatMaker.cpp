@@ -283,7 +283,9 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
         }
         else
         {
-            mRecorder.stopRecording();
+            mRecorder.stopRecording([this](){
+                saveRecording();
+            });
             mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::defaultButtonColourId));
         }
     };
@@ -553,8 +555,12 @@ void BreakbeatContentComponent::changeState(TransportState state)
 
                 if(mRecording)
                 {
-                    mRecorder.stopRecording();
+                    mRecorder.stopRecording([this]() {
+                        saveRecording();
+                    });
                     mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, getLookAndFeel().findColour(BreakbeatContentComponent::ColourIds::defaultButtonColourId));
+                    
+                    mRecording = false;
                 }
             }
             break;
@@ -626,4 +632,35 @@ void BreakbeatContentComponent::fromXml(juce::XmlElement const& xml)
 std::unique_ptr<juce::XmlElement> BreakbeatContentComponent::toXml()
 {
     return mAudioSource.getSliceManager().toXml();
+}
+
+void BreakbeatContentComponent::saveRecording()
+{
+    // The file should have been written to mRecordedFile
+    // Which is in the temp directory.
+    // Now we can prompt the user about where to save it finally
+    
+    // TODO: Consider using juce::TemporaryFile?
+    
+    mFileChooser = std::make_unique<juce::FileChooser>("Save recording",
+                                                       juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.wav");
+    
+    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](juce::FileChooser const& chooser)
+    {
+        auto file(chooser.getResult());
+        try
+        {
+            mRecordedFile.copyFileTo(file);
+        }
+        catch (std::exception e)
+        {
+            juce::AlertWindow::showAsync(MessageBoxOptions()
+                                             .withIconType(MessageBoxIconType::WarningIcon)
+                                             .withTitle("Failed to save recording")
+                                             .withMessage(e.what())
+                                             .withButton("OK"),
+                                         nullptr);
+        }
+    });
 }

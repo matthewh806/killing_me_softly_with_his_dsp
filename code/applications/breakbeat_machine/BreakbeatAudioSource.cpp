@@ -200,15 +200,12 @@ void BreakbeatAudioSource::getNextAudioBlock(const AudioSourceChannelInfo& buffe
             
             numThisTime = std::min(static_cast<int>(retriggerEndPos - currentRetriggerPosition), samplesRemaining);
             numThisTime = std::min(numThisTime, static_cast<int>(readBufferEnd - currentPosition));
-            
             assert(numThisTime >= 0);
             
             for(auto ch = 0; ch < numChannels; ++ch)
             {
                 bufferToFill.buffer->copyFrom(ch, outputStart, *retainedBuffer, ch, static_cast<int>(currentRetriggerPosition), static_cast<int>(numThisTime));
             }
-            
-            assert(currentRetriggerPosition + numThisTime <= sliceEndPosition);
         }
         else
         {
