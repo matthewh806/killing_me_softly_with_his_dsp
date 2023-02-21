@@ -4,8 +4,8 @@ using namespace OUS;
 
 WaveformComponent::WaveformComponent(juce::AudioFormatManager& formatManager)
 : mAudioFormatManager(formatManager)
-, mThumbnailCache(32)
-, mThumbnail(32, mAudioFormatManager, mThumbnailCache)
+, mThumbnailCache(512)
+, mThumbnail(2048, mAudioFormatManager, mThumbnailCache)
 {
 }
 
@@ -21,6 +21,19 @@ juce::AudioThumbnail& WaveformComponent::getThumbnail()
 juce::Rectangle<int> const& WaveformComponent::getThumbnailBounds() const
 {
     return mThumbnailBounds;
+}
+
+void WaveformComponent::setThumbnailSource(juce::AudioSampleBuffer* audioSource)
+{
+    // TODO Check nullptr audiosource;
+    clear();
+    mThumbnail.setSource(audioSource, mSampleRate, 0);
+    
+    mTotalRange = juce::Range<float>(0.0f, static_cast<float>(mThumbnail.getTotalLength()));
+    mVisibleRange = mTotalRange;
+    mZoomAnchor = mVisibleRange.getLength() / 2.0f;
+    
+    repaint();
 }
 
 void WaveformComponent::clear()
@@ -46,7 +59,7 @@ void WaveformComponent::paint(juce::Graphics& g)
     else
     {
         g.setColour(juce::Colours::orange);
-        mThumbnail.drawChannels(g, mThumbnailBounds, 0.0, mThumbnail.getTotalLength(), 1.0f);
+        mThumbnail.drawChannels(g, mThumbnailBounds, mVisibleRange.getStart(), mVisibleRange.getEnd(), 1.0f);
     }
 
     if(!mThumbnail.isFullyLoaded())
@@ -60,6 +73,20 @@ void WaveformComponent::paint(juce::Graphics& g)
                                             }
                                         });
     }
+}
+
+void WaveformComponent::mouseWheelMove(juce::MouseEvent const& event, juce::MouseWheelDetails const& wheel)
+{
+    if(mThumbnail.getNumChannels() == 0)
+    {
+        return;
+    }
+    
+    // up:      zoom out
+    // down:    zoom in
+    // left:    scroll left
+    // right:   scroll right
+    updateWaveformZoom(wheel.deltaY);
 }
 
 bool WaveformComponent::isInterestedInFileDrag(const StringArray& files)
@@ -94,5 +121,30 @@ void WaveformComponent::filesDropped(const StringArray& files, int x, int y)
 
 void WaveformComponent::handleAsyncUpdate()
 {
+    repaint();
+}
+
+void WaveformComponent::updateWaveformZoom(float deltaY)
+{
+    mIsMovingMouseWheel = deltaY != 0.0;
+    if(!mIsMovingMouseWheel)
+    {
+        mTotalWheelDisplacemet = 0.0f;
+        return;
+    }
+    
+    mTotalWheelDisplacemet += deltaY;
+    auto const zoomInc = std::pow(1.005f, std::abs(mTotalWheelDisplacemet));
+    auto const zoomFactor = mTotalWheelDisplacemet < 0.0f ? zoomInc : 1.0f / zoomInc;
+    
+    // Range at zoomFactor 1
+    mVisibleRange = juce::Range<float>(mZoomAnchor - (mZoomAnchor - mVisibleRange.getStart()) * zoomFactor, mZoomAnchor + (mVisibleRange.getEnd() - mZoomAnchor) * zoomFactor);
+    
+    // Constrain to total rannge
+    mVisibleRange = mVisibleRange.constrainRange(mTotalRange);
+    
+    // make sure its bigger than minimum?
+    
+//    std::cout << "zoomFactor: " << zoomFactor << ", visRange: " << mVisibleRange.getStart() << ", " << mVisibleRange.getEnd() << "\n";
     repaint();
 }
