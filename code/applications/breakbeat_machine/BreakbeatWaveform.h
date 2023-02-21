@@ -22,6 +22,8 @@ namespace OUS
         void visibleRangeUpdated(juce::Range<float> newRange);
 
         void paint(juce::Graphics& g) override;
+        
+        void setSampleRate(float sampleRate);
 
     private:
         void timerCallback() override;
@@ -30,6 +32,7 @@ namespace OUS
         BreakbeatAudioSource& mAudioSource;
         
         juce::Range<float> mVisibleRange;
+        float mSampleRate;
         
         float mPlayheadPosition{0.0f};
 

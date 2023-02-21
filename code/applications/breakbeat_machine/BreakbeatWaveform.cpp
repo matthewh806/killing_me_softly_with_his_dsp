@@ -26,14 +26,22 @@ void PlayheadPositionOverlayComponent::paint(juce::Graphics& g)
 {
     g.setColour(juce::Colours::white);
     auto const audioLength = mTransportSource.getLengthInSeconds();
-
+    
     if(audioLength <= 0.0)
     {
         return;
     }
-
-    auto const playheadDrawPosition = static_cast<float>(mPlayheadPosition / audioLength * getWidth());
-    g.drawLine(playheadDrawPosition, 0.0f, playheadDrawPosition, getHeight(), 2.0f);
+    
+    auto const visibleRangeSamples = juce::Range<size_t>(mVisibleRange.getStart() * mSampleRate, mVisibleRange.getEnd() * mSampleRate);
+    auto const playheadSamplePosition = static_cast<size_t>(mPlayheadPosition * mSampleRate);
+    if(!visibleRangeSamples.contains(playheadSamplePosition))
+    {
+        return;
+    }
+    
+    auto const playheadPosRatio = (playheadSamplePosition - visibleRangeSamples.getStart()) / static_cast<double>(visibleRangeSamples.getLength());
+    auto const playheadX = static_cast<int>(getWidth() * playheadPosRatio);
+    g.drawLine(playheadX, 0.0f, playheadX, getHeight(), 2.0f);
 }
 
 void PlayheadPositionOverlayComponent::timerCallback()
@@ -44,6 +52,11 @@ void PlayheadPositionOverlayComponent::timerCallback()
         mPlayheadPosition = playheadPosition;
         repaint();
     }
+}
+       
+void PlayheadPositionOverlayComponent::setSampleRate(float sampleRate)
+{
+    mSampleRate = sampleRate;
 }
 
 SlicesOverlayComponent::SlicesOverlayComponent(juce::AudioTransportSource& transportSource)
@@ -232,6 +245,7 @@ void BreakbeatWaveformComponent::clear()
 
 void BreakbeatWaveformComponent::setSampleRate(float sampleRate)
 {
+    mPlayheadOverlayComponent.setSampleRate(sampleRate);
     mSliceOverlayComponent.setSampleRate(sampleRate);
 }
 
