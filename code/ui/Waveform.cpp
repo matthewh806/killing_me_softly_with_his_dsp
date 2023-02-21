@@ -86,7 +86,7 @@ void WaveformComponent::mouseWheelMove(juce::MouseEvent const& event, juce::Mous
     // down:    zoom in
     // left:    scroll left
     // right:   scroll right
-    updateWaveformZoom(wheel.deltaY);
+    updateWaveformZoom(wheel.deltaY, event.x);
 }
 
 bool WaveformComponent::isInterestedInFileDrag(const StringArray& files)
@@ -124,17 +124,27 @@ void WaveformComponent::handleAsyncUpdate()
     repaint();
 }
 
-void WaveformComponent::updateWaveformZoom(float deltaY)
+void WaveformComponent::updateWaveformZoom(float deltaY, float anchorPoint)
 {
+    auto const startOfAction = !mIsMovingMouseWheel && deltaY != 0;
     mIsMovingMouseWheel = deltaY != 0.0;
+    
     if(!mIsMovingMouseWheel)
     {
         mTotalWheelDisplacemet = 0.0f;
         return;
     }
     
+    if(startOfAction)
+    {
+        // Convert anchor point from pixels to time
+        auto const waveformWidth = mThumbnailBounds.getWidth();
+        mZoomAnchor = static_cast<float>(((anchorPoint - mThumbnailBounds.getX()) * mVisibleRange.getLength()) / waveformWidth) + mVisibleRange.getStart();
+        std::cout << "New Anchor Pos: " << mZoomAnchor << "\n";
+    }
+    
     mTotalWheelDisplacemet += deltaY;
-    auto const zoomInc = std::pow(1.005f, std::abs(mTotalWheelDisplacemet));
+    auto const zoomInc = std::pow(1.05f, std::abs(mTotalWheelDisplacemet));
     auto const zoomFactor = mTotalWheelDisplacemet < 0.0f ? zoomInc : 1.0f / zoomInc;
     
     // Range at zoomFactor 1
@@ -142,8 +152,6 @@ void WaveformComponent::updateWaveformZoom(float deltaY)
     
     // Constrain to total rannge
     mVisibleRange = mVisibleRange.constrainRange(mTotalRange);
-    
-    // make sure its bigger than minimum?
     
 //    std::cout << "zoomFactor: " << zoomFactor << ", visRange: " << mVisibleRange.getStart() << ", " << mVisibleRange.getEnd() << "\n";
     repaint();

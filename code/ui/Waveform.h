@@ -37,7 +37,7 @@ namespace OUS
         std::function<void(juce::String&)> onNewFileDropped = nullptr;
 
     private:
-        void updateWaveformZoom(float deltaY);
+        void updateWaveformZoom(float deltaY, float anchorPoint);
         
         juce::Rectangle<int> mThumbnailBounds;
         
