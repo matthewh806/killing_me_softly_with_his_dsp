@@ -48,10 +48,7 @@ void WaveformComponentTest::newFileDropped(juce::String& filePath)
         mCurrentBuffer = newBuffer;
     }
     
-    mWaveform.clear();
-    mWaveform.getThumbnail().reset(numChannels, numSamples);
-    mWaveform.getThumbnail().addBlock(0, *mCurrentBuffer->getAudioSampleBuffer(), 0, numSamples);
-    mWaveform.repaint();
+    mWaveform.setThumbnailSource(mCurrentBuffer->getAudioSampleBuffer());
 }
 
 void WaveformComponentTest::run()
