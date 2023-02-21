@@ -619,9 +619,7 @@ void BreakbeatContentComponent::checkForBuffersToFree()
 
 void BreakbeatContentComponent::updateWaveform()
 {
-    mWaveformComponent.clear();
-    mWaveformComponent.getThumbnail().reset(2, mAudioSource.getSliceManager().getSampleSampleRate());
-    mWaveformComponent.getThumbnail().addBlock(0, *mAudioSource.getSliceManager().getForwardBuffer(), 0, static_cast<int>(mAudioSource.getSliceManager().getBufferNumSamples()));
+    mWaveformComponent.setThumbnailSource(mAudioSource.getSliceManager().getForwardBuffer());
 }
 
 void BreakbeatContentComponent::fromXml(juce::XmlElement const& xml)

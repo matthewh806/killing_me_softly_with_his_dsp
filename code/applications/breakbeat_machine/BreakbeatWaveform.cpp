@@ -13,6 +13,15 @@ PlayheadPositionOverlayComponent::~PlayheadPositionOverlayComponent()
 {
 }
 
+void PlayheadPositionOverlayComponent::visibleRangeUpdated(juce::Range<float> newRange)
+{
+    if(newRange != mVisibleRange)
+    {
+        mVisibleRange = newRange;
+        repaint();
+    }
+}
+
 void PlayheadPositionOverlayComponent::paint(juce::Graphics& g)
 {
     g.setColour(juce::Colours::white);
@@ -46,6 +55,15 @@ SlicesOverlayComponent::~SlicesOverlayComponent()
 {
 }
 
+void SlicesOverlayComponent::visibleRangeUpdated(juce::Range<float> newRange)
+{
+    if(newRange != mVisibleRange)
+    {
+        mVisibleRange = newRange;
+        repaint();
+    }
+}
+
 void SlicesOverlayComponent::paint(juce::Graphics& g)
 {
     if(mSlicePositions.size() <= 1)
@@ -55,34 +73,44 @@ void SlicesOverlayComponent::paint(juce::Graphics& g)
 
     // paint all of the slices
     g.setColour(juce::Colours::black);
-
-    auto const audioLength = mTransportSource.getLengthInSeconds();
+    
+    auto const visibleRangeSamples = juce::Range<size_t>(mVisibleRange.getStart() * mSampleRate, mVisibleRange.getEnd() * mSampleRate);
+    auto const visibleRangeLengthSamples = visibleRangeSamples.getLength();
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
-        auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / audioLength;
-        auto const sliceX = static_cast<int>(getWidth() * startRatio);
-        g.drawVerticalLine(sliceX, 0.0f, getBottom());
+        auto const slicePosition = mSlicePositions[i]; // samples
+        
+        if(visibleRangeSamples.contains(slicePosition))
+        {
+            auto const startRatio = (mSlicePositions[i] - visibleRangeSamples.getStart()) / static_cast<double>(visibleRangeLengthSamples);
+            auto const sliceX = static_cast<int>(getWidth() * startRatio);
+            g.drawVerticalLine(sliceX, 0.0f, getBottom());
 
-        // draw the slice handle
-        Path trianglePath;
-        trianglePath.addTriangle(sliceX - 8.0f, 0.0f, sliceX + 8.0f, 0.0f, sliceX, 16.0f);
-        g.fillPath(trianglePath);
+            // draw the slice handle
+            Path trianglePath;
+            trianglePath.addTriangle(sliceX - 8.0f, 0.0f, sliceX + 8.0f, 0.0f, sliceX, 16.0f);
+            g.fillPath(trianglePath);
+        }
     }
 
     // paint active slice range;
+    auto const audioLengthSamples = static_cast<size_t>(mTransportSource.getTotalLength());
     auto const activeSliceStart = mSlicePositions[mActiveSliceIndex];
-    auto const activeSliceEnd = mActiveSliceIndex + 1 >= mSlicePositions.size() ? static_cast<size_t>(audioLength * mSampleRate) : mSlicePositions[mActiveSliceIndex + 1];
-
-    juce::Range<size_t> sampleRange{activeSliceStart, activeSliceEnd};
-    if(sampleRange.getLength() == 0)
+    auto const activeSliceEnd = mActiveSliceIndex + 1 >= mSlicePositions.size() ? audioLengthSamples : mSlicePositions[mActiveSliceIndex + 1];
+    auto const activeSampleRange = juce::Range<size_t>{activeSliceStart, activeSliceEnd};
+    if(activeSampleRange.getLength() == 0)
     {
         return;
     }
-
-    auto const sampleStartRatio = static_cast<double>(sampleRange.getStart() / mSampleRate) / audioLength;
-    auto const sampleSizeRatio = static_cast<double>(sampleRange.getLength() / mSampleRate) / audioLength;
-
-    juce::Rectangle<int> clipBounds{static_cast<int>(getWidth() * sampleStartRatio), getY(), static_cast<int>(getWidth() * sampleSizeRatio), getHeight()};
+    
+    auto const visibleActiveSampleRange = activeSampleRange.getIntersectionWith(visibleRangeSamples);
+    auto const startHightlightRatio = (visibleActiveSampleRange.getStart() - visibleRangeSamples.getStart()) / static_cast<double>(visibleRangeLengthSamples);
+    auto const endHighlightRatio = (visibleActiveSampleRange.getEnd() - visibleRangeSamples.getStart()) / static_cast<double>(visibleRangeLengthSamples);
+    auto const clipStartX = getWidth() * startHightlightRatio;
+    auto const clipEndX = getWidth() * endHighlightRatio;
+    auto const clipWidth = clipEndX - clipStartX;
+    
+    juce::Rectangle<int> clipBounds{static_cast<int>(clipStartX), getY(), static_cast<int>(clipWidth), getHeight()};
 
     g.setColour(juce::Colours::blue.withAlpha(0.4f));
     g.fillRect(clipBounds);
@@ -175,6 +203,13 @@ BreakbeatWaveformComponent::~BreakbeatWaveformComponent()
     mWaveformComponent.getThumbnail().removeChangeListener(this);
 }
 
+void BreakbeatWaveformComponent::setThumbnailSource(juce::AudioSampleBuffer* audioSource)
+{
+    mWaveformComponent.setThumbnailSource(audioSource);
+    mSliceOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
+    mPlayheadOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
+}
+
 juce::AudioThumbnail& BreakbeatWaveformComponent::getThumbnail()
 {
     return mWaveformComponent.getThumbnail();
@@ -254,6 +289,11 @@ void BreakbeatWaveformComponent::mouseUp(juce::MouseEvent const& event)
             }
         }
     }
+    
+    if(event.mods.isCommandDown())
+    {
+        resetZoom();
+    }
 
     if(onMouseUp != nullptr)
     {
@@ -268,6 +308,18 @@ void BreakbeatWaveformComponent::mouseDrag(const MouseEvent& event)
     {
         onSliceMarkerDragged(event.position.x);
     }
+}
+
+void BreakbeatWaveformComponent::mouseWheelMove(juce::MouseEvent const& event, juce::MouseWheelDetails const& wheel)
+{
+    // TODO: Needs to update painting of slices / markers to be in correct positions
+    
+    // Pass directly onto waveform for zoom
+    mWaveformComponent.mouseWheelMove(event, wheel);
+    mSliceOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
+    mPlayheadOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
+    
+    repaint();
 }
 
 void BreakbeatWaveformComponent::handleAsyncUpdate()
@@ -292,4 +344,11 @@ bool BreakbeatWaveformComponent::isInterestedInFileDrag(const StringArray& files
 void BreakbeatWaveformComponent::filesDropped(const StringArray& files, int x, int y)
 {
     mWaveformComponent.filesDropped(files, x, y);
+}
+
+void BreakbeatWaveformComponent::resetZoom()
+{
+    mWaveformComponent.resetZoom();
+    mSliceOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
+    mPlayheadOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
 }
