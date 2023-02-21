@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 set(JUCE_COPY_PLUGIN_AFTER_BUILD ON)
 set(SMTG_RUN_VST_VALIDATOR OFF)
+set(BUILD_TEST_COMPONENTS ON)
 
 project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.4)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt ${CMAKE_PROJECT_VERSION})
@@ -93,3 +94,7 @@ source_group("Source/UtilsSources" FILES ${UtilsSources})
 
 add_subdirectory(applications)
 add_subdirectory(playground)
+
+if(BUILD_TEST_COMPONENTS)
+    add_subdirectory(test/components)
+endif()
