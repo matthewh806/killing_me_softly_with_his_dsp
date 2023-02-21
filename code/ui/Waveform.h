@@ -16,8 +16,13 @@ namespace OUS
         juce::AudioThumbnail& getThumbnail();
         juce::Rectangle<int> const& getThumbnailBounds() const;
         
+        juce::Range<float> const& getVisibleRange() const;
+        juce::Range<float> const& getTotalRange() const;
+        
         void setThumbnailSource(juce::AudioSampleBuffer* audioSource);
         void clear();
+        
+        void resetZoom();
 
         // juce::Component
         void resized() override;

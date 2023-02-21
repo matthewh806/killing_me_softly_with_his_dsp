@@ -23,6 +23,22 @@ juce::Rectangle<int> const& WaveformComponent::getThumbnailBounds() const
     return mThumbnailBounds;
 }
 
+juce::Range<float> const& WaveformComponent::getVisibleRange() const
+{
+    return mVisibleRange;
+}
+
+juce::Range<float> const& WaveformComponent::getTotalRange() const
+{
+    return mTotalRange;
+}
+
+void WaveformComponent::resetZoom()
+{
+    mVisibleRange = mTotalRange;
+    repaint();
+}
+
 void WaveformComponent::setThumbnailSource(juce::AudioSampleBuffer* audioSource)
 {
     // TODO Check nullptr audiosource;
