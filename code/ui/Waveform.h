@@ -45,7 +45,7 @@ namespace OUS
 
     private:
         void updateWaveformZoom(float deltaY, float anchorPoint);
-        void updateWaveformPosition(float deltaX, float);
+        void updateWaveformPosition(float deltaX, bool lockZoomLevel);
         
         juce::Rectangle<int> mThumbnailBounds;
         

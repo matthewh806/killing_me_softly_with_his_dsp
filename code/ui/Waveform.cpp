@@ -108,14 +108,14 @@ void WaveformComponent::mouseWheelMove(juce::MouseEvent const& event, juce::Mous
         return;
     }
     
-    // TODO: Experiment with a tolerance check to discriminate between events?
-    // That means ONLY zoom OR translation possible on each check
-    // Perhaps tracking of event start / end to keep the action consistent
-    // and prevent jumping between Zoom / Translations during one long scroll action
-    // Or what about allowing the user to decide? I.e. holding down a modifier key at the
-    // same time to perform the translation action
-    updateWaveformZoom(wheel.deltaY, event.x);
-    updateWaveformPosition(wheel.deltaX, event.x);
+    // Force into translate onlym fixed visible range mode when alt is held
+    auto const lockedZoomLevel = event.mods.isAltDown();
+    if(!lockedZoomLevel)
+    {
+        updateWaveformZoom(wheel.deltaY, event.x);
+    }
+    
+    updateWaveformPosition(wheel.deltaX, lockedZoomLevel);
 }
 
 bool WaveformComponent::isInterestedInFileDrag(const StringArray& files)
@@ -186,16 +186,29 @@ void WaveformComponent::updateWaveformZoom(float deltaY, float anchorPoint)
     repaint();
 }
 
-void WaveformComponent::updateWaveformPosition(float deltaX, float)
+void WaveformComponent::updateWaveformPosition(float deltaX, bool lockZoomLevel)
 {
     auto const waveformWidth = mThumbnailBounds.getWidth();
     
     // TODO: Experiment with setting this multiplication factor based on zoom level?
-    
     auto const translation = -1.0f * deltaX * 10.0f / static_cast<float>(waveformWidth) * mVisibleRange.getLength();
+    auto const newRange = mVisibleRange + translation;
     
-    mVisibleRange += translation;
-    mVisibleRange = mVisibleRange.getIntersectionWith(mTotalRange);
+    if(lockZoomLevel)
+    {
+        // visible range is fixed, translation happens at fixed zoom level and is bound by start / end
+        auto const constrainedRange = juce::Range<float>{std::max(newRange.getStart(), mTotalRange.getStart()), std::min(newRange.getEnd(), mTotalRange.getEnd())};
+        if(std::abs(mVisibleRange.getLength() - constrainedRange.getLength()) < std::numeric_limits<float>::epsilon())
+        {
+            mVisibleRange = constrainedRange;
+        }
+    }
+    else
+    {
+        // reduce visible range possible when translating at the start / end
+        mVisibleRange = newRange;
+        mVisibleRange = mVisibleRange.getIntersectionWith(mTotalRange);
+    }
     
     repaint();
 }
