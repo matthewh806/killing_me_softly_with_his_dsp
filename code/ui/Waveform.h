@@ -19,6 +19,8 @@ namespace OUS
         juce::Range<float> const& getVisibleRange() const;
         juce::Range<float> const& getTotalRange() const;
         
+        void setZoomable(bool zoomable);
+        
         void setThumbnailSource(juce::AudioSampleBuffer* audioSource);
         void clear();
         
@@ -43,6 +45,7 @@ namespace OUS
 
     private:
         void updateWaveformZoom(float deltaY, float anchorPoint);
+        void updateWaveformPosition(float deltaX, float);
         
         juce::Rectangle<int> mThumbnailBounds;
         
@@ -55,6 +58,7 @@ namespace OUS
         juce::AudioThumbnailCache mThumbnailCache;
         juce::AudioThumbnail mThumbnail;
         
+        bool mZoomable = true;
         float mSampleRate = 44100.0;
         
         bool mIsMovingMouseWheel = false;

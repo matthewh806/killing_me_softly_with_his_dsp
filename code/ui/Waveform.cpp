@@ -33,6 +33,11 @@ juce::Range<float> const& WaveformComponent::getTotalRange() const
     return mTotalRange;
 }
 
+void WaveformComponent::setZoomable(bool zoomable)
+{
+    mZoomable = zoomable;
+}
+
 void WaveformComponent::resetZoom()
 {
     mVisibleRange = mTotalRange;
@@ -98,11 +103,19 @@ void WaveformComponent::mouseWheelMove(juce::MouseEvent const& event, juce::Mous
         return;
     }
     
-    // up:      zoom out
-    // down:    zoom in
-    // left:    scroll left
-    // right:   scroll right
+    if(!mZoomable)
+    {
+        return;
+    }
+    
+    // TODO: Experiment with a tolerance check to discriminate between events?
+    // That means ONLY zoom OR translation possible on each check
+    // Perhaps tracking of event start / end to keep the action consistent
+    // and prevent jumping between Zoom / Translations during one long scroll action
+    // Or what about allowing the user to decide? I.e. holding down a modifier key at the
+    // same time to perform the translation action
     updateWaveformZoom(wheel.deltaY, event.x);
+    updateWaveformPosition(wheel.deltaX, event.x);
 }
 
 bool WaveformComponent::isInterestedInFileDrag(const StringArray& files)
@@ -167,8 +180,22 @@ void WaveformComponent::updateWaveformZoom(float deltaY, float anchorPoint)
     mVisibleRange = juce::Range<float>(mZoomAnchor - (mZoomAnchor - mVisibleRange.getStart()) * zoomFactor, mZoomAnchor + (mVisibleRange.getEnd() - mZoomAnchor) * zoomFactor);
     
     // Constrain to total rannge
-    mVisibleRange = mVisibleRange.constrainRange(mTotalRange);
+    mVisibleRange = mVisibleRange.getIntersectionWith(mTotalRange);
     
 //    std::cout << "zoomFactor: " << zoomFactor << ", visRange: " << mVisibleRange.getStart() << ", " << mVisibleRange.getEnd() << "\n";
+    repaint();
+}
+
+void WaveformComponent::updateWaveformPosition(float deltaX, float)
+{
+    auto const waveformWidth = mThumbnailBounds.getWidth();
+    
+    // TODO: Experiment with setting this multiplication factor based on zoom level?
+    
+    auto const translation = -1.0f * deltaX * 10.0f / static_cast<float>(waveformWidth) * mVisibleRange.getLength();
+    
+    mVisibleRange += translation;
+    mVisibleRange = mVisibleRange.getIntersectionWith(mTotalRange);
+    
     repaint();
 }
