@@ -30,8 +30,6 @@ namespace OUS
         void resized() override;
         void paint(juce::Graphics& g) override;
         
-        // TODO: Add double click behaviour to restore to default zoom?
-        
         void mouseWheelMove(juce::MouseEvent const& event, juce::MouseWheelDetails const& wheel) override;
 
         // juce::FileDragAndDropTarget

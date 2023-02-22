@@ -81,6 +81,23 @@ void WaveformComponent::paint(juce::Graphics& g)
     {
         g.setColour(juce::Colours::orange);
         mThumbnail.drawChannels(g, mThumbnailBounds, mVisibleRange.getStart(), mVisibleRange.getEnd(), 1.0f);
+        
+        g.setColour(juce::Colours::white.withAlpha(0.4f));
+        
+        // This works best if the component is an odd size since we can properly center around 0 point then
+        auto const height = mThumbnailBounds.getHeight();
+        auto const numChannels = mThumbnail.getNumChannels();
+        
+        if(numChannels == 1)
+        {
+            g.drawHorizontalLine(mThumbnailBounds.getX() + static_cast<int>(height * 0.5f), mThumbnailBounds.getX(), mThumbnailBounds.getRight());
+        }
+        else if(numChannels == 2)
+        {
+            g.drawHorizontalLine(mThumbnailBounds.getX() + static_cast<int>(height * 0.25f), mThumbnailBounds.getX(), mThumbnailBounds.getRight());
+            g.drawHorizontalLine(mThumbnailBounds.getX() + static_cast<int>(height * 0.75f), mThumbnailBounds.getX(), mThumbnailBounds.getRight());
+        }
+        
     }
 
     if(!mThumbnail.isFullyLoaded())
