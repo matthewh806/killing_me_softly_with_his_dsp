@@ -23,6 +23,8 @@ namespace OUS
         //==============================================================================
         void paint(juce::Graphics&) override;
         void resized() override;
+        
+        void mouseUp(juce::MouseEvent const& event) override;
 
     private:
         void newFileDropped(juce::String& filePath);

@@ -29,6 +29,14 @@ void WaveformComponentTest::resized()
     mWaveform.setBounds(waveformBounds);
 }
 
+void WaveformComponentTest::mouseUp(juce::MouseEvent const& event)
+{
+    if(event.mods.isCommandDown())
+    {
+        mWaveform.resetZoom();
+    }
+}
+
 //==============================================================================
 void WaveformComponentTest::newFileDropped(juce::String& filePath)
 {
