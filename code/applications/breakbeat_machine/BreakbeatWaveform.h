@@ -82,6 +82,12 @@ namespace OUS
 
         juce::AudioThumbnail& getThumbnail();
         
+        // Returns the currently visible audio range in seconds
+        juce::Range<float> const& getVisibleRange() const;
+        
+        // Returns the total audio range in seconds
+        juce::Range<float> const& getTotalRange() const;
+        
         void setThumbnailSource(juce::AudioSampleBuffer* audioSource);
         
         void setSlicePositions(std::vector<SliceManager::Slice> const& slicePositions, size_t activeSliceIndex);

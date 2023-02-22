@@ -166,11 +166,10 @@ std::optional<int> SlicesOverlayComponent::getSliceUnderMousePosition(int x, int
     auto outSliceX = -1;
 
     auto const audioLength = mTransportSource.getLengthInSeconds();
+    auto const visibleRangeSamples = juce::Range<double>{mVisibleRange.getStart() * mSampleRate, mVisibleRange.getEnd() * mSampleRate};
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
-        auto const startRatio = static_cast<double>(mSlicePositions[i] / mSampleRate) / audioLength;
-        auto const sliceX = static_cast<int>(getWidth() * startRatio);
-
+        auto const sliceX = (mSlicePositions[i] - visibleRangeSamples.getStart()) / visibleRangeSamples.getLength() * getWidth();
         if(x > sliceX - 8 && x < sliceX + 8)
         {
             outSliceX = sliceX;
@@ -214,6 +213,16 @@ BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager&
 BreakbeatWaveformComponent::~BreakbeatWaveformComponent()
 {
     mWaveformComponent.getThumbnail().removeChangeListener(this);
+}
+
+juce::Range<float> const& BreakbeatWaveformComponent::getVisibleRange() const
+{
+    return mWaveformComponent.getVisibleRange();
+}
+
+juce::Range<float> const& BreakbeatWaveformComponent::getTotalRange() const
+{
+    return mWaveformComponent.getTotalRange();
 }
 
 void BreakbeatWaveformComponent::setThumbnailSource(juce::AudioSampleBuffer* audioSource)
