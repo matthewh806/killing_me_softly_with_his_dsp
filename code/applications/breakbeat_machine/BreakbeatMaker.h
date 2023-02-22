@@ -47,7 +47,7 @@ namespace OUS
         void lookAndFeelChanged() override;
 
         // juce::AudioAppComponent
-        void prepareToPlay(int, double) override;
+        void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
         void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override;
         void releaseResources() override;
 
@@ -139,6 +139,8 @@ namespace OUS
 
         juce::Uuid mActiveMouseMarker;
         float mPrevDragPos = 0.0f;
+        
+        double mSampleRate;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BreakbeatContentComponent)
     };

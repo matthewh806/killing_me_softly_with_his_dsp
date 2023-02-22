@@ -151,11 +151,12 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mWaveformComponent.onWaveformDoubleClicked = [this](int xPos)
     {
         // convert to slice position and set
-        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
         auto const waveformSize = mWaveformComponent.getWidth();
+        auto const visibleRange = mWaveformComponent.getVisibleRange();
+        auto const visibleRangeSamples = juce::Range<double>{visibleRange.getStart() * mSampleRate, visibleRange.getEnd() * mSampleRate};
 
         // convert to sample pos
-        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * bufferLength);
+        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * visibleRangeSamples.getLength() + visibleRangeSamples.getStart());
         mAudioSource.getSliceManager().addSlice(samplePosition);
 
         if(mAudioSource.getSliceManager().getSliceMethod() != SliceManager::Method::manual)
@@ -167,14 +168,16 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mWaveformComponent.onSliceMarkerRightClicked = [this](int xPos)
     {
         // convert to slice position and set
-        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
         auto const waveformSize = mWaveformComponent.getWidth();
+        auto const visibleRange = mWaveformComponent.getVisibleRange();
+        auto const visibleRangeSamples = juce::Range<double>{visibleRange.getStart() * mSampleRate, visibleRange.getEnd() * mSampleRate};
 
         // convert width of 16 pixels to samples
-        auto const sampleToleranceWidth = static_cast<int>(16 / static_cast<double>(waveformSize) * bufferLength);
+        // TODO: This tolerance should be based on zoom level!
+        auto const sampleToleranceWidth = static_cast<int>(16 / static_cast<double>(waveformSize) * visibleRangeSamples.getLength());
 
         // convert to sample pos
-        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * bufferLength);
+        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * visibleRangeSamples.getLength() + visibleRangeSamples.getStart());
         auto* slice = mAudioSource.getSliceManager().getSliceAtSamplePosition(samplePosition, sampleToleranceWidth);
         if(slice != nullptr)
         {
@@ -185,14 +188,15 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
     mWaveformComponent.onSliceMarkerMouseDown = [this](int xPos)
     {
         // convert to slice position and set
-        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
         auto const waveformSize = mWaveformComponent.getWidth();
+        auto const visibleRange = mWaveformComponent.getVisibleRange();
+        auto const visibleRangeSamples = juce::Range<double>{visibleRange.getStart() * mSampleRate, visibleRange.getEnd() * mSampleRate};
 
         // convert width of 16 pixels to samples
-        auto const sampleToleranceWidth = static_cast<int>(16 / static_cast<double>(waveformSize) * bufferLength);
+        auto const sampleToleranceWidth = static_cast<int>(16 / static_cast<double>(waveformSize) * visibleRangeSamples.getLength());
 
         // convert to sample pos
-        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * bufferLength);
+        auto const samplePosition = static_cast<size_t>(xPos / static_cast<double>(waveformSize) * visibleRangeSamples.getLength() + visibleRangeSamples.getStart());
         auto* slice = mAudioSource.getSliceManager().getSliceAtSamplePosition(samplePosition, sampleToleranceWidth);
         if(slice != nullptr)
         {
@@ -216,9 +220,10 @@ BreakbeatContentComponent::BreakbeatContentComponent(juce::AudioDeviceManager& a
 
         // convert to sample delta
         auto const delta_x = xPos - mPrevDragPos;
-        auto const bufferLength = mAudioSource.getSliceManager().getBufferNumSamples();
+        auto const visibleRange = mWaveformComponent.getVisibleRange();
+        auto const visibleRangeSamples = juce::Range<double>{visibleRange.getStart() * mSampleRate, visibleRange.getEnd() * mSampleRate};
         auto const waveformSize = mWaveformComponent.getWidth();
-        auto const sampleDelta = static_cast<int>(delta_x / static_cast<double>(waveformSize) * bufferLength);
+        auto const sampleDelta = static_cast<int>(delta_x / static_cast<double>(waveformSize) * visibleRangeSamples.getLength());
 
         // set
         mAudioSource.getSliceManager().moveSlice(std::get<0>(*slice), sampleDelta);
@@ -387,6 +392,8 @@ void BreakbeatContentComponent::lookAndFeelChanged()
 
 void BreakbeatContentComponent::prepareToPlay(int samplerPerBlockExpected, double sampleRate)
 {
+    mSampleRate = sampleRate;
+    
     mAudioSource.prepareToPlay(samplerPerBlockExpected, sampleRate);
     mTransportSource.prepareToPlay(samplerPerBlockExpected, sampleRate);
     mWaveformComponent.setSampleRate(static_cast<float>(sampleRate));
