@@ -25,7 +25,7 @@ void WaveformComponentTest::paint(juce::Graphics& g)
 
 void WaveformComponentTest::resized()
 {
-    auto waveformBounds = getLocalBounds().reduced(20, 20);
+    auto waveformBounds = getLocalBounds().reduced(20, 21);
     mWaveform.setBounds(waveformBounds);
 }
 
