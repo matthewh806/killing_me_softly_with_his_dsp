@@ -13,11 +13,6 @@ WaveformComponent::~WaveformComponent()
 {
 }
 
-juce::AudioThumbnail& WaveformComponent::getThumbnail()
-{
-    return mThumbnail;
-}
-
 juce::Rectangle<int> const& WaveformComponent::getThumbnailBounds() const
 {
     return mThumbnailBounds;

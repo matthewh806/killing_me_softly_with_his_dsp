@@ -74,13 +74,10 @@ namespace OUS
     : public juce::Component
     , public juce::FileDragAndDropTarget
     , private juce::AsyncUpdater
-    , private juce::ChangeListener
     {
     public:
         BreakbeatWaveformComponent(juce::AudioFormatManager& formatManager, juce::AudioTransportSource& transportSource, BreakbeatAudioSource& audioSource);
         ~BreakbeatWaveformComponent() override;
-
-        juce::AudioThumbnail& getThumbnail();
         
         // Returns the currently visible audio range in seconds
         juce::Range<float> const& getVisibleRange() const;
@@ -112,9 +109,6 @@ namespace OUS
 
         // juce::AsyncUpdater
         void handleAsyncUpdate() override;
-
-        // juce::ChangeListener
-        void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 
         std::function<void(int)> onWaveformDoubleClicked = nullptr;
         std::function<void(int)> onSliceMarkerRightClicked = nullptr;

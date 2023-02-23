@@ -191,8 +191,6 @@ BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager&
 , mSliceOverlayComponent(transportSource)
 , mPlayheadOverlayComponent(transportSource, audioSource)
 {
-    mWaveformComponent.getThumbnail().addChangeListener(this);
-
     addAndMakeVisible(mWaveformComponent);
     addAndMakeVisible(mSliceOverlayComponent);
     addAndMakeVisible(mPlayheadOverlayComponent);
@@ -212,7 +210,6 @@ BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager&
 
 BreakbeatWaveformComponent::~BreakbeatWaveformComponent()
 {
-    mWaveformComponent.getThumbnail().removeChangeListener(this);
 }
 
 juce::Range<float> const& BreakbeatWaveformComponent::getVisibleRange() const
@@ -230,11 +227,6 @@ void BreakbeatWaveformComponent::setThumbnailSource(juce::AudioSampleBuffer* aud
     mWaveformComponent.setThumbnailSource(audioSource);
     mSliceOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
     mPlayheadOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
-}
-
-juce::AudioThumbnail& BreakbeatWaveformComponent::getThumbnail()
-{
-    return mWaveformComponent.getThumbnail();
 }
 
 void BreakbeatWaveformComponent::setSlicePositions(std::vector<SliceManager::Slice> const& slicePositions, size_t activeSliceIndex)
@@ -348,14 +340,6 @@ void BreakbeatWaveformComponent::mouseWheelMove(juce::MouseEvent const& event, j
 void BreakbeatWaveformComponent::handleAsyncUpdate()
 {
     repaint();
-}
-
-void BreakbeatWaveformComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
-{
-    if(source == &mWaveformComponent.getThumbnail())
-    {
-        repaint();
-    }
 }
 
 // juce::FileDragAndDropTarget

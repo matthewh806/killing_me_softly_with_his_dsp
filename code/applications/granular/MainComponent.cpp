@@ -9,7 +9,7 @@ void GranularWaveform::paint(juce::Graphics& g)
     WaveformComponent::paint(g);
 
     // draw the grains
-    auto const lengthInSeconds = getThumbnail().getTotalLength();
+    auto const lengthInSeconds = getTotalRange().getLength();
     auto const lengthInSamples = static_cast<size_t>(std::floor(lengthInSeconds * 44100.0));
     auto const waveformBounds = getLocalBounds();
 

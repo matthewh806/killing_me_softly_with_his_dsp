@@ -13,7 +13,6 @@ namespace OUS
         WaveformComponent(juce::AudioFormatManager& formatManager);
         ~WaveformComponent() override;
 
-        juce::AudioThumbnail& getThumbnail();
         juce::Rectangle<int> const& getThumbnailBounds() const;
         
         juce::Range<float> const& getVisibleRange() const;
