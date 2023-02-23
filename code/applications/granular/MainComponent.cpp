@@ -220,6 +220,7 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
     };
 
     addAndMakeVisible(mWaveformComponent);
+    mWaveformComponent.setZoomable(false);
     mWaveformComponent.onNewFileDropped = [this](juce::String& path)
     {
         juce::String err;
