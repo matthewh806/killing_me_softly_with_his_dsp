@@ -3,6 +3,57 @@
 using namespace OUS;
 
 //==============================================================================
+
+void GranularWaveform::paint(juce::Graphics& g)
+{
+    WaveformComponent::paint(g);
+
+    // draw the grains
+    auto const lengthInSeconds = getThumbnail().getTotalLength();
+    auto const lengthInSamples = static_cast<size_t>(std::floor(lengthInSeconds * 44100.0));
+    auto const waveformBounds = getLocalBounds();
+
+    for(size_t i = 0; i < Scheduler::POOL_SIZE; ++i)
+    {
+        if(std::get<0>(mGrainInfo[i]) == false)
+        {
+            continue;
+        }
+
+        auto const samplePos = std::get<1>(mGrainInfo[i]);
+        // convert from sample pos to screen pos
+
+        auto const screenPos = static_cast<float>(samplePos) / lengthInSamples * static_cast<float>(waveformBounds.getWidth()) + static_cast<float>(waveformBounds.getX());
+        g.setColour(std::get<3>(mGrainInfo[i]));
+        g.drawEllipse(screenPos, std::get<2>(mGrainInfo[i]), 2, 2, 3);
+    }
+}
+
+void GranularWaveform::updateGrainInfo(std::array<Grain, Scheduler::POOL_SIZE> const& grains)
+{
+    auto& random = juce::Random::getSystemRandom();
+    for(size_t i = 0; i < Scheduler::POOL_SIZE; ++i)
+    {
+        if(std::get<0>(mGrainInfo[i]) != !grains[i].isGrainComplete())
+        {
+            auto const waveformHeight = getThumbnailBounds().getHeight();
+            auto const waveformY = getThumbnailBounds().getY();
+            std::get<2>(mGrainInfo[i]) = static_cast<float>(random.nextInt(waveformHeight)) + static_cast<float>(waveformY);
+
+            juce::Colour colour(random.nextInt(juce::Range<int>(100, 256)),
+                                random.nextInt(juce::Range<int>(50, 200)),
+                                200);
+            std::get<3>(mGrainInfo[i]) = colour;
+        }
+
+        std::get<0>(mGrainInfo[i]) = !grains[i].isGrainComplete();
+        std::get<1>(mGrainInfo[i]) = grains[i].getGrainPosition();
+    }
+
+    repaint();
+}
+
+//==============================================================================
 MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
 : juce::AudioAppComponent(activeDeviceManager)
 , juce::Thread("backgroundthread")
@@ -370,11 +421,7 @@ bool MainComponent::loadSample(juce::String const& filePath, juce::String& error
     mScheduler->setEnvelopeEssence(std::move(envEssence));
     mScheduler->setPositionRandomness(mGrainPositionRandomnessSlider.getValue());
 
-    mWaveformComponent.clear();
-
-    mWaveformComponent.getThumbnail().reset(numChannels, numSamples);
-    mWaveformComponent.getThumbnail().addBlock(0, *mCurrentBuffer->getAudioSampleBuffer(), 0, numSamples);
-    mWaveformComponent.repaint();
+    mWaveformComponent.setThumbnailSource(mCurrentBuffer->getAudioSampleBuffer());
 
     mScheduler->shouldSynthesise = true;
 

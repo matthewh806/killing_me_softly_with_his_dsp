@@ -20,54 +20,9 @@ namespace OUS
         // active, pos in sample, randomized y pixel pos, randomized colour
         using GrainInfo = std::array<std::tuple<bool, size_t, float, juce::Colour>, Scheduler::POOL_SIZE>;
 
-        void paint(juce::Graphics& g) override
-        {
-            WaveformComponent::paint(g);
+        void paint(juce::Graphics& g) override;
 
-            // draw the grains
-            auto const lengthInSeconds = getThumbnail().getTotalLength();
-            auto const lengthInSamples = static_cast<size_t>(std::floor(lengthInSeconds * 44100.0));
-            auto const waveformBounds = getLocalBounds();
-
-            for(size_t i = 0; i < Scheduler::POOL_SIZE; ++i)
-            {
-                if(std::get<0>(mGrainInfo[i]) == false)
-                {
-                    continue;
-                }
-
-                auto const samplePos = std::get<1>(mGrainInfo[i]);
-                // convert from sample pos to screen pos
-
-                auto const screenPos = static_cast<float>(samplePos) / lengthInSamples * static_cast<float>(waveformBounds.getWidth()) + static_cast<float>(waveformBounds.getX());
-                g.setColour(std::get<3>(mGrainInfo[i]));
-                g.drawEllipse(screenPos, std::get<2>(mGrainInfo[i]), 2, 2, 3);
-            }
-        }
-
-        void updateGrainInfo(std::array<Grain, Scheduler::POOL_SIZE> const& grains)
-        {
-            auto& random = juce::Random::getSystemRandom();
-            for(size_t i = 0; i < Scheduler::POOL_SIZE; ++i)
-            {
-                if(std::get<0>(mGrainInfo[i]) != !grains[i].isGrainComplete())
-                {
-                    auto const waveformHeight = getThumbnailBounds().getHeight();
-                    auto const waveformY = getThumbnailBounds().getY();
-                    std::get<2>(mGrainInfo[i]) = static_cast<float>(random.nextInt(waveformHeight)) + static_cast<float>(waveformY);
-
-                    juce::Colour colour(random.nextInt(juce::Range<int>(100, 256)),
-                                        random.nextInt(juce::Range<int>(50, 200)),
-                                        200);
-                    std::get<3>(mGrainInfo[i]) = colour;
-                }
-
-                std::get<0>(mGrainInfo[i]) = !grains[i].isGrainComplete();
-                std::get<1>(mGrainInfo[i]) = grains[i].getGrainPosition();
-            }
-
-            repaint();
-        }
+        void updateGrainInfo(std::array<Grain, Scheduler::POOL_SIZE> const& grains);
 
     private:
         GrainInfo mGrainInfo;
