@@ -2,11 +2,16 @@ v0.0.5
   Tagged on: ??
   - CODE
     - MattVerb: Fixed bypass parameter bug 
+    - Improved Waveform
+      - Implemented zoom functionality
+      - Implemented L / R panning across the signal
+      - Reset zoom to default with click + command
     - Improved BreakbeatMachine
       - Reimplemented slice export
       - Fixed a UI bug with active slice highlighting
       - Improved playhead to show reverse / retrigger effects
       - Allow user to specify location of recorded file 
+      - Waveform components (markers, playhead) respect zoom / panning
   - GENERAL
     - Compile aubio directly as part of the CMake build process
       (avoids the need for it to be preinstalled on users machine)
