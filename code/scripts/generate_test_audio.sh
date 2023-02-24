@@ -13,6 +13,7 @@ sox -r 44100 -b 16 -n "$TEST_AUDIO_PATH/44100Hz_1s_sine440.wav"     synth 1 sine
 sox -r 44100 -b 16 -n "$TEST_AUDIO_PATH/44100Hz_10s_sine_sweep.wav" synth 10 sine 100-2000 vol 0.9
 sox -r 44100 -b 16 -n "$TEST_AUDIO_PATH/44100Hz_5s_brown_noise.wav" synth 5 brownnoise vol 0.9
 sox -r 44100 -b 16 -n "$TEST_AUDIO_PATH/44100Hz_1s_triangle220.wav" synth 1 triangle 220 vol 0.9
+sox -r 44100 -b 16 -n "$TEST_AUDIO_PATH/44100Hz_1cycle_sine440.wav" synth 0.0023 sine 440 vol 0.9
 
 sox -r 22050 -b 16 -n "$TEST_AUDIO_PATH/22050Hz_1s_sine440.wav"     synth 1 sine 440 vol 0.9
 sox -r 8000 -b 16 -n  "$TEST_AUDIO_PATH/8000Hz_1s_sine440.wav"      synth 1 sine 440 vol 0.9
