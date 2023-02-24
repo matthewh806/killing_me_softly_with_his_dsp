@@ -2,6 +2,32 @@
 
 using namespace OUS;
 
+WaveformComposite::WaveformComposite(juce::AudioFormatManager& formatManager)
+: mWaveform(formatManager)
+{
+    addAndMakeVisible(mWaveform);
+    addAndMakeVisible(mSampleRuler);
+}
+
+
+void WaveformComposite::setThumbnailSource(juce::AudioSampleBuffer* audioSource)
+{
+    mWaveform.setThumbnailSource(audioSource);
+    
+    mSampleRuler.setSampleRate(44100.0);
+    mSampleRuler.setTotalRange(mWaveform.getTotalRange());
+    mSampleRuler.setVisibleRange(mWaveform.getVisibleRange());
+    
+    repaint();
+}
+
+void WaveformComposite::resized()
+{
+    auto bounds = getLocalBounds();
+    mSampleRuler.setBounds(bounds.removeFromBottom(20));
+    mWaveform.setBounds(bounds);
+}
+
 //==============================================================================
 WaveformComponentTest::WaveformComponentTest(juce::AudioDeviceManager& deviceManager)
 : juce::Thread("backgrounndthread")
@@ -9,9 +35,9 @@ WaveformComponentTest::WaveformComponentTest(juce::AudioDeviceManager& deviceMan
     juce::ignoreUnused(deviceManager);
     
     mAudioFormats.registerBasicFormats();
-    addAndMakeVisible(mWaveform);
+    addAndMakeVisible(mWaveformComposite);
     
-    mWaveform.onNewFileDropped = [this](juce::String& filePath) { newFileDropped(filePath); };
+    mWaveformComposite.mWaveform.onNewFileDropped = [this](juce::String& filePath) { newFileDropped(filePath); };
     
     setSize(600, 250);
 }
@@ -26,14 +52,14 @@ void WaveformComponentTest::paint(juce::Graphics& g)
 void WaveformComponentTest::resized()
 {
     auto waveformBounds = getLocalBounds().reduced(20, 21);
-    mWaveform.setBounds(waveformBounds);
+    mWaveformComposite.setBounds(waveformBounds);
 }
 
 void WaveformComponentTest::mouseUp(juce::MouseEvent const& event)
 {
     if(event.mods.isCommandDown())
     {
-        mWaveform.resetZoom();
+        mWaveformComposite.mWaveform.resetZoom();
     }
 }
 
@@ -56,7 +82,7 @@ void WaveformComponentTest::newFileDropped(juce::String& filePath)
         mCurrentBuffer = newBuffer;
     }
     
-    mWaveform.setThumbnailSource(mCurrentBuffer->getAudioSampleBuffer());
+    mWaveformComposite.setThumbnailSource(mCurrentBuffer->getAudioSampleBuffer());
 }
 
 void WaveformComponentTest::run()
