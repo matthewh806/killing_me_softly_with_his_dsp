@@ -7,16 +7,21 @@ WaveformComposite::WaveformComposite(juce::AudioFormatManager& formatManager)
 {
     addAndMakeVisible(mWaveform);
     addAndMakeVisible(mSampleRuler);
+    mWaveform.addChangeListener(this);
+    
+    mSampleRuler.setSampleRate(44100.0);
+}
+
+WaveformComposite::~WaveformComposite()
+{
+    mWaveform.removeChangeListener(this);
 }
 
 
 void WaveformComposite::setThumbnailSource(juce::AudioSampleBuffer* audioSource)
 {
     mWaveform.setThumbnailSource(audioSource);
-    
-    mSampleRuler.setSampleRate(44100.0);
     mSampleRuler.setTotalRange(mWaveform.getTotalRange());
-    mSampleRuler.setVisibleRange(mWaveform.getVisibleRange());
     
     repaint();
 }
@@ -26,6 +31,14 @@ void WaveformComposite::resized()
     auto bounds = getLocalBounds();
     mSampleRuler.setBounds(bounds.removeFromBottom(20));
     mWaveform.setBounds(bounds);
+}
+
+void WaveformComposite::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if(source == &mWaveform)
+    {
+        mSampleRuler.setVisibleRange(mWaveform.getVisibleRange());
+    }
 }
 
 //==============================================================================

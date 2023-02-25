@@ -14,6 +14,7 @@ namespace OUS
     // TODO: Rename and move to UI directory
     class WaveformComposite
     : public juce::Component
+    , private juce::ChangeListener
     {
     public:
         
@@ -22,12 +23,15 @@ namespace OUS
         Ruler mSampleRuler;
         
         WaveformComposite(juce::AudioFormatManager& formatManager);
-        ~WaveformComposite() override = default;
+        ~WaveformComposite() override;
         
         void setThumbnailSource(juce::AudioSampleBuffer* audioSource);
         
         //==============================================================================
         void resized() override;
+        
+        //==============================================================================
+        void changeListenerCallback(juce::ChangeBroadcaster* source) override;
         
     private:
         
