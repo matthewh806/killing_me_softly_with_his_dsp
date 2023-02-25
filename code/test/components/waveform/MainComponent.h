@@ -6,37 +6,10 @@
 
 #include "../../../core/ReferenceCountedBuffer.h"
 #include "../../../ui/CustomLookAndFeel.h"
-#include "../../../ui/Waveform.h"
-#include "../../../ui/Ruler.h"
+#include "../../../ui/WaveformAndRuler.h"
 
 namespace OUS
 {
-    // TODO: Rename and move to UI directory
-    class WaveformComposite
-    : public juce::Component
-    , private juce::ChangeListener
-    {
-    public:
-        
-        // make private, forwarding methods etc
-        WaveformComponent mWaveform;
-        Ruler mSampleRuler;
-        
-        WaveformComposite(juce::AudioFormatManager& formatManager);
-        ~WaveformComposite() override;
-        
-        void setThumbnailSource(juce::AudioSampleBuffer* audioSource);
-        
-        //==============================================================================
-        void resized() override;
-        
-        //==============================================================================
-        void changeListenerCallback(juce::ChangeBroadcaster* source) override;
-        
-    private:
-        
-    };
-
     //==============================================================================
     class WaveformComponentTest
     : public juce::Component
@@ -66,7 +39,7 @@ namespace OUS
         juce::ReferenceCountedArray<ReferenceCountedBuffer> mBuffers;
         ReferenceCountedBuffer::Ptr mCurrentBuffer;
         
-        WaveformComposite mWaveformComposite{mAudioFormats};
+        WaveformAndRuler mWaveformAndRuler{mAudioFormats};
         
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WaveformComponentTest)
