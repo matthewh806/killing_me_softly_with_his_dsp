@@ -192,6 +192,8 @@ BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager&
 , mPlayheadOverlayComponent(transportSource, audioSource)
 {
     addAndMakeVisible(mWaveformComponent);
+    mWaveformComponent.addWaveformChangeListener(this);
+    
     addAndMakeVisible(mSliceOverlayComponent);
     addAndMakeVisible(mPlayheadOverlayComponent);
 
@@ -210,6 +212,7 @@ BreakbeatWaveformComponent::BreakbeatWaveformComponent(juce::AudioFormatManager&
 
 BreakbeatWaveformComponent::~BreakbeatWaveformComponent()
 {
+    mWaveformComponent.removeWaveformChangeListener(this);
 }
 
 juce::Range<float> const& BreakbeatWaveformComponent::getVisibleRange() const
@@ -246,6 +249,7 @@ void BreakbeatWaveformComponent::clear()
 
 void BreakbeatWaveformComponent::setSampleRate(float sampleRate)
 {
+    mWaveformComponent.setSampleRate(sampleRate);
     mPlayheadOverlayComponent.setSampleRate(sampleRate);
     mSliceOverlayComponent.setSampleRate(sampleRate);
 }
@@ -331,15 +335,24 @@ void BreakbeatWaveformComponent::mouseWheelMove(juce::MouseEvent const& event, j
     
     // Pass directly onto waveform for zoom
     mWaveformComponent.mouseWheelMove(event, wheel);
-    mSliceOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
-    mPlayheadOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
-    
     repaint();
 }
 
 void BreakbeatWaveformComponent::handleAsyncUpdate()
 {
     repaint();
+}
+
+// juce::ChangeListener
+void BreakbeatWaveformComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if(source == &mWaveformComponent.getWaveform())
+    {
+        mSliceOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
+        mPlayheadOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
+        
+        repaint();
+    }
 }
 
 // juce::FileDragAndDropTarget
@@ -356,6 +369,4 @@ void BreakbeatWaveformComponent::filesDropped(const StringArray& files, int x, i
 void BreakbeatWaveformComponent::resetZoom()
 {
     mWaveformComponent.resetZoom();
-    mSliceOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
-    mPlayheadOverlayComponent.visibleRangeUpdated(mWaveformComponent.getVisibleRange());
 }
