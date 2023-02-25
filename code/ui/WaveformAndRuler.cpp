@@ -16,7 +16,6 @@ WaveformAndRuler::WaveformAndRuler(juce::AudioFormatManager& formatManager)
     };
     
     addAndMakeVisible(mSampleRuler);
-    mSampleRuler.setSampleRate(44100.0);
 }
 
 WaveformAndRuler::~WaveformAndRuler()
