@@ -36,6 +36,8 @@ void WaveformComponent::setZoomable(bool zoomable)
 void WaveformComponent::resetZoom()
 {
     mVisibleRange = mTotalRange;
+    
+    sendChangeMessage();
     repaint();
 }
 
@@ -49,6 +51,7 @@ void WaveformComponent::setThumbnailSource(juce::AudioSampleBuffer* audioSource)
     mVisibleRange = mTotalRange;
     mZoomAnchor = mVisibleRange.getLength() / 2.0f;
     
+    sendChangeMessage();
     repaint();
 }
 
@@ -181,7 +184,7 @@ void WaveformComponent::updateWaveformZoom(float deltaY, float anchorPoint)
         // Convert anchor point from pixels to time
         auto const waveformWidth = mThumbnailBounds.getWidth();
         mZoomAnchor = static_cast<float>(((anchorPoint - mThumbnailBounds.getX()) * mVisibleRange.getLength()) / waveformWidth) + mVisibleRange.getStart();
-        std::cout << "New Anchor Pos: " << mZoomAnchor << "\n";
+//        std::cout << "New Anchor Pos: " << mZoomAnchor << "\n";
     }
     
     mTotalWheelDisplacemet += deltaY;
@@ -195,6 +198,7 @@ void WaveformComponent::updateWaveformZoom(float deltaY, float anchorPoint)
     mVisibleRange = mVisibleRange.getIntersectionWith(mTotalRange);
     
 //    std::cout << "zoomFactor: " << zoomFactor << ", visRange: " << mVisibleRange.getStart() << ", " << mVisibleRange.getEnd() << "\n";
+    sendChangeMessage();
     repaint();
 }
 
@@ -222,5 +226,6 @@ void WaveformComponent::updateWaveformPosition(float deltaX, bool lockZoomLevel)
         mVisibleRange = mVisibleRange.getIntersectionWith(mTotalRange);
     }
     
+    sendChangeMessage();
     repaint();
 }

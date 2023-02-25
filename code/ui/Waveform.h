@@ -7,6 +7,7 @@ namespace OUS
     class WaveformComponent
     : public juce::Component
     , public juce::FileDragAndDropTarget
+    , public juce::ChangeBroadcaster
     , private juce::AsyncUpdater
     {
     public:
