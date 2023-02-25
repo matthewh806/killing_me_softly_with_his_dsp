@@ -4,7 +4,7 @@
 #include <JuceHeader.h>
 //clang-format on
 
-#include "../../ui/Waveform.h"
+#include "../../ui/WaveformAndRuler.h"
 #include "SliceManager.h"
 #include "BreakbeatAudioSource.h"
 
@@ -73,6 +73,7 @@ namespace OUS
     class BreakbeatWaveformComponent
     : public juce::Component
     , public juce::FileDragAndDropTarget
+    , public juce::ChangeListener
     , private juce::AsyncUpdater
     {
     public:
@@ -109,6 +110,9 @@ namespace OUS
 
         // juce::AsyncUpdater
         void handleAsyncUpdate() override;
+        
+        // juce::ChangeListener
+        void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 
         std::function<void(int)> onWaveformDoubleClicked = nullptr;
         std::function<void(int)> onSliceMarkerRightClicked = nullptr;
@@ -123,7 +127,7 @@ namespace OUS
         
         juce::AudioFormatManager& mAudioFormatManager;
 
-        WaveformComponent mWaveformComponent;
+        WaveformAndRuler mWaveformComponent;
         SlicesOverlayComponent mSliceOverlayComponent;
         PlayheadPositionOverlayComponent mPlayheadOverlayComponent;
 
