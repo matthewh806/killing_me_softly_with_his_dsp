@@ -15,17 +15,19 @@ void Ruler::setSampleRate(double sampleRate)
 void Ruler::setTotalRange(juce::Range<float> totalRange)
 {
     mTotalRange = totalRange;
+    repaint();
 }
 
 void Ruler::setVisibleRange(juce::Range<float> visibleRange)
 {
     mVisibleRange = visibleRange;
+    repaint();
 }
 
 void Ruler::paint(juce::Graphics& g)
 {
     
-    g.fillAll(juce::Colours::black);
+    g.fillAll(juce::Colours::black.withAlpha(0.4f));
     if(mVisibleRange.getLength() == 0)
     {
         return;
@@ -35,20 +37,27 @@ void Ruler::paint(juce::Graphics& g)
     auto const width = bounds.getWidth();
     auto const visibleRangeSamples = mVisibleRange.getLength() * mSampleRate;
     auto constexpr maxStringWidth = 60.0f;
-//    auto const maxTicks = width / maxStringWidth;
-    auto const minimalTickSpacing = std::ceil(visibleRangeSamples * maxStringWidth / width);
-    auto const labelWidth = minimalTickSpacing / visibleRangeSamples * width;
-    auto const numTicks = static_cast<int>(width / labelWidth);
-    auto const tickSpacingSamples = static_cast<int>(visibleRangeSamples / numTicks);
-    auto const tickSpacing = width / numTicks;
+    auto const minimumSampleSpacing = std::ceil(visibleRangeSamples * maxStringWidth / width);
+    auto roundedSampleSpacing = static_cast<int>(minimumSampleSpacing);
+    if(roundedSampleSpacing % 10)
+    {
+        // rounds to nearest division of 10
+        roundedSampleSpacing = roundedSampleSpacing + (10 - roundedSampleSpacing % 10);
+    }
+    
+    auto const sizeRatio = width / visibleRangeSamples;
+    auto const labelWidth = roundedSampleSpacing / visibleRangeSamples * width;
+    auto const numTicks = std::max(1, static_cast<int>(width / labelWidth));
+    auto const visibleSampleRangeStart = mVisibleRange.getStart() * mSampleRate;
+    auto const startSample = std::floor(visibleSampleRangeStart / roundedSampleSpacing) * roundedSampleSpacing;
     
     g.setColour(juce::Colours::white);
-    for(int i = 0; i < numTicks; ++i)
+    for(int i = 0; i <= numTicks; ++i)
     {
-        // get value
-        auto const pos = static_cast<double>(i) * tickSpacing;
-        auto const tickValue = i * tickSpacingSamples;
-        g.drawLine(pos, bounds.getY(), pos, bounds.getY() + 10.0f);
-        g.drawSingleLineText (juce::String(tickValue), pos, bounds.getBottom(), juce::Justification::left);
+        // get values
+        auto const currentValue = startSample + static_cast<double>(i) * roundedSampleSpacing;
+        auto const position = std::round((currentValue - visibleSampleRangeStart) * sizeRatio);
+        g.drawLine(static_cast<float>(position), bounds.getY(), static_cast<float>(position), bounds.getY() + 8.0f);
+        g.drawSingleLineText (juce::String(static_cast<int>(currentValue)), static_cast<int>(position), bounds.getBottom(), juce::Justification::left);
     }
 }
