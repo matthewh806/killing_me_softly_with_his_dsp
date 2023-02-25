@@ -49,6 +49,8 @@ set(UISources
     ${CMAKE_SOURCE_DIR}/ui/Waveform.cpp
     ${CMAKE_SOURCE_DIR}/ui/Ruler.h
     ${CMAKE_SOURCE_DIR}/ui/Ruler.cpp
+    ${CMAKE_SOURCE_DIR}/ui/WaveformAndRuler.h
+    ${CMAKE_SOURCE_DIR}/ui/WaveformAndRuler.cpp
 )
 source_group("Source/UISources" FILES ${UISources})
 
