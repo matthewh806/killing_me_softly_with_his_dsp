@@ -10,7 +10,7 @@ WaveformComponentTest::WaveformComponentTest(juce::AudioDeviceManager& deviceMan
     
     mAudioFormats.registerBasicFormats();
     addAndMakeVisible(mWaveformAndRuler);
-    
+    mWaveformAndRuler.setSampleRate(44100.0f);
     mWaveformAndRuler.onNewFileDropped = [this](juce::String& filePath) { newFileDropped(filePath); };
     
     setSize(600, 250);
