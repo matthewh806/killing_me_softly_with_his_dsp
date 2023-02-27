@@ -10,3 +10,6 @@
 [submodule "code/dependencies/libsamplerate"]
 	path = code/dependencies/libsamplerate
 	url = https://github.com/libsndfile/libsamplerate.git
+[submodule "code/dependencies/ARA_SDK"]
+	path = code/dependencies/ARA_SDK
+	url = https://github.com/Celemony/ARA_SDK.git
