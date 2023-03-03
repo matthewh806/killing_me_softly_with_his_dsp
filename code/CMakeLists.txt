@@ -23,6 +23,10 @@ add_subdirectory(dependencies/rubberband)
 add_subdirectory(dependencies/vst3sdk)
 add_subdirectory(dependencies/freeverb)
 
+# This was breaking the build on M1 architecture
+# Its not needed so prevent from ALL_BUILD target for now
+set_target_properties(VST3Inspector PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
 include(juce_shared_vst.cmake)
 include(aubio.cmake)
 
