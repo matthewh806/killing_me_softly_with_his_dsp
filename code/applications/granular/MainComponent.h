@@ -7,15 +7,16 @@
 #include "../../core/ReferenceCountedBuffer.h"
 #include "../../dsp/synthesis/granular/Scheduler.h"
 #include "../../ui/CustomLookAndFeel.h"
-#include "../../ui/Waveform.h"
+#include "../../ui/WaveformAndRuler.h"
 
 namespace OUS
 {
     class GranularWaveform
-    : public WaveformComponent
+    : public WaveformAndRuler
     {
     public:
-        using WaveformComponent::WaveformComponent;
+        
+        GranularWaveform(juce::AudioFormatManager& formatManager);
 
         // active, pos in sample, randomized y pixel pos, randomized colour
         using GrainInfo = std::array<std::tuple<bool, size_t, float, juce::Colour>, Scheduler::POOL_SIZE>;
