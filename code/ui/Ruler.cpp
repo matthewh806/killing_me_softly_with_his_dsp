@@ -36,14 +36,15 @@ void Ruler::paint(juce::Graphics& g)
     auto const bounds = getLocalBounds();
     auto const width = bounds.getWidth();
     auto const visibleRangeSamples = mVisibleRange.getLength() * mSampleRate;
-    auto constexpr maxStringWidth = 60.0f;
+    
+    auto const font = g.getCurrentFont();
+    auto const maxStringWidth = font.getStringWidthFloat(juce::String(mTotalRange.getEnd())) + 10.0f;
     auto const minimumSampleSpacing = std::ceil(visibleRangeSamples * maxStringWidth / width);
     auto roundedSampleSpacing = static_cast<int>(minimumSampleSpacing);
-    if(roundedSampleSpacing % 10)
-    {
-        // rounds to nearest division of 10
-        roundedSampleSpacing = roundedSampleSpacing + (10 - roundedSampleSpacing % 10);
-    }
+    
+    auto const tickPowerInterval = 2;
+    auto const power = std::ceil(std::log(roundedSampleSpacing)/std::log(tickPowerInterval));
+    roundedSampleSpacing = static_cast<int>(std::pow(tickPowerInterval, power));
     
     auto const sizeRatio = width / visibleRangeSamples;
     auto const labelWidth = roundedSampleSpacing / visibleRangeSamples * width;
