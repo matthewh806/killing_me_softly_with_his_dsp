@@ -48,6 +48,11 @@ juce::Range<float> const& WaveformAndRuler::getTotalRange() const
     return mWaveform.getTotalRange();
 }
 
+int const WaveformAndRuler::getRulerHeight() const
+{
+    return mSampleRuler.getHeight();
+}
+
 void WaveformAndRuler::setSampleRate(float sampleRate)
 {
     mSampleRuler.setSampleRate(sampleRate);
