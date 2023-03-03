@@ -32,7 +32,7 @@ void PlayheadPositionOverlayComponent::paint(juce::Graphics& g)
         return;
     }
     
-    auto const visibleRangeSamples = juce::Range<size_t>(mVisibleRange.getStart() * mSampleRate, mVisibleRange.getEnd() * mSampleRate);
+    auto const visibleRangeSamples = juce::Range<size_t>(static_cast<size_t>(mVisibleRange.getStart() * mSampleRate), static_cast<size_t>(mVisibleRange.getEnd() * mSampleRate));
     auto const playheadSamplePosition = static_cast<size_t>(mPlayheadPosition * mSampleRate);
     if(!visibleRangeSamples.contains(playheadSamplePosition))
     {
@@ -87,7 +87,7 @@ void SlicesOverlayComponent::paint(juce::Graphics& g)
     // paint all of the slices
     g.setColour(juce::Colours::black);
     
-    auto const visibleRangeSamples = juce::Range<size_t>(mVisibleRange.getStart() * mSampleRate, mVisibleRange.getEnd() * mSampleRate);
+    auto const visibleRangeSamples = juce::Range<size_t>(static_cast<size_t>(mVisibleRange.getStart() * mSampleRate), static_cast<size_t>(mVisibleRange.getEnd() * mSampleRate));
     auto const visibleRangeLengthSamples = visibleRangeSamples.getLength();
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
@@ -164,15 +164,13 @@ std::optional<int> SlicesOverlayComponent::getSliceUnderMousePosition(int x, int
 
     // check all slices to check if its in the triangle bounds
     auto outSliceX = -1;
-
-    auto const audioLength = mTransportSource.getLengthInSeconds();
     auto const visibleRangeSamples = juce::Range<double>{mVisibleRange.getStart() * mSampleRate, mVisibleRange.getEnd() * mSampleRate};
     for(size_t i = 0; i < mSlicePositions.size(); ++i)
     {
         auto const sliceX = (mSlicePositions[i] - visibleRangeSamples.getStart()) / visibleRangeSamples.getLength() * getWidth();
         if(x > sliceX - 8 && x < sliceX + 8)
         {
-            outSliceX = sliceX;
+            outSliceX = static_cast<int>(sliceX);
             break;
         }
     }
@@ -257,11 +255,17 @@ void BreakbeatWaveformComponent::setSampleRate(float sampleRate)
 void BreakbeatWaveformComponent::resized()
 {
     auto componentBounds = getLocalBounds();
-    mSliceOverlayComponent.setBounds(componentBounds);
-
+    
+    auto sliceOverlayBounds = componentBounds;
     // This reduction is done to give the slice markers some space at the top
     componentBounds.removeFromTop(18.0);
     mWaveformComponent.setBounds(componentBounds);
+    
+    auto const rulerHeight = mWaveformComponent.getRulerHeight();
+    sliceOverlayBounds.removeFromBottom(rulerHeight);
+    mSliceOverlayComponent.setBounds(sliceOverlayBounds);
+    
+    componentBounds.removeFromBottom(rulerHeight);
     mPlayheadOverlayComponent.setBounds(componentBounds);
 }
 
