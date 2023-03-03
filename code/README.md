@@ -16,18 +16,16 @@ Install with:
 brew install cmake
 ```
 
-Dependencies will vary between different targets within the subproject. [JUCE](https://juce.com/) is likely to be the foundation of each application so it is added as a submodule.
+Dependencies will vary between different targets within the subproject and are all built by cmake as part of this project
 
-[Rubberband](https://breakfastquay.com/rubberband/) is a dependency of the timestretch applications is similarly included as a dependency and
+- [aubio](https://aubio.org/) this is used for pitch & onset estimation
+- [JUCE](https://juce.com/) is likely to be the foundation of each application so it is added as a submodule.
+- [libsamplerate](http://www.mega-nerd.com/SRC/) sample rate converter used by Rubberband
+- [freeverb](https://github.com/sinshu/freeverb) very well tuned implementation of Schroeder reverb model (used by reverb plugins)
+- [vst3sdk](https://github.com/steinbergmedia/vst3sdk) steinbergs official VST3SDK (used by reverb plugins, which are not JUCE based)
+- [Rubberband](https://breakfastquay.com/rubberband/) is a dependency of the timestretch applications is similarly included as a dependency and
 compiled / linked as part of the cmake build system.
 
-There is one necessary prerequisite `libsamplerate` which is used by the Rubberband library and needs to be installed on the system:
-
-```
-brew install libsamplerate
-```
-
-before running the CMake build system
 
 #### MacOS
 ```
