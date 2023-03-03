@@ -28,8 +28,9 @@ namespace OUS
     private:
         double mSampleRate;
         
-        int mTickPowerInterval {2};
+        int mTickPowerInterval {10};
         int mTickDivisionFactor {2};
+        int mPrimaryTickInterval {2};
         
         juce::Range<float> mTotalRange;
         juce::Range<float> mVisibleRange;
