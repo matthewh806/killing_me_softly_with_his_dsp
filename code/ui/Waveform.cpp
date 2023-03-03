@@ -47,6 +47,7 @@ void WaveformComponent::setThumbnailSource(juce::AudioSampleBuffer* audioSource)
     clear();
     mThumbnail.setSource(audioSource, mSampleRate, 0);
     
+    mMinimumLength = 1.0f / mSampleRate;
     mTotalRange = juce::Range<float>(0.0f, static_cast<float>(mThumbnail.getTotalLength()));
     mVisibleRange = mTotalRange;
     mZoomAnchor = mVisibleRange.getLength() / 2.0f;
@@ -197,6 +198,9 @@ void WaveformComponent::updateWaveformZoom(float deltaY, float anchorPoint)
     // Constrain to total rannge
     mVisibleRange = mVisibleRange.getIntersectionWith(mTotalRange);
     
+    // ensure its bigger than the min length
+    mVisibleRange.setEnd(std::max(mVisibleRange.getEnd(), mVisibleRange.getStart() + mMinimumLength));
+    
 //    std::cout << "zoomFactor: " << zoomFactor << ", visRange: " << mVisibleRange.getStart() << ", " << mVisibleRange.getEnd() << "\n";
     sendChangeMessage();
     repaint();
@@ -225,6 +229,9 @@ void WaveformComponent::updateWaveformPosition(float deltaX, bool lockZoomLevel)
         mVisibleRange = newRange;
         mVisibleRange = mVisibleRange.getIntersectionWith(mTotalRange);
     }
+    
+    // Constrain min size
+    mVisibleRange.setEnd(std::max(mVisibleRange.getEnd(), mVisibleRange.getStart() + mMinimumLength));
     
     sendChangeMessage();
     repaint();

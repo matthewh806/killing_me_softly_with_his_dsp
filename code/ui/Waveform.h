@@ -51,6 +51,11 @@ namespace OUS
         // thumbnail draw method works in terms of seconds
         juce::Range<float> mTotalRange;
         juce::Range<float> mVisibleRange;
+        
+        // This specifies the minimum visible range
+        // used to constrain zoom
+        // Note should be expressed as 1 sample in seconds
+        float mMinimumLength = 1.0;
 
         juce::AudioFormatManager& mAudioFormatManager;
         juce::AudioThumbnailCache mThumbnailCache;
