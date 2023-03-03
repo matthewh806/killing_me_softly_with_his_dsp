@@ -10,7 +10,14 @@ namespace OUS
     : public juce::Component
     {
     public:
-        Ruler();
+        /*
+         Use the tickPowerInterval to set the spacing of the tick labels
+         in terms of a power series (e.g. 0, 512, 1024, 1536, 2048)
+         
+         The tick division factor will be used to further subdivide the
+         tick spacing if there is room after the power series is determined
+         */
+        Ruler(int tickPowerInteval = 2, int tickDivisionFactor = 2);
         ~Ruler() override = default;
         
         void setSampleRate(double sampleRate);
@@ -20,6 +27,9 @@ namespace OUS
         void paint(juce::Graphics& g) override;
     private:
         double mSampleRate;
+        
+        int mTickPowerInterval {2};
+        int mTickDivisionFactor {2};
         
         juce::Range<float> mTotalRange;
         juce::Range<float> mVisibleRange;
