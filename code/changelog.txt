@@ -6,6 +6,7 @@ v0.0.5
       - Implemented zoom functionality
       - Implemented L / R panning across the signal
       - Reset zoom to default with click + command
+    - Added sample ruler component
     - Improved BreakbeatMachine
       - Reimplemented slice export
       - Fixed a UI bug with active slice highlighting
