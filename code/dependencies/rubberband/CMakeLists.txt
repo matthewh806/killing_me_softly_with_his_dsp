@@ -58,10 +58,14 @@ endif()
 # libsamplerate / Speex
 if(USE_LIBSAMPLERATE)
   message(STATUS "Using resampling library: libsamplerate")
-  find_path(SAMPLERATE_INCLUDEDIR samplerate.h REQUIRED)
-  find_library(SAMPLERATE_LIBRARY samplerate samplerate-0 libsamplerate libsamplerate-0 REQUIRED)
-  target_include_directories(rubberband PRIVATE ${SAMPLERATE_INCLUDEDIR})
-  target_link_libraries(rubberband PUBLIC ${SAMPLERATE_LIBRARY})
+
+  set(LIBSAMPLE_RATE_HEADERS ${CMAKE_SOURCE_DIR}/dependencies/libsamplerate/include)
+  set(LIBSAMPLE_RATE_LIBRARY ${CMAKE_SOURCE_DIR}/build/dependencies/libsamplerate/src/${CMAKE_BUILD_TYPE}/libsamplerate.a)
+
+  message(STATUS "LIB SAMPLE RATE LIB: ${LIBSAMPLE_RATE_LIBRARY}")
+
+  target_include_directories(rubberband PRIVATE ${LIBSAMPLE_RATE_HEADERS})
+  target_link_libraries(rubberband PUBLIC samplerate)
   target_compile_definitions(rubberband PRIVATE HAVE_LIBSAMPLERATE)
 else()
   message(STATUS "Using resampling library: speex")
@@ -135,55 +139,3 @@ if(BUILD_EXECUTABLE)
   target_include_directories(rubberband-program PRIVATE src Threads::Threads)
   target_link_libraries(rubberband-program PRIVATE rubberband ${SNDFILE_LIBRARY})
 endif()
-
-#
-# Installation
-#
-install(
-  TARGETS rubberband
-  EXPORT rubberband-targets
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
-
-# Header files
-install(
-    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rubberband"
-    TYPE INCLUDE
-)
-
-# pkg-config file
-if(UNIX)
-    set(PREFIX "${CMAKE_INSTALL_PREFIX}")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/rubberband.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/rubberband.pc" @ONLY)
-    install(
-        FILES "${CMAKE_CURRENT_BINARY_DIR}/rubberband.pc"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
-    )
-endif()
-
-# CMake config
-include(CMakePackageConfigHelpers)
-set(RUBBERBAND_INSTALL_CMAKEDIR "lib/cmake/rubberband")
-install(
-  EXPORT rubberband-targets
-  FILE rubberband-targets.cmake
-  NAMESPACE rubberband::
-  DESTINATION "${RUBBERBAND_INSTALL_CMAKEDIR}"
-)
-configure_package_config_file(rubberband-config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/rubberband-config.cmake"
-  INSTALL_DESTINATION "${RUBBERBAND_INSTALL_CMAKEDIR}"
-)
-write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/rubberband-config-version.cmake"
-  VERSION "${CMAKE_PROJECT_VERSION}"
-  COMPATIBILITY SameMajorVersion
-)
-install(
-  FILES
-      "${CMAKE_CURRENT_BINARY_DIR}/rubberband-config.cmake"
-      "${CMAKE_CURRENT_BINARY_DIR}/rubberband-config-version.cmake"
-  DESTINATION "${RUBBERBAND_INSTALL_CMAKEDIR}"
-)
