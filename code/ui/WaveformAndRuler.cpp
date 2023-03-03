@@ -53,6 +53,11 @@ int const WaveformAndRuler::getRulerHeight() const
     return mSampleRuler.getHeight();
 }
 
+void WaveformAndRuler::setZoomable(bool zoomable)
+{
+    mWaveform.setZoomable(zoomable);
+}
+
 void WaveformAndRuler::setSampleRate(float sampleRate)
 {
     mSampleRuler.setSampleRate(sampleRate);

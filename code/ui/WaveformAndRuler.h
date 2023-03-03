@@ -29,6 +29,7 @@ namespace OUS
         
         int const getRulerHeight() const;
         
+        void setZoomable(bool zoomable);
         void setSampleRate(float sampleRate);
         
         void clear();
