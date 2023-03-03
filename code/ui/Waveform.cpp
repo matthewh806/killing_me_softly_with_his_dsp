@@ -211,7 +211,7 @@ void WaveformComponent::updateWaveformPosition(float deltaX, bool lockZoomLevel)
     auto const waveformWidth = mThumbnailBounds.getWidth();
     
     // TODO: Experiment with setting this multiplication factor based on zoom level?
-    auto const translation = -1.0f * deltaX * 10.0f / static_cast<float>(waveformWidth) * mVisibleRange.getLength();
+    auto const translation = -1.0f * deltaX * 100.0f / static_cast<float>(waveformWidth) * mVisibleRange.getLength();
     auto const newRange = mVisibleRange + translation;
     
     if(lockZoomLevel)
