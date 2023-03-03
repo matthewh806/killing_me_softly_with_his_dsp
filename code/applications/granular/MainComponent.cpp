@@ -4,9 +4,15 @@ using namespace OUS;
 
 //==============================================================================
 
+GranularWaveform::GranularWaveform(juce::AudioFormatManager& formatManager)
+: WaveformAndRuler(formatManager)
+{
+    setZoomable(false);
+}
+
 void GranularWaveform::paint(juce::Graphics& g)
 {
-    WaveformComponent::paint(g);
+    WaveformAndRuler::paint(g);
 
     // draw the grains
     auto const lengthInSeconds = getTotalRange().getLength();
@@ -36,8 +42,8 @@ void GranularWaveform::updateGrainInfo(std::array<Grain, Scheduler::POOL_SIZE> c
     {
         if(std::get<0>(mGrainInfo[i]) != !grains[i].isGrainComplete())
         {
-            auto const waveformHeight = getThumbnailBounds().getHeight();
-            auto const waveformY = getThumbnailBounds().getY();
+            auto const waveformHeight = getWaveform().getThumbnailBounds().getHeight();
+            auto const waveformY = getWaveform().getThumbnailBounds().getY();
             std::get<2>(mGrainInfo[i]) = static_cast<float>(random.nextInt(waveformHeight)) + static_cast<float>(waveformY);
 
             juce::Colour colour(random.nextInt(juce::Range<int>(100, 256)),
@@ -220,7 +226,6 @@ MainComponent::MainComponent(juce::AudioDeviceManager& activeDeviceManager)
     };
 
     addAndMakeVisible(mWaveformComponent);
-    mWaveformComponent.setZoomable(false);
     mWaveformComponent.onNewFileDropped = [this](juce::String& path)
     {
         juce::String err;
@@ -294,6 +299,7 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 {
     mBlockSize = samplesPerBlockExpected;
     mSampleRate = static_cast<int>(sampleRate);
+    mWaveformComponent.setSampleRate(static_cast<float>(sampleRate));
 
     if(mScheduler != nullptr)
     {
