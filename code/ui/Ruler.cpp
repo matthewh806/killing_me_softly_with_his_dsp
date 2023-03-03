@@ -2,7 +2,9 @@
 
 using namespace OUS;
 
-Ruler::Ruler()
+Ruler::Ruler(int tickPowerInteval, int tickDivisionFactor)
+: mTickPowerInterval(tickPowerInteval)
+, mTickDivisionFactor(tickDivisionFactor)
 {
     
 }
@@ -36,17 +38,25 @@ void Ruler::paint(juce::Graphics& g)
     auto const bounds = getLocalBounds();
     auto const width = bounds.getWidth();
     auto const visibleRangeSamples = mVisibleRange.getLength() * mSampleRate;
+    auto const sizeRatio = width / visibleRangeSamples;
     
     auto const font = g.getCurrentFont();
-    auto const maxStringWidth = font.getStringWidthFloat(juce::String(mTotalRange.getEnd())) + 10.0f;
+    auto const maxStringWidth = font.getStringWidthFloat(juce::String(static_cast<int>(mVisibleRange.getEnd() * mSampleRate))) + 8.0f;
     auto const minimumSampleSpacing = std::ceil(visibleRangeSamples * maxStringWidth / width);
-    auto roundedSampleSpacing = static_cast<int>(minimumSampleSpacing);
+    auto roundedSampleSpacingNonDivided = static_cast<int>(minimumSampleSpacing);
     
-    auto const tickPowerInterval = 2;
-    auto const power = std::ceil(std::log(roundedSampleSpacing)/std::log(tickPowerInterval));
-    roundedSampleSpacing = static_cast<int>(std::pow(tickPowerInterval, power));
+    auto const power = std::ceil(std::log(roundedSampleSpacingNonDivided)/std::log(mTickPowerInterval));
+    roundedSampleSpacingNonDivided = static_cast<int>(std::pow(mTickPowerInterval, power));
     
-    auto const sizeRatio = width / visibleRangeSamples;
+    auto roundedSampleSpacing = roundedSampleSpacingNonDivided;
+    if(mTickDivisionFactor > 1)
+    {
+        while(roundedSampleSpacing / mTickDivisionFactor *  sizeRatio > maxStringWidth)
+        {
+            roundedSampleSpacing /= mTickDivisionFactor;
+        }
+    }
+    
     auto const labelWidth = roundedSampleSpacing / visibleRangeSamples * width;
     auto const numTicks = std::max(1, static_cast<int>(width / labelWidth));
     auto const visibleSampleRangeStart = mVisibleRange.getStart() * mSampleRate;
