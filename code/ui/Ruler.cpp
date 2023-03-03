@@ -62,13 +62,27 @@ void Ruler::paint(juce::Graphics& g)
     auto const visibleSampleRangeStart = mVisibleRange.getStart() * mSampleRate;
     auto const startSample = std::floor(visibleSampleRangeStart / roundedSampleSpacing) * roundedSampleSpacing;
     
+    auto const primaryTickSpacing = roundedSampleSpacing <= 1 ? roundedSampleSpacing : roundedSampleSpacing * static_cast<float>(mPrimaryTickInterval);
+    auto const primaryTickLength = bounds.getHeight() * 0.45f;
+    auto const secondaryTickLength = bounds.getHeight() * 0.25f;
+    auto const primaryTickEpsilon = visibleRangeSamples / std::max(static_cast<double>(width), 1.0);
+    
     g.setColour(juce::Colours::white);
     for(int i = 0; i <= numTicks; ++i)
     {
         // get values
         auto const currentValue = startSample + static_cast<double>(i) * roundedSampleSpacing;
         auto const position = std::round((currentValue - visibleSampleRangeStart) * sizeRatio);
-        g.drawLine(static_cast<float>(position), bounds.getY(), static_cast<float>(position), bounds.getY() + 8.0f);
-        g.drawSingleLineText (juce::String(static_cast<int>(currentValue)), static_cast<int>(position), bounds.getBottom(), juce::Justification::left);
+        
+        auto const isPrimaryTick = std::abs(std::remainder(currentValue, primaryTickSpacing)) < primaryTickEpsilon;
+        auto const tickLength = isPrimaryTick ? primaryTickLength : secondaryTickLength;
+        
+        g.drawLine(static_cast<float>(position), bounds.getY(), static_cast<float>(position), tickLength);
+        
+        if(isPrimaryTick)
+        {
+            auto const textPos = i == 0 ? static_cast<int>(position) : static_cast<int>(position)-4;
+            g.drawSingleLineText (juce::String(static_cast<int>(currentValue)), textPos, bounds.getBottom(), juce::Justification::left);
+        }
     }
 }
