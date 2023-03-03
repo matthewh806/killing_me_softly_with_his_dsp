@@ -13,6 +13,11 @@ set(BUILD_TEST_COMPONENTS ON)
 project(KILLING_ME_SOFTLY_WITH_HIS_DSP VERSION 0.0.4)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt ${CMAKE_PROJECT_VERSION})
 
+# libsampleratedefines
+set(BUILD_TESTING OFF)
+set(LIBSAMPLERATE_EXAMPLES OFF)
+
+add_subdirectory(dependencies/libsamplerate)
 add_subdirectory(dependencies/JUCE)
 add_subdirectory(dependencies/rubberband)
 add_subdirectory(dependencies/vst3sdk)
