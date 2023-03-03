@@ -27,6 +27,8 @@ namespace OUS
         juce::Range<float> const& getVisibleRange() const;
         juce::Range<float> const& getTotalRange() const;
         
+        int const getRulerHeight() const;
+        
         void setSampleRate(float sampleRate);
         
         void clear();
