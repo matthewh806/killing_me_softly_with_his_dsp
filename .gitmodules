@@ -7,3 +7,6 @@
 [submodule "code/dependencies/aubio"]
 	path = code/dependencies/aubio
 	url = https://github.com/aubio/aubio.git
+[submodule "code/dependencies/libsamplerate"]
+	path = code/dependencies/libsamplerate
+	url = https://github.com/libsndfile/libsamplerate.git
