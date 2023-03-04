@@ -23,21 +23,10 @@ target_sources(FFTGUI PRIVATE
 )
 
 target_compile_definitions(FFTGUI PRIVATE
-    # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
-    JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_gui_app` call
-    JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_gui_app` call
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:FFTGUI,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:FFTGUI,JUCE_VERSION>")
 
-target_link_libraries(FFTGUI
-PRIVATE
-    juce::juce_audio_utils
-    juce::juce_gui_extra
-    juce::juce_dsp
-PUBLIC
-    juce::juce_recommended_config_flags
-    juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags)
+target_link_libraries(FFTGUI PRIVATE Shared_VST_Target)
 
 juce_add_console_app(FFTCLI
     PRODUCT_NAME "FFT CLI Project"
@@ -56,17 +45,7 @@ target_sources(FFTCLI PRIVATE
 )
 
 target_compile_definitions(FFTCLI PRIVATE
-    # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
-    JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_gui_app` call
-    JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_gui_app` call
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:FFTCLI,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:FFTCLI,JUCE_VERSION>")
 
-target_link_libraries(FFTCLI
-PRIVATE
-    juce::juce_audio_utils
-    juce::juce_dsp
-PUBLIC
-    juce::juce_recommended_config_flags
-    juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags)
+target_link_libraries(FFTCLI PRIVATE Shared_VST_Target)

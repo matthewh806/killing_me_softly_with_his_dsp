@@ -1,7 +1,7 @@
 juce_add_plugin(PitchDetection
     PRODUCT_NAME "Pitch Detection"
     MICROPHONE_PERMISSION_ENABLED   TRUE
-    FORMATS Standalone VST3)
+    FORMATS VST3)
 
 juce_generate_juce_header(PitchDetection)
 
@@ -20,6 +20,7 @@ target_sources(PitchDetection PRIVATE
 )
 
 target_compile_definitions(PitchDetection PRIVATE
+    JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:PitchDetection,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:PitchDetection,JUCE_VERSION>")
 

@@ -1,7 +1,7 @@
 juce_add_plugin(AudioDecay
     PRODUCT_NAME "Smash My Bits Up"
     MICROPHONE_PERMISSION_ENABLED   TRUE
-    FORMATS Standalone VST3)
+    FORMATS VST3)
 
 juce_generate_juce_header(AudioDecay)
 
@@ -17,6 +17,7 @@ target_sources(AudioDecay PRIVATE
 )
 
 target_compile_definitions(AudioDecay PRIVATE
+    JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:AudioDecay,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:AudioDecay,JUCE_VERSION>")
 

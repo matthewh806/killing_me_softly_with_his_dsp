@@ -1,7 +1,7 @@
 juce_add_plugin(SimpleDelay
     PRODUCT_NAME "Simple Delay"
     MICROPHONE_PERMISSION_ENABLED   TRUE
-    FORMATS Standalone VST3)
+    FORMATS VST3)
 
 juce_generate_juce_header(SimpleDelay)
 
@@ -17,6 +17,7 @@ target_sources(SimpleDelay PRIVATE
 )
 
 target_compile_definitions(SimpleDelay PRIVATE
+    JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:SimpleDelay,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:SimpleDelay,JUCE_VERSION>")
 

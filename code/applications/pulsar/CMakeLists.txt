@@ -4,7 +4,7 @@ juce_add_plugin(Pulsar
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT TRUE
     IS_MIDI_EFFECT TRUE
-    FORMATS Standalone VST3)
+    FORMATS VST3)
 
 juce_generate_juce_header(Pulsar)
 
@@ -32,10 +32,11 @@ target_sources(Pulsar PRIVATE
 )
 
 target_compile_definitions(Pulsar PRIVATE
+    JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_APPLICATION_NAME_STRING="$<TARGET_PROPERTY:Pulsar,JUCE_PRODUCT_NAME>"
     JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:Pulsar,JUCE_VERSION>")
 
 target_link_libraries(Pulsar
-PRIVATE
+PUBLIC
     Shared_VST_Target
     juce::juce_box2d)
