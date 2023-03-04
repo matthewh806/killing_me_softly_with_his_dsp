@@ -60,12 +60,10 @@ if(USE_LIBSAMPLERATE)
   message(STATUS "Using resampling library: libsamplerate")
 
   set(LIBSAMPLE_RATE_HEADERS ${CMAKE_SOURCE_DIR}/dependencies/libsamplerate/include)
-  set(LIBSAMPLE_RATE_LIBRARY ${CMAKE_SOURCE_DIR}/build/dependencies/libsamplerate/src/${CMAKE_BUILD_TYPE}/libsamplerate.a)
-
-  message(STATUS "LIB SAMPLE RATE LIB: ${LIBSAMPLE_RATE_LIBRARY}")
+  message(STATUS "LIB SAMPLE RATE LIB: ${samplerate}")
 
   target_include_directories(rubberband PRIVATE ${LIBSAMPLE_RATE_HEADERS})
-  target_link_libraries(rubberband PUBLIC samplerate)
+  target_link_libraries(rubberband PUBLIC ${samplerate})
   target_compile_definitions(rubberband PRIVATE HAVE_LIBSAMPLERATE)
 else()
   message(STATUS "Using resampling library: speex")

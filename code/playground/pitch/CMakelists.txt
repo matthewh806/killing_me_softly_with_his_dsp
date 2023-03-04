@@ -26,5 +26,5 @@ target_compile_definitions(PitchDetection PRIVATE
 
 target_link_libraries(PitchDetection 
     PRIVATE 
-    aubio
+    ${aubio}
     Shared_VST_Target)

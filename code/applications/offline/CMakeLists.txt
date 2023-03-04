@@ -1,5 +1,3 @@
-find_library(RUBBERBAND NAMES rubberband)
-
 juce_add_gui_app(StretchArmstrong
     PRODUCT_NAME "Stretch Armstrong")
 
@@ -25,4 +23,5 @@ target_link_libraries(StretchArmstrong
     PRIVATE
         Shared_VST_Target
     PUBLIC
-        rubberband)
+        ${samplerate}
+        ${rubberband})

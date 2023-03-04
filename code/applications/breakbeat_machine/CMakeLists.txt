@@ -32,12 +32,12 @@ target_compile_definitions(BreakbeatMachine
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:BreakbeatMachine,JUCE_VERSION>")
 
 target_include_directories(BreakbeatMachine PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/rubberband/rubberband)
-target_include_directories(BreakbeatMachine PRIVATE /usr/local/include/aubio)
-target_include_directories(BreakbeatMachine PRIVATE /usr/include/aubio)
+target_include_directories(BreakbeatMachine PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/aubio/src)
 
 target_link_libraries(BreakbeatMachine
     PRIVATE
         Shared_VST_Target
     PUBLIC
-        rubberband
-        aubio)
+        ${samplerate}
+        ${rubberband}
+        ${aubio})

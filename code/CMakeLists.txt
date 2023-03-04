@@ -19,23 +19,30 @@ set(LIBSAMPLERATE_EXAMPLES OFF)
 
 add_subdirectory(dependencies/libsamplerate)
 add_subdirectory(dependencies/JUCE)
-add_subdirectory(dependencies/rubberband)
 add_subdirectory(dependencies/vst3sdk)
 add_subdirectory(dependencies/freeverb)
-
-# This was breaking the build on M1 architecture
-# Its not needed so prevent from ALL_BUILD target for now
-set_target_properties(VST3Inspector PROPERTIES EXCLUDE_FROM_ALL TRUE)
+add_subdirectory(dependencies/rubberband)
 
 include(juce_shared_vst.cmake)
 include(aubio.cmake)
 
+# This was breaking the build on M1 architecture
+# Its not needed so prevent from ALL_BUILD target for now
+set_target_properties(VST3Inspector PROPERTIES EXCLUDE_FROM_ALL TRUE)
+set_target_properties(freeverb PROPERTIES EXCLUDE_FROM_ALL TRUE)
+set_target_properties(aubio PROPERTIES EXCLUDE_FROM_ALL TRUE)
+set_target_properties(samplerate PROPERTIES EXCLUDE_FROM_ALL TRUE)
+set_target_properties(rubberband PROPERTIES EXCLUDE_FROM_ALL TRUE)
+set_target_properties(DopplerTest PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
+set(PRECOMPILED_LIBS_PATH ${CMAKE_SOURCE_DIR}/dependencies/precompiled_libs/Debug)
+find_library(freeverb freeverb REQUIRED NO_CMAKE_SYSTEM_PATH PATHS ${PRECOMPILED_LIBS_PATH})
+find_library(aubio aubio REQUIRED NO_CMAKE_SYSTEM_PATH PATHS ${PRECOMPILED_LIBS_PATH})
+find_library(samplerate samplerate REQUIRED NO_CMAKE_SYSTEM_PATH PATHS ${PRECOMPILED_LIBS_PATH})
+find_library(rubberband rubberband REQUIRED NO_CMAKE_SYSTEM_PATH PATHS ${PRECOMPILED_LIBS_PATH})
+
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "TheOfficeOfUnspecifiedServices")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "http://theofficeofunspecifiedservices.com")
-
-if(UNIX AND NOT APPLE)
-    set_property(TARGET rubberband PROPERTY CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-endif()
 
 set(CoreSources
     ${CMAKE_SOURCE_DIR}/core/Allocators.h
