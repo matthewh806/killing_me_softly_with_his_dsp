@@ -23,7 +23,7 @@
 	</template>
 	<custom>
 		<attributes name="FocusDrawing"/>
-		<attributes Path="/Users/harris/music_software/freeverb/examples/MattVerb/resource/editor.uidesc" name="VST3Editor"/>
+		<attributes Path="editor.uidesc" name="VST3Editor"/>
 		<attributes Grids="1x 1,5x 5,10x 10,12x 12,15x 15" name="UIGridController"/>
 		<attributes SelectedTemplate="view" name="UITemplateController"/>
 		<attributes EditViewScale="1" EditorSize="0, 0, 1113, 693" SplitViewSize_0_0="0.805097451274362829742869962501572445035" SplitViewSize_0_1="0.1649175412293853171252777656263788230717" SplitViewSize_1_0="0.4872563718140929811539763250038959085941" SplitViewSize_1_1="0.5052473763118441318908935500076040625572" SplitViewSize_2_0="0.6837376460017969836968632080242969095707" SplitViewSize_2_1="0.3117699910152740283564298806595616042614" TabSwitchValue="0" Version="1" name="UIEditController"/>
@@ -35,11 +35,10 @@
 		<attributes SelectedRow="0" name="UIFontsDataSource"/>
 	</custom>
 	<bitmaps>
-		<bitmap name="slider_handle" path="/Users/harris/music_software/freeverb/examples/MattVerb/gfx/slider_handle.png"/>
-		<bitmap name="vst_background" path="/Users/harris/music_software/freeverb/examples/MattVerb/gfx/vst_background.png"/>
-		<bitmap name="vst_background old" path="vst_background.png"/>
-		<bitmap name="vst_button_disabled" path="/Users/harris/music_software/freeverb/examples/MattVerb/gfx/vst_button_disabled.png"/>
-		<bitmap name="vst_button_enabled" path="/Users/harris/music_software/freeverb/examples/MattVerb/gfx/vst_button_enabled.png"/>
+		<bitmap name="slider_handle" path="slider_handle.png"/>
+		<bitmap name="vst_background" path="vst_background.png"/>
+		<bitmap name="vst_button_disabled" path="vst_button_disabled.png"/>
+		<bitmap name="vst_button_enabled" path="vst_button_enabled.png"/>
 	</bitmaps>
 	<control-tags>
 		<control-tag name="Bypass" tag="100"/>

@@ -31,8 +31,15 @@ if(SMTG_ADD_VSTGUI)
         PRIVATE
             vstgui_support
     )
-    smtg_add_vst3_resource(MattVerb "resource/editor.uidesc")
-    smtg_add_vst3_resource(MattVerb "resource/vst_background.png")
+
+    smtg_target_add_plugin_resources(MattVerb
+        RESOURCES
+            resource/editor.uidesc
+            resource/vst_background.png
+            resource/slider_handle.png
+            resource/vst_button_disabled.png
+            resource/vst_button_enabled.png
+    )
 endif()
 # -------------------
 
