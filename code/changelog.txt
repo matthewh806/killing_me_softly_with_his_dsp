@@ -2,6 +2,7 @@ v0.0.5
   Tagged on: ??
   - CODE
     - MattVerb: Fixed bypass parameter bug 
+    - Pulsar: Fixed bus arrangement bug in Ableton (prevented VST3 from working)
     - Improved Waveform
       - Implemented zoom functionality
       - Implemented L / R panning across the signal
