@@ -80,7 +80,7 @@ namespace OUS
         static BusesProperties getBusesLayout()
         {
             // Live doesn't like to load midi-only plugins, so we add an audio output there.
-            return PluginHostType().isAbletonLive() ? BusesProperties().withOutput("out", AudioChannelSet::stereo())
+            return PluginHostType().isAbletonLive() ? BusesProperties().withInput("input", AudioChannelSet::stereo()).withOutput("out", AudioChannelSet::stereo())
                                                     : BusesProperties();
         }
 
