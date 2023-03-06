@@ -99,6 +99,44 @@ def autocorrelation(x, tapered=True):
 
     return r
 
+def peak_detection(x, threshold=0.1):
+    '''
+    Finds the peaks in an array above a given threshold value 
+
+    Note: its best to normalise the peak amplitudes to be
+          between [-1,1]
+
+    inputs:
+        x: the input signal array to determine the peaks of
+        threshold: The minimum value to be considered a peak.
+
+    computes:
+        Finds local maxima by searching for points of inflection
+        (where the signs either side of x[i] are different)
+
+        For the first sample x[-1] is out of range so we assume
+        x[0] is bigger
+        For the final sample x[+1] is out of range so we 
+        assume x[len(x)-1] is bigger
+
+    outputs:
+        Two equally sized 1D numpy arrays containing
+        peak positions & peak amplitudes
+    '''
+
+    positions = np.array([]) 
+    peaks = np.array([])
+    signal_len = len(x)
+
+    for i in range(signal_len):
+        bigger_than_prev = x[i-1] < x[i] if i > 0 else True
+        bigger_than_next = x[i+1] < x[i] if i < signal_len-1 else True
+
+        if bigger_than_prev and bigger_than_next and x[i] >= threshold:
+            positions = np.append(positions, i)
+            peaks = np.append(peaks, x[i])
+
+    return positions, peaks
 
 INT16_FAC = (2**15)-1
 INT32_FAC = (2**31)-1
