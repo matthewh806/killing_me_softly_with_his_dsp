@@ -66,6 +66,40 @@ def generateRandomSignal():
 def generateRampEnvelope(minimum_amplitude = 0.0, maximum_amplitude = 1.0, signal_length = 1.0, sample_rate = 44100.0):
     return np.linspace(minimum_amplitude, maximum_amplitude, int(1 / signal_length * sample_rate))
 
+def autocorrelation(x, tapered=True):
+    '''
+    inputs:
+        x: 1 dimensional np array
+        tapered: Determines if the returned result is biased (towards earlier)
+                 peaks or not
+
+    Computes:
+        r(k) = sum_n (x(n) * x(n-k))
+
+        where r is the autocorrelation of the signal x with the k parameter provided
+        The function is maximused when k = 0 
+        Symmetric about k
+
+        The lag time (k) will be based on the length of the signal len(x)
+
+    returns:
+        1 dimensional autocorrelation function array r(k) of length k
+
+    '''
+    
+    signal_length = len(x)
+    r = np.zeros(signal_length)
+
+    for k in range(signal_length):
+        r_k = 0.0
+        for n in range(k, signal_length):
+            r_k += x[n] * x[n-k]
+
+        r[k] = r_k if tapered else r_k / (signal_length-k)
+
+    return r
+
+
 INT16_FAC = (2**15)-1
 INT32_FAC = (2**31)-1
 INT64_FAC = (2**63)-1
