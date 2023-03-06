@@ -1,27 +1,12 @@
-# General code TODO's
-
-- [x] **FIX THE WARNINGS YOU LAZY BASTARD**
-
-- [ ] Once thats done (lol never) implement a proper solution in cmake for defining what warnings want to see
-
-- [x] Rubber band is a requirement for successful compilation - currently it requires that rubberband is found on the users machine in standard paths, which is totally pointless as I'm including it directly as a depdendency. -> so figure out how to compile this and provide it as a library in cmake
-
-- [ ] Refactor Breakbeat maker
-
-- [ ] Fix stretch projects
-  - [x] Offline
-  - [ ] Real Time (can it be done?)
-
-- [ ] Don't start new things before you've finished another...
-
-- [ ] Customise look and feel further.
-
-- [x] AudioDeviceManager should save settings somewhere (globally or per app?) because its very tedious to have to set them each time.
-
-## Ideas for applications
+## Ideas
 
 ### Distortion
 Because why not?
+
+### Buffer overrun sampler
+
+In this video the guy discusses buffer over / underruns related to circular buffers: https://youtu.be/uX-FVtQT0PQ
+Could be interesting to sample sounds this way? For glitchy synths
 
 ### "Playground"
 Some kind of modular playground. As I'm creating all effects as `juce::AudioProcessor` subclasses these can easily be packaged into standalone applications, vsts etc
@@ -39,14 +24,3 @@ It would be nice to also provide meters, scopes, spectral representations all im
 For future reference:
 - https://docs.juce.com/master/classAudioProcessorGraph.html I think this class can really tie the room together
 - https://docs.juce.com/master/tutorial_audio_processor_graph.html juce already has a tutorial for creating this kind of application
-
-## CI
-This is about as basic as can be for now...
-
-- [ ] Add a windows target
-- [ ] Add a debian target
-- [ ] Add tests (hmm...)
-- [ ] Deployment script (or just upload binaries to some place)
-  - [ ] macos - dmg? zip?
-  - [ ] linux - zip? tar?
-  - [ ] windows
