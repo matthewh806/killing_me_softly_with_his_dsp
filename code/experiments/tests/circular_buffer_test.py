@@ -18,8 +18,9 @@ Inspired by wanting to recreate this animated plot: https://youtu.be/uX-FVtQT0PQ
 '''
 
 if __name__  == "__main__":
-    # This is just to see the effect of delaying the read operation by OFFSET_READ frames
-    OFFSET_READ = 37
+
+    # This determines how far behind the write pointer the read sample is
+    DELAY_SAMPLES = 10
 
     sample_rate = 1000
     signal = UF.generateSineSignal(10, 0.4, sample_rate)
@@ -78,6 +79,7 @@ if __name__  == "__main__":
     ax3.set_xlabel("Sample")
     ax3.set_ylabel("Amp")
     ax3.set_title("Output Signal")
+    ax3.grid()
 
     def init():
         ax1.set_ylim(-1, 1)
@@ -113,8 +115,8 @@ if __name__  == "__main__":
         # Write into the value circular buffer 
         circular_buffer.write(signal_value)
     
-        output_value = circular_buffer.read() if pos_signal > OFFSET_READ else 0
-        pos_output = (pos_output + 1) % len(output_xdata) if pos_signal > OFFSET_READ else 0
+        output_value = circular_buffer.read(DELAY_SAMPLES)
+        pos_output = (pos_output + 1) % len(output_xdata)
 
         # Update the plotting structures
         signal_pos_line.set_data([pos_signal, pos_signal], [-1, 1])
@@ -122,7 +124,7 @@ if __name__  == "__main__":
         read_pos_line.set_data([circular_buffer.tail, circular_buffer.tail], [-1,1])
         write_text.set_x(circular_buffer.head-1)
         read_text.set_x(circular_buffer.tail-1)
-        circ_ydata[circular_buffer.head] = signal_value
+        circ_ydata[circular_buffer.head] = circular_buffer.peek()
         output_ydata[pos_output] = output_value
 
         read_speed_text.set_text("Read Speed: {}".format(1))
