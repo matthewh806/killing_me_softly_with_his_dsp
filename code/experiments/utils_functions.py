@@ -19,17 +19,38 @@ class CircularBuffer:
         self.data = np.zeros(size)
 
     def clear(self):
+        '''
+        Clears all the data from the circular buffer
+        and resets the head / tail pointers 
+        '''
         self.data = np.zeros(self.size)
         self.head = 0
-        self.read = 0
+        self.tail = 0
 
     def write(self, value):
+        '''
+        Writes the value into the position pointed to
+        by head and advances the head pointer
+        
+        Wraps around once the end of the buffer is reached
+        '''
         self.data[self.head] = value
         self.head = (self.head + 1) % self.size
 
-    def read(self):
+    def peek(self):
+        '''
+        Returns the last value written to the buffer
+        (i.e. one before the current head position) 
+        '''
+        return self.data[self.head-1]
+
+
+    def read(self, delay=1):
+        '''
+        Read the sample which is delay samples behind the write head in the buffer  
+        '''
+        self.tail = (self.head - delay) % self.size
         value = self.data[self.tail]
-        self.tail = (self.tail + 1) % self.size
         return value
 
 
