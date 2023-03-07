@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.lines import Line2D
+from matplotlib.offsetbox import AnchoredOffsetbox, TextArea, HPacker, VPacker
 import random
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
@@ -52,6 +53,8 @@ if __name__  == "__main__":
     line2, = ax2.plot(circ_xdata, circ_ydata)
     write_pos_line = Line2D([], [], color='red', linewidth=2)
     read_pos_line = Line2D([], [], color='blue', linewidth=2)
+    write_text = ax2.text(circular_buffer.head, 0, "Write", color="white", rotation=90, bbox=dict(facecolor='red'))
+    read_text = ax2.text(circular_buffer.head, 0, "Read", color="white", rotation=90, bbox=dict(facecolor='blue'))
     ax2.add_line(write_pos_line)
     ax2.add_line(read_pos_line)
     ax2.set_xlim(0, circular_buffer.size)
@@ -59,6 +62,16 @@ if __name__  == "__main__":
     ax2.set_ylabel("Amp")
     ax2.set_title("Circular Buffer (size={})".format(circular_buffer.size))
     ax2.grid()
+
+    read_speed_text = TextArea("Read Speed: ")
+    write_sample_text = TextArea("Write Sample:")
+    read_sample_text = TextArea("Read Sample:")
+
+    box = VPacker(children=[read_speed_text, write_sample_text, read_sample_text])
+    anchored_box = AnchoredOffsetbox(loc=3, child=box, bbox_to_anchor=(1.1, 0.75),
+                                     bbox_transform=ax2.transAxes,
+                                     borderpad=0.)
+    ax2.add_artist(anchored_box)
 
     ax3 = plt.subplot2grid(shape=(3, 3), loc=(2, 0), colspan=3)
     line3, = ax3.plot(output_ydata)
@@ -77,11 +90,17 @@ if __name__  == "__main__":
 
         circ_ydata = np.zeros(circular_buffer.size)
         line2.set_data(circ_xdata, circ_ydata)
+        write_text.set_x(circular_buffer.head)
+        read_text.set_x(circular_buffer.tail)
+
+        read_speed_text.set_text("Read Speed: {}".format(1))
+        write_sample_text.set_text("Write Sample: {}".format(circular_buffer.head))
+        read_sample_text.set_text("Read Sample: {}".format(circular_buffer.tail))
 
         output_ydata = np.zeros(len(output_buffer))
         line3.set_data(output_xdata, output_ydata)
 
-        return signal_pos_line, line2, line3, write_pos_line, read_pos_line
+        return signal_pos_line, line2, line3, write_pos_line, read_pos_line, write_text, read_text
 
     def run(data):
         global pos_signal 
@@ -101,13 +120,19 @@ if __name__  == "__main__":
         signal_pos_line.set_data([pos_signal, pos_signal], [-1, 1])
         write_pos_line.set_data([circular_buffer.head, circular_buffer.head], [-1,1])
         read_pos_line.set_data([circular_buffer.tail, circular_buffer.tail], [-1,1])
+        write_text.set_x(circular_buffer.head-1)
+        read_text.set_x(circular_buffer.tail-1)
         circ_ydata[circular_buffer.head] = signal_value
         output_ydata[pos_output] = output_value
+
+        read_speed_text.set_text("Read Speed: {}".format(1))
+        write_sample_text.set_text("Write Sample: {}".format(circular_buffer.head))
+        read_sample_text.set_text("Read Sample: {}".format(circular_buffer.tail))
 
         line2.set_ydata(circ_ydata)
         line3.set_ydata(output_ydata)
 
-        return signal_pos_line, line2, line3, write_pos_line, read_pos_line
+        return signal_pos_line, line2, line3, write_pos_line, read_pos_line, write_text, read_text
 
     ani = animation.FuncAnimation(fig, run, blit=False, interval=100, 
                                   repeat=False, init_func=init)
