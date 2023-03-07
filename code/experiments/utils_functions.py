@@ -5,6 +5,34 @@ from scipy.io.wavfile import read, write
 import matplotlib.pyplot as plt
 import math
 
+class CircularBuffer:
+    '''
+    Very basic fixed size circular buffer
+    Initialises the data array to size 
+    and fills with zeros
+    '''
+
+    def __init__(self, size):
+        self.size = size
+        self.head = 0 # write pointer
+        self.tail = 0 # read pointer
+        self.data = np.zeros(size)
+
+    def clear(self):
+        self.data = np.zeros(self.size)
+        self.head = 0
+        self.read = 0
+
+    def write(self, value):
+        self.data[self.head] = value
+        self.head = (self.head + 1) % self.size
+
+    def read(self):
+        value = self.data[self.tail]
+        self.tail = (self.tail + 1) % self.size
+        return value
+
+
 def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
     '''
     length in seconds
