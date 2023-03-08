@@ -25,7 +25,6 @@ class CircularBuffer:
     Initialises the data array to size 
     and fills with zeros
 
-    TODO: Multitap
     TODO: Vary read speed
     '''
 
@@ -85,6 +84,93 @@ class CircularBuffer:
         fraction = delay_fractional - int(delay_fractional)
 
         return twoPointInterpolation(y1, y2, fraction)
+    
+
+class MultitapCircularBuffer:
+    '''
+    Similar to the CircularBuffer, but instead of 
+    one read location this structure has multiple "taps"
+    at different read positions across the buffer
+
+    TODO: Express tails in terms of sample delays? (rather than abs pos)
+          Don't need to reset them then
+    TODO: Dynamic number of taps...?
+    TODO: Check all delay times are >= 0.0
+
+    TODO: This could probably just inherit the CircularBuffer class
+          And simply manage the delay offsets
+
+          Since we don't really need to store the tail value anywhere
+          For each tap delay we could just call the base class 
+          read_fractional method passing in the sample offset amnt
+          corresponding to the tap 
+    '''
+
+    def __init__(self, size, delay_1 = 1.0, delay_2 = 1.0, delay_3 = 1.0, delay_4 = 1.0):
+        self.size = size
+
+        if self.size <= 0:
+            raise ValueError("Error size cannot be less than or equal to zero")
+
+        self.head = 0 # Write pointer
+        self.tap_delays = [delay_1, delay_2, delay_3, delay_4]
+        self.data = np.zeros(size)
+
+    def clear(self):
+        '''
+        Clears all the data from the circular buffer
+        and resets the head
+        '''
+        self.data = np.zeros(self.size)
+        self.head = 0
+
+    def write(self, value):
+        '''
+        Writes the value into the position pointed to
+        by head and advances the head pointer
+        
+        Wraps around once the end of the buffer is reached
+        '''
+        
+        self.data[self.head] = value
+        self.head = (self.head + 1) % self.size
+
+    def peek(self):
+        '''
+        Returns the last value written to the buffer
+        (i.e. one before the current head position) 
+        '''
+        
+        return self.data[self.head-1]
+
+    def read(self, tap_index=0):
+        '''
+        Read the value currently pointed to by the tap at tap_index.
+        
+        This is inherently a "fractional" read since the offsets can 
+        be specified in terms of sub samples. 
+        Two point linear interpolation is used to estimate the value
+        between the two nearest samples
+        
+        Throws a value error if the index provided is out of range
+        '''
+        
+        if(tap_index >= len(self.tap_delays)):
+            raise ValueError("Tap index {} is out of range!".format(tap_index))
+        
+        def _read(tap_delay):
+            tail = (self.head - tap_delay) % self.size
+            value = self.data[tail]
+            return value
+
+        tap_delay = self.tap_delays[tap_index]
+        y1 = _read(int(tap_delay))
+        y2 = _read(int(tap_delay) + 1)
+        fraction = tap_delay - int(tap_delay)
+
+        return twoPointInterpolation(y1, y2, fraction)
+
+    
 
 def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
     '''
