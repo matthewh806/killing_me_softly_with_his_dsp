@@ -2,8 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.lines import Line2D
-from matplotlib.offsetbox import AnchoredOffsetbox, TextArea, HPacker, VPacker
-import random
+from matplotlib.offsetbox import AnchoredOffsetbox, TextArea, VPacker
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 import utils_functions as UF
