@@ -5,11 +5,31 @@ from scipy.io.wavfile import read, write
 import matplotlib.pyplot as plt
 import math
 
+def twoPointInterpolation(y1, y2, frac_x):
+    '''
+    Perform simple two point linear interpolation between the 
+    values y1, y2 for the value frac_x
+    '''
+
+    if y1 > y2:
+        raise ValueError("Error y1 must be smaller than y2")
+
+    if frac_x <= 0.0:
+        return y1
+    
+    if frac_x >= 1.0:
+        return y2
+    
+    return (1.0 - frac_x) * y1 + frac_x * y2
+
 class CircularBuffer:
     '''
     Very basic fixed size circular buffer
     Initialises the data array to size 
     and fills with zeros
+
+    TODO: Multitap
+    TODO: Vary read speed
     '''
 
     def __init__(self, size):
@@ -48,11 +68,26 @@ class CircularBuffer:
     def read(self, delay=1):
         '''
         Read the sample which is delay samples behind the write head in the buffer  
+        
+        The value of delay is assumed to be an integer value
         '''
         self.tail = (self.head - delay) % self.size
         value = self.data[self.tail]
         return value
+    
+    def read_fractional(self, delay_fractional):
+        '''
+        Read the sample which is delay samples behind the write head in the buffer
 
+        The value of delay can be fractional, linear interpolation between two 
+        adjacent samples will be used to determine the amp valu
+        '''
+
+        y1 = self.read(int(delay_fractional))
+        y2 = self.read(int(delay_fractional) + 1)
+        fraction = delay_fractional - int(delay_fractional)
+
+        return twoPointInterpolation(y1, y2, fraction)
 
 def generateSineSignal(frequency = 220.0, length=1.0, fs=44100.0):
     '''
