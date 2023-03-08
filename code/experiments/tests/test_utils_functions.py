@@ -18,8 +18,7 @@ class TestUtilsFunctions(unittest.TestCase):
 
         self.assertAlmostEqual(UF.twoPointInterpolation(3.75, 4.20, 0.67), 4.0515)
 
-        with self.assertRaises(ValueError):
-            UF.twoPointInterpolation(2.0, 0.0, 0.75)
+        self.assertAlmostEqual(UF.twoPointInterpolation(2.4, 0.5, 0.4), 1.64)
 
 if __name__ == "__main__":
     unittest.main()
