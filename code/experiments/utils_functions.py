@@ -11,9 +11,6 @@ def twoPointInterpolation(y1, y2, frac_x):
     values y1, y2 for the value frac_x
     '''
 
-    if y1 > y2:
-        raise ValueError("Error y1 must be smaller than y2")
-
     if frac_x <= 0.0:
         return y1
     
