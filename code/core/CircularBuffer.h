@@ -6,13 +6,14 @@
 
 namespace OUS
 {
-	inline double doLinearInterpolation(double y1, double y2, double fractional_X)
+    template<typename T>
+	inline T doLinearInterpolation(T y1, T y2, T fractional_X)
 	{
 		// --- check invalid condition
-		if (fractional_X >= 1.0) return y2;
+		if (fractional_X >= static_cast<T>(1.0)) return y2;
 
 		// --- use weighted sum method of interpolating
-		return fractional_X*y2 + (1.0 - fractional_X)*y1;
+		return fractional_X*y2 + (static_cast<T>(1.0) - fractional_X)*y1;
 	}
 
 	template <typename T>
@@ -79,7 +80,7 @@ namespace OUS
 		}
 
 		/** read an arbitrary location that includes a fractional sample */
-		T readBuffer(double delayInFractionalSamples)
+		T readBuffer(T delayInFractionalSamples)
 		{
 			// --- truncate delayInFractionalSamples and read the int part
 			T y1 = readBuffer((int)delayInFractionalSamples);
@@ -93,7 +94,7 @@ namespace OUS
 			T y2 = readBuffer((int)delayInFractionalSamples + 1);
 
 			// --- get fractional part
-			double fraction = delayInFractionalSamples - (int)delayInFractionalSamples;
+			T fraction = delayInFractionalSamples - (int)delayInFractionalSamples;
 
 			// --- do the interpolation (you could try different types here)
 			return doLinearInterpolation(y1, y2, fraction);
