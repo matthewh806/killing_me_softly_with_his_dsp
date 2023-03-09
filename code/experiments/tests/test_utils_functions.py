@@ -19,6 +19,15 @@ class TestUtilsFunctions(unittest.TestCase):
         self.assertAlmostEqual(UF.twoPointInterpolation(3.75, 4.20, 0.67), 4.0515)
 
         self.assertAlmostEqual(UF.twoPointInterpolation(2.4, 0.5, 0.4), 1.64)
+    
+    def test_next_power_of_2(self):
+        pass
+
+    def test_convert_value_from_to_range(self):
+        self.assertAlmostEqual(UF.convert_value_from_to_range(0.5, 0, 1, 0, 1), 0.5)
+        self.assertAlmostEqual(UF.convert_value_from_to_range(0, -1, 1, 0, 1), 0.5)
+        self.assertAlmostEqual(UF.convert_value_from_to_range(0.75, 0, 1, -1, 1), 0.5)
+        self.assertAlmostEqual(UF.convert_value_from_to_range(-1.25, -3, 9, 4, 7), 4.4375)
 
 
 class TestMultitapCircularBuffer(unittest.TestCase):
@@ -148,6 +157,7 @@ class TestMultitapCircularBuffer(unittest.TestCase):
 
         self.assertEqual(multitap.head, 0)
         self.assertEqual(multitap.size, size)
+
 
 if __name__ == "__main__":
     unittest.main()
