@@ -41,6 +41,7 @@ set(CoreSources
     ${CMAKE_SOURCE_DIR}/core/Allocators.h
     ${CMAKE_SOURCE_DIR}/core/Allocators.cpp
     ${CMAKE_SOURCE_DIR}/core/CircularBuffer.h
+    ${CMAKE_SOURCE_DIR}/core/MultitapCircularBuffer.h
     ${CMAKE_SOURCE_DIR}/core/ReferenceCountedBuffer.h
     ${CMAKE_SOURCE_DIR}/core/ReferenceCountedForwardAndReverseBuffer.h
     ${CMAKE_SOURCE_DIR}/core/ReferenceCountedForwardAndReverseBuffer.cpp
