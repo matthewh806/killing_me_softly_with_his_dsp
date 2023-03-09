@@ -124,6 +124,22 @@ class MultitapCircularBuffer:
         self.data = np.zeros(self.size)
         self.head = 0
 
+    def get_tap_position(self, tap_index=0):
+        '''
+        Returns the current position in the buffer of 
+        the tap at tap_index (including wrap around)
+
+        The tail position is not stored directly in the
+        class, only the offsets, so this provides
+        a convenient way of getting the equiv. tail (read) pos
+
+        NOTE: This is rounded DOWN to the nearest sample
+        '''
+
+        tap_delay = self.tap_delays[tap_index]
+        return int((self.head - tap_delay) % self.size)
+        
+
     def write(self, value):
         '''
         Writes the value into the position pointed to
@@ -430,3 +446,11 @@ def plot_sigspectrum(signal, fslice=slice(0, 100), sample_rate=44100, figsize=(2
 
 def next_power_of_2(x):
     return 1 if x == 0 else int(2**np.ceil(np.log2(x)))
+
+def convert_value_from_to_range(value, old_range_min, old_range_max, new_range_min, new_range_max):
+    # NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
+    
+    old_range = old_range_max - old_range_min
+    new_range = new_range_max - new_range_min
+
+    return ((value - old_range_min) / old_range * new_range) + new_range_min
