@@ -4,12 +4,11 @@
 
 namespace OUS
 {
-    template <typename T>
+    template <typename T, const size_t N>
     class MultitapCircularBuffer
     {
-        /* data */
     public:
-        MultitapCircularBuffer(unsigned int bufferLength, std::vector<float> tapDelays)
+        MultitapCircularBuffer(unsigned int bufferLength, std::array<float, N> tapDelays)
         {
             mTapDelays = tapDelays;
             mCircularBuffer.createCircularBuffer(bufferLength);
@@ -52,7 +51,7 @@ namespace OUS
         }
 
     private:
-        std::vector<float> mTapDelays;
+        std::array<float, N> mTapDelays;
         CircularBuffer<T> mCircularBuffer;
     };    
 }
