@@ -14,10 +14,10 @@ MultitapDelayPlugin::MultitapDelayPlugin()
                                         .withOutput("Output", juce::AudioChannelSet::stereo()))
 , mState(*this, nullptr, "pluginstate",
 {
-    std::make_unique<juce::AudioParameterFloat>("tapadelay", "Tap A delay", 0.0f, 2.0f, 0.5f),
-    std::make_unique<juce::AudioParameterFloat>("tapbdelay", "Tap B delay", 0.0f, 2.0f, 1.25f),
-    std::make_unique<juce::AudioParameterFloat>("tapcdelay", "Tap C delay", 0.0f, 2.0f, 1.75f),
-    std::make_unique<juce::AudioParameterFloat>("tapddelay", "Tap D delay", 0.0f, 2.0f, 2.0f),
+    std::make_unique<juce::AudioParameterFloat>("tapadelay", "Tap A delay", 0.0f, 2000.0f, 500.0f),
+    std::make_unique<juce::AudioParameterFloat>("tapbdelay", "Tap B delay", 0.0f, 2000.0f, 1250.0f),
+    std::make_unique<juce::AudioParameterFloat>("tapcdelay", "Tap C delay", 0.0f, 2000.0f, 1750.0f),
+    std::make_unique<juce::AudioParameterFloat>("tapddelay", "Tap D delay", 0.0f, 2000.0f, 2000.0f),
     std::make_unique<juce::AudioParameterFloat>("feedbacka", "Feedback A", 0.0f, 1.0f, 0.0f),
     std::make_unique<juce::AudioParameterFloat>("feedbackb", "Feedback B", 0.0f, 1.0f, 0.0f),
     std::make_unique<juce::AudioParameterFloat>("wetdry", "Wet/Dry Mix", 0.0f, 1.0f, 0.5f)
@@ -74,10 +74,10 @@ void MultitapDelayPlugin::processBlock(juce::AudioBuffer<float>& buffer, juce::M
     auto const delayTimeC = static_cast<float>(*mState.getRawParameterValue("tapcdelay"));
     auto const delayTimeD = static_cast<float>(*mState.getRawParameterValue("tapddelay"));
     
-    auto const delaySamplesA = delayTimeA * mSampleRate;
-    auto const delaySamplesB = delayTimeB * mSampleRate;
-    auto const delaySamplesC = delayTimeC * mSampleRate;
-    auto const delaySamplesD = delayTimeD * mSampleRate;
+    auto const delaySamplesA = delayTimeA / 1000.0f * mSampleRate;
+    auto const delaySamplesB = delayTimeB / 1000.0f * mSampleRate;
+    auto const delaySamplesC = delayTimeC / 1000.0f * mSampleRate;
+    auto const delaySamplesD = delayTimeD / 1000.0f * mSampleRate;
     
     for(auto ch = 0; ch < channels; ++ch)
     {
