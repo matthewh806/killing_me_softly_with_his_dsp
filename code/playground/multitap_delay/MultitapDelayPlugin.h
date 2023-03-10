@@ -12,7 +12,6 @@ namespace OUS
     //==============================================================================
     class MultitapDelayPlugin
     : public juce::AudioProcessor
-    , private juce::Timer
     {
     public:
         //==============================================================================
@@ -44,26 +43,25 @@ namespace OUS
         void getStateInformation(MemoryBlock& destData) override;
         void setStateInformation(const void* data, int sizeInBytes) override;
 
-        // juce::Timer
-        //==============================================================================
-        void timerCallback() override;
-
     private:
         //==============================================================================
         juce::AudioParameterFloat* mTapADelayTime;
         juce::AudioParameterFloat* mTapBDelayTime;
+        juce::AudioParameterFloat* mTapCDelayTime;
+        juce::AudioParameterFloat* mTapDDelayTime;
+        
         juce::AudioParameterFloat* mFeedbackA;
         juce::AudioParameterFloat* mFeedbackB;
+        
         juce::AudioParameterFloat* mWetDryMix;
         
         int mBlockSize;
-        int mSampleRate;
+        float mSampleRate;
 
         juce::AudioProcessorValueTreeState mState;
         
         // Stored in seconds (converted in audio processor)
-        std::vector<float> mTapDelays {2.0, 1.3f};
-        std::vector<std::unique_ptr<MultitapCircularBuffer<float>>> mDelayBuffers;
+        std::vector<std::unique_ptr<MultitapCircularBuffer<float, 4>>> mDelayBuffers;
 
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MultitapDelayPlugin)
