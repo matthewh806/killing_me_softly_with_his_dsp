@@ -31,7 +31,6 @@ namespace OUS
                 auto const freq = fundFrequency * mHarmonicRatios[i];
                 mCosineOscs[i].setFrequency(freq, true);
             }
-            
         }
         
         void setLevel(float linearValue)
@@ -131,6 +130,88 @@ namespace OUS
         juce::dsp::Gain<float> mGain;
     };
 
+    class FreeVibrationalModes
+    {
+    public:
+        FreeVibrationalModes()
+        {
+            for(auto& filter : mBandpassFilters)
+            {
+                filter.setType(juce::dsp::StateVariableTPTFilterType::bandpass);
+            }
+        }
+        
+        void setFundamentalFrequency(float fundFrequency)
+        {
+            for(size_t i = 0; i < NUM_HARMONICS; ++i)
+            {
+                auto const freq = fundFrequency * mHarmonicRatios[i];
+                mBandpassFilters[i].setCutoffFrequency(freq);
+            }
+        }
+        
+        void reset() noexcept
+        {
+            for(auto& filter : mBandpassFilters)
+            {
+                filter.reset();
+            }
+        }
+        
+        void prepare (const juce::dsp::ProcessSpec& spec)
+        {
+            for(auto& filter : mBandpassFilters)
+            {
+                filter.prepare (spec);
+            }
+            
+            for(size_t i = 0; i < NUM_HARMONICS; i++)
+            {
+                // This allocates the temp buffer memory too
+                mTempBuffers[i] = juce::dsp::AudioBlock<float>(mTempBuffersMemory[i], spec.numChannels, spec.maximumBlockSize);
+            }
+        }
+        
+        template <typename ProcessContext>
+        void process (const ProcessContext& context) noexcept
+        {
+            auto& outputBuffer = context.getOutputBlock();
+            auto const numSamples = outputBuffer.getNumSamples();
+            
+            for(size_t i = 0; i < NUM_HARMONICS; i++)
+            {
+                mTempBuffers[i].clear();
+                mTempBuffers[i].copyFrom(outputBuffer);
+                
+                auto& filter = mBandpassFilters[i];
+                auto filterContext = juce::dsp::ProcessContextReplacing<float>(mTempBuffers[i]);
+                filter.process(filterContext);
+            }
+            
+            // Sum all of the individual buffers and write to context output
+            for(size_t s = 0; s < numSamples; ++s)
+            {
+                auto gain = 1.0f;
+                auto value = 0.0f;
+                for(size_t i = 0; i < NUM_HARMONICS; ++i)
+                {
+                    value += mTempBuffers[i].getSample(0, static_cast<int>(s)) * gain;
+                    gain *= 0.5f;
+                }
+                
+                outputBuffer.setSample(0, static_cast<int>(s), value);
+                outputBuffer.setSample(1, static_cast<int>(s), value);
+            }
+        }
+    private:
+        // we create these because the processing is done in parallel on the buffers
+        std::array<juce::HeapBlock<char>, NUM_HARMONICS> mTempBuffersMemory;
+        std::array<juce::dsp::AudioBlock<float>, NUM_HARMONICS> mTempBuffers;
+        
+        const std::array<float, NUM_HARMONICS> mHarmonicRatios { 1.0f, 2.7565f, 5.4039f, 8.9330f, 13.3443f };
+        std::array<juce::dsp::StateVariableTPTFilter<float>, NUM_HARMONICS> mBandpassFilters;
+    };
+
     //==============================================================================
     class RulerTwangPlugin
     : public juce::AudioProcessor
@@ -182,6 +263,12 @@ namespace OUS
         juce::AudioProcessorValueTreeState mState;
         
         ClampedVibrationalModes mFullClampedModes;
+        FreeVibrationalModes mFreeVibrationModes;
+        
+        juce::AudioBuffer<float> mClampedBarBuffer;
+        juce::AudioBuffer<float> mFreeBarBuffer;
+        
+        juce::Random random;
 
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RulerTwangPlugin)

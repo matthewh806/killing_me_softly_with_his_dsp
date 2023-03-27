@@ -50,6 +50,12 @@ void RulerTwangPlugin::prepareToPlay(double sampleRate,
     
     mFullClampedModes.prepare({sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2});
     mFullClampedModes.setFundamentalFrequency(*mState.getRawParameterValue("vibrationfrequency"));
+    
+    mFreeVibrationModes.prepare({sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2});
+    mFreeVibrationModes.setFundamentalFrequency(*mState.getRawParameterValue("vibrationfrequency"));
+    
+    mClampedBarBuffer.setSize(2, maximumExpectedSamplesPerBlock);
+    mFreeBarBuffer.setSize(2, maximumExpectedSamplesPerBlock);
 }
 
 void RulerTwangPlugin::releaseResources()
@@ -59,10 +65,41 @@ void RulerTwangPlugin::releaseResources()
 void RulerTwangPlugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiBuffer)
 {
     juce::ignoreUnused(midiBuffer);
-    buffer.clear();
     
-    juce::dsp::AudioBlock<float> block(buffer, 0);
-    mFullClampedModes.process(juce::dsp::ProcessContextReplacing<float> (block));
+    buffer.clear();
+    mClampedBarBuffer.clear();
+    mFreeBarBuffer.clear();
+    
+    juce::dsp::AudioBlock<float> clampedBlock(mClampedBarBuffer, 0);
+    mFullClampedModes.process(juce::dsp::ProcessContextReplacing<float>(clampedBlock));
+    
+    auto const numSamples = buffer.getNumSamples();
+    for(auto i = 0; i < numSamples; ++i)
+    {
+        // generate white noise
+        auto const val = random.nextFloat() * 2.0f - 1.0f;
+        
+        // modulate with clamped vibration values
+        auto const modulatedVal = val * clampedBlock.getSample(0, i);
+        mFreeBarBuffer.setSample(0, i, modulatedVal);
+        mFreeBarBuffer.setSample(1, i, modulatedVal);
+    }
+    
+    // lpf mfreebarbuffer
+    
+    // pass to free bar vibration processor
+    juce::dsp::AudioBlock<float> freeBlock(mFreeBarBuffer, 0);
+    mFreeVibrationModes.process(juce::dsp::ProcessContextReplacing<float>(freeBlock));
+    
+    // sum the two modes and output!
+    for(auto i = 0; i < numSamples; ++i)
+    {
+        auto const value = 0.5f * mFreeBarBuffer.getSample(0, i) + 0.5f * mClampedBarBuffer.getSample(0, i);
+        buffer.setSample(0, i, value);
+        buffer.setSample(1, i, value);
+    }
+    
+    // hpf buffer
 }
 
 void RulerTwangPlugin::getStateInformation(MemoryBlock& destData)
@@ -80,6 +117,7 @@ void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float n
     if(parameterID == "vibrationfrequency")
     {
         mFullClampedModes.setFundamentalFrequency(newValue);
+        mFreeVibrationModes.setFundamentalFrequency(newValue);
     }
     else if(parameterID == "triggertwang")
     {
