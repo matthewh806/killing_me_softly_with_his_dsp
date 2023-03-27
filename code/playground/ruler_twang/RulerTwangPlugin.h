@@ -20,11 +20,13 @@ namespace OUS
             {
                 osc.initialise([](float x) { return std::cos(x); }, 128);
             }
+            
+            mADSR.setParameters({0.0f, 0.45f, 0.0f, 0.45f});
         }
         
         void setFundamentalFrequency(float fundFrequency)
         {
-            for(auto i = 0; i < NUM_HARMONICS; ++i)
+            for(size_t i = 0; i < NUM_HARMONICS; ++i)
             {
                 auto const freq = fundFrequency * mHarmonicRatios[i];
                 mCosineOscs[i].setFrequency(freq, true);
@@ -35,6 +37,18 @@ namespace OUS
         void setLevel(float linearValue)
         {
             mGain.setGainLinear(linearValue);
+        }
+        
+        void setDecayTime(float decayTimeMs)
+        {
+            mADSR.setParameters({0.0f, decayTimeMs / 1000.0f, 0.0f, decayTimeMs / 1000.0f});
+            mADSR.reset();
+        }
+        
+        void trigger()
+        {
+            // silence existing?
+            mADSR.noteOn();
         }
         
         //==============================================================================
@@ -56,13 +70,16 @@ namespace OUS
                 osc.prepare (spec);
             }
             
-            for(auto i = 0; i < NUM_HARMONICS; i++)
+            for(size_t i = 0; i < NUM_HARMONICS; i++)
             {
                 // This allocates the temp buffer memory too
                 mTempBuffers[i] = juce::dsp::AudioBlock<float>(mTempBuffersMemory[i], spec.numChannels, spec.maximumBlockSize);
             }
             
+            mADSR.setSampleRate(spec.sampleRate);
             mGain.prepare(spec);
+            
+            mADSR.reset();
         }
         
         //==============================================================================
@@ -70,7 +87,7 @@ namespace OUS
         void process (const ProcessContext& context) noexcept
         {
             // process in PARALLEL!
-            for(auto i = 0; i < NUM_HARMONICS; i++)
+            for(size_t i = 0; i < NUM_HARMONICS; i++)
             {
                 mTempBuffers[i].clear();
                 auto& osc = mCosineOscs[i];
@@ -80,18 +97,22 @@ namespace OUS
             
             // Sum all of the individual buffers and write to context output
             auto& outputBuffer = context.getOutputBlock();
-            
-            for(auto s = 0; s < outputBuffer.getNumSamples(); ++s)
+            for(size_t s = 0; s < outputBuffer.getNumSamples(); ++s)
             {
                 auto gain = 1.0f;
                 auto value = 0.0f;
-                for(auto i = 0; i < NUM_HARMONICS; ++i)
+                for(size_t i = 0; i < NUM_HARMONICS; ++i)
                 {
-                    value += mTempBuffers[i].getSample(0, s) * gain;
+                    value += mTempBuffers[i].getSample(0, static_cast<int>(s)) * gain;
                     gain *= 0.5f;
                 }
                 
-                outputBuffer.setSample(0, s, value);
+                auto const rampDownVal = mADSR.getNextSample();
+                auto const quadRampVal = rampDownVal * rampDownVal * rampDownVal;
+                
+                value *= quadRampVal;
+                outputBuffer.setSample(0, static_cast<int>(s), value);
+                outputBuffer.setSample(1, static_cast<int>(s), value);
             }
             
             mGain.process(context);
@@ -104,6 +125,8 @@ namespace OUS
         
         std::array<float, NUM_HARMONICS> mHarmonicRatios;
         std::array<juce::dsp::Oscillator<float>, NUM_HARMONICS> mCosineOscs;
+        
+        juce::ADSR mADSR;
         
         juce::dsp::Gain<float> mGain;
     };
@@ -152,7 +175,10 @@ namespace OUS
         int mBlockSize;
         int mSampleRate;
         
+        juce::AudioParameterBool* mTriggerTwang;
+        juce::AudioParameterFloat* mDecayTime;
         juce::AudioParameterFloat* mVibrationFrequency;
+        
         juce::AudioProcessorValueTreeState mState;
         
         ClampedVibrationalModes mFullClampedModes;

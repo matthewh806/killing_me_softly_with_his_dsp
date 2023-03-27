@@ -14,11 +14,15 @@ RulerTwangPlugin::RulerTwangPlugin()
                                         .withOutput("Output", juce::AudioChannelSet::stereo()))
 , mState(*this, nullptr, "pluginstate",
 {
-    std::make_unique<juce::AudioParameterFloat>("vibrationfrequency", "Vibration Frequency", 0.1f, 1000.0f, 1.0f),
+    std::make_unique<juce::AudioParameterBool>("triggertwang", "Trigger Twang", 0.0f),
+    std::make_unique<juce::AudioParameterFloat>("vibrationfrequency", "Vibration Frequency", 0.1f, 1000.0f, 220.0f),
+    std::make_unique<juce::AudioParameterFloat>("decaytime", "Decay Time (ms)", 10.0f, 2000.0f, 450.0f),
 })
 , mFullClampedModes({1.0f, 6.2669f, 17.5475f, 34.3861f, 56.8426f})
 {
+    mState.addParameterListener("triggertwang", this);
     mState.addParameterListener("vibrationfrequency", this);
+    mState.addParameterListener("decaytime", this);
     mState.state.addChild({"uiState", {{"width", 400}, {"height", 250}}, {}}, -1, nullptr);
     
     mFullClampedModes.setLevel(0.2f);
@@ -26,7 +30,9 @@ RulerTwangPlugin::RulerTwangPlugin()
 
 RulerTwangPlugin::~RulerTwangPlugin()
 {
+    mState.removeParameterListener("decaytime", this);
     mState.removeParameterListener("vibrationfrequency", this);
+    mState.removeParameterListener("triggertwang", this);
 }
 
 //==============================================================================
@@ -74,5 +80,13 @@ void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float n
     if(parameterID == "vibrationfrequency")
     {
         mFullClampedModes.setFundamentalFrequency(newValue);
+    }
+    else if(parameterID == "triggertwang")
+    {
+        mFullClampedModes.trigger();
+    }
+    else if(parameterID == "decaytime")
+    {
+        mFullClampedModes.setDecayTime(newValue);
     }
 }
