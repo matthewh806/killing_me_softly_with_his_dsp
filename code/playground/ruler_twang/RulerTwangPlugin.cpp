@@ -94,7 +94,7 @@ void RulerTwangPlugin::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     // sum the two modes and output!
     for(auto i = 0; i < numSamples; ++i)
     {
-        auto const value = 0.5f * mFreeBarBuffer.getSample(0, i) + 0.5f * mClampedBarBuffer.getSample(0, i);
+        auto const value = 0.5f * mFreeBarBuffer.getSample(0, i) +0.5f * mClampedBarBuffer.getSample(0, i);
         buffer.setSample(0, i, value);
         buffer.setSample(1, i, value);
     }
