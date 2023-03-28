@@ -25,6 +25,8 @@ RulerTwangPlugin::RulerTwangPlugin()
     mState.addParameterListener("decaytime", this);
     mState.state.addChild({"uiState", {{"width", 400}, {"height", 250}}, {}}, -1, nullptr);
     
+    mSawtoothRamp.initialise([](float x) { return juce::jmap(x, -juce::MathConstants<float>::pi, juce::MathConstants<float>::pi, 0.0f, 1.0f); }, 128);
+    
     mFullClampedModes.setLevel(0.2f);
 }
 
@@ -48,12 +50,15 @@ void RulerTwangPlugin::prepareToPlay(double sampleRate,
     mBlockSize = maximumExpectedSamplesPerBlock;
     mSampleRate = static_cast<int>(sampleRate);
     
+    mSawtoothRamp.prepare({sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2});
+    mSawtoothRamp.setFrequency(*mState.getRawParameterValue("vibrationfrequency"));
+    
     mFullClampedModes.prepare({sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2});
-    mFullClampedModes.setFundamentalFrequency(*mState.getRawParameterValue("vibrationfrequency"));
     
     mFreeVibrationModes.prepare({sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2});
     mFreeVibrationModes.setFundamentalFrequency(*mState.getRawParameterValue("vibrationfrequency"));
     
+    mSawtoothRampBuffer.setSize(2, maximumExpectedSamplesPerBlock);
     mClampedBarBuffer.setSize(2, maximumExpectedSamplesPerBlock);
     mFreeBarBuffer.setSize(2, maximumExpectedSamplesPerBlock);
 }
@@ -67,10 +72,15 @@ void RulerTwangPlugin::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     juce::ignoreUnused(midiBuffer);
     
     buffer.clear();
+    mSawtoothRampBuffer.clear();
     mClampedBarBuffer.clear();
     mFreeBarBuffer.clear();
     
+    juce::dsp::AudioBlock<float> sawtoothRampBlock(mSawtoothRampBuffer, 0);
+    mSawtoothRamp.process(juce::dsp::ProcessContextReplacing<float>(sawtoothRampBlock));
+    
     juce::dsp::AudioBlock<float> clampedBlock(mClampedBarBuffer, 0);
+    clampedBlock.copyFrom(sawtoothRampBlock);
     mFullClampedModes.process(juce::dsp::ProcessContextReplacing<float>(clampedBlock));
     
     auto const numSamples = buffer.getNumSamples();
@@ -116,7 +126,7 @@ void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float n
 {
     if(parameterID == "vibrationfrequency")
     {
-        mFullClampedModes.setFundamentalFrequency(newValue);
+        mSawtoothRamp.setFrequency(newValue);
         mFreeVibrationModes.setFundamentalFrequency(newValue);
     }
     else if(parameterID == "triggertwang")

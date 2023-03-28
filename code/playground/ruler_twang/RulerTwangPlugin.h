@@ -10,19 +10,36 @@ namespace OUS
 {
     #define NUM_HARMONICS 5
 
+    /*
+        This class models the vibrational modes of a ruler clamped at one end.
+        
+        It does so by using cosine operators to generate partials (including
+        the fundamental) for frequencies scaled by numerically determined
+        harmonic ratios
+     
+        The cosines are phase locked to the fundamental and have a quadratic
+        decaying ramp applied to them.
+     
+        Note: The input to the process method is expected to be an audio rate
+              signal between 0 & 1 which will be multiplied by 2*pi
+              and passed into a cosine operator to give values in the range [-1,1]
+     
+              This input signal could be for e.g. a linear ramp from 0 -> 1
+              at a given frequenncy. This is supposed to be used as input
+              for other oscillators rather than to be listened to.
+                
+              It's how the phase sync. with the fundamental is achieved.
+     
+              This input buffer is not calculated internally because it may be
+              used to modulate other signals outside of this class too
+     */
     class ClampedVibrationalModes
     {
     public:
         ClampedVibrationalModes(std::array<float, NUM_HARMONICS> harmonicRatios)
         : mHarmonicRatios(harmonicRatios)
         {
-            mSawtoothRamp.initialise([](float x) { return juce::jmap(x, -juce::MathConstants<float>::pi, juce::MathConstants<float>::pi, 0.0f, 1.0f); }, 128);
             mADSR.setParameters({0.0f, 0.45f, 0.0f, 0.45f});
-        }
-        
-        void setFundamentalFrequency(float fundFrequency)
-        {
-            mSawtoothRamp.setFrequency(fundFrequency);
         }
         
         void setLevel(float linearValue)
@@ -44,15 +61,12 @@ namespace OUS
         //==============================================================================
         void reset() noexcept
         {
-            mSawtoothRamp.reset();
             mGain.reset();
         }
 
         //==============================================================================
         void prepare (const juce::dsp::ProcessSpec& spec)
         {
-            mSawtoothRamp.prepare(spec);
-            
             mADSR.setSampleRate(spec.sampleRate);
             mGain.prepare(spec);
             
@@ -63,7 +77,6 @@ namespace OUS
         template <typename ProcessContext>
         void process (const ProcessContext& context) noexcept
         {
-            mSawtoothRamp.process(context);
             auto& outputBuffer = context.getOutputBlock();
             
             auto const numSamples = outputBuffer.getNumSamples();
@@ -95,7 +108,6 @@ namespace OUS
     private:
         
         std::array<float, NUM_HARMONICS> mHarmonicRatios;
-        juce::dsp::Oscillator<float> mSawtoothRamp;
         
         juce::ADSR mADSR;
         
@@ -234,9 +246,11 @@ namespace OUS
         
         juce::AudioProcessorValueTreeState mState;
         
+        juce::dsp::Oscillator<float> mSawtoothRamp;
         ClampedVibrationalModes mFullClampedModes;
         FreeVibrationalModes mFreeVibrationModes;
         
+        juce::AudioBuffer<float> mSawtoothRampBuffer;
         juce::AudioBuffer<float> mClampedBarBuffer;
         juce::AudioBuffer<float> mFreeBarBuffer;
         
