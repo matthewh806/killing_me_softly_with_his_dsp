@@ -13,6 +13,10 @@ source_group("Source/ApplicationSources" FILES ${MultDelayApplicationSources})
 target_sources(RulerTwang PRIVATE
     ${CMAKE_SOURCE_DIR}/playground/ruler_twang/RulerTwangPlugin.h
     ${CMAKE_SOURCE_DIR}/playground/ruler_twang/RulerTwangPlugin.cpp
+    ${CMAKE_SOURCE_DIR}/playground/ruler_twang/FreeVibrationalModes.h
+    ${CMAKE_SOURCE_DIR}/playground/ruler_twang/FreeVibrationalModes.cpp
+    ${CMAKE_SOURCE_DIR}/playground/ruler_twang/ClampedVibrationalModes.h
+    ${CMAKE_SOURCE_DIR}/playground/ruler_twang/ClampedVibrationalModes.cpp
     ${MultDelayApplicationSources}
 )
 

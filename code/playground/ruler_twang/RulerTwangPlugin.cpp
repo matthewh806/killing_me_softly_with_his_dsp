@@ -27,6 +27,12 @@ RulerTwangPlugin::RulerTwangPlugin()
     
     mSawtoothRamp.initialise([](float x) { return juce::jmap(x, -juce::MathConstants<float>::pi, juce::MathConstants<float>::pi, 0.0f, 1.0f); }, 128);
     
+    mLowpassFilter.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
+    mLowpassFilter.setCutoffFrequency(4000);
+    
+    mHighpassFilter.setType(juce::dsp::StateVariableTPTFilterType::highpass);
+    mHighpassFilter.setCutoffFrequency(90);
+    
     mFullClampedModes.setLevel(0.2f);
 }
 
@@ -50,12 +56,17 @@ void RulerTwangPlugin::prepareToPlay(double sampleRate,
     mBlockSize = maximumExpectedSamplesPerBlock;
     mSampleRate = static_cast<int>(sampleRate);
     
-    mSawtoothRamp.prepare({sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2});
+    auto const processSpec = juce::dsp::ProcessSpec {sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2 };
+    
+    mSawtoothRamp.prepare(processSpec);
     mSawtoothRamp.setFrequency(*mState.getRawParameterValue("vibrationfrequency"));
     
-    mFullClampedModes.prepare({sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2});
+    mLowpassFilter.prepare(processSpec);
+    mHighpassFilter.prepare(processSpec);
     
-    mFreeVibrationModes.prepare({sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2});
+    mFullClampedModes.prepare(processSpec);
+    
+    mFreeVibrationModes.prepare(processSpec);
     mFreeVibrationModes.setFundamentalFrequency(*mState.getRawParameterValue("vibrationfrequency"));
     
     mSawtoothRampBuffer.setSize(2, maximumExpectedSamplesPerBlock);
@@ -87,29 +98,34 @@ void RulerTwangPlugin::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     for(auto i = 0; i < numSamples; ++i)
     {
         // generate white noise
-        auto const val = random.nextFloat() * 2.0f - 1.0f;
+        auto const noiseVal = random.nextFloat() * 2.0f - 1.0f;
+        auto const squaredRampVal = sawtoothRampBlock.getSample(0, i) * sawtoothRampBlock.getSample(0, i);
+        auto const modulatedClampedVal = clampedBlock.getSample(0, i) * squaredRampVal;
         
         // modulate with clamped vibration values
-        auto const modulatedVal = val * clampedBlock.getSample(0, i);
-        mFreeBarBuffer.setSample(0, i, modulatedVal);
-        mFreeBarBuffer.setSample(1, i, modulatedVal);
+        auto const freeBarExcitation = noiseVal * modulatedClampedVal;
+        mFreeBarBuffer.setSample(0, i, freeBarExcitation);
+        mFreeBarBuffer.setSample(1, i, freeBarExcitation);
     }
     
-    // lpf mfreebarbuffer
-    
-    // pass to free bar vibration processor
     juce::dsp::AudioBlock<float> freeBlock(mFreeBarBuffer, 0);
-    mFreeVibrationModes.process(juce::dsp::ProcessContextReplacing<float>(freeBlock));
+    juce::dsp::ProcessContextReplacing<float> freeBlockProcessingContext(freeBlock);
+    // lpf mfreebarbuffer
+    mLowpassFilter.process(freeBlockProcessingContext);
+    // pass to free bar vibration processor
+    mFreeVibrationModes.process(freeBlockProcessingContext);
     
     // sum the two modes and output!
     for(auto i = 0; i < numSamples; ++i)
     {
-        auto const value = 0.5f * mFreeBarBuffer.getSample(0, i) +0.5f * mClampedBarBuffer.getSample(0, i);
+        auto const value = 0.8f * mFreeBarBuffer.getSample(0, i) + 0.2f * mClampedBarBuffer.getSample(0, i);
         buffer.setSample(0, i, value);
         buffer.setSample(1, i, value);
     }
     
     // hpf buffer
+    juce::dsp::AudioBlock<float> outputBlock(buffer, 0);
+    mHighpassFilter.process(juce::dsp::ProcessContextReplacing<float>(outputBlock));
 }
 
 void RulerTwangPlugin::getStateInformation(MemoryBlock& destData)
@@ -126,15 +142,37 @@ void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float n
 {
     if(parameterID == "vibrationfrequency")
     {
-        mSawtoothRamp.setFrequency(newValue);
-        mFreeVibrationModes.setFundamentalFrequency(newValue);
+        setFundamentalFrequency(newValue);
     }
     else if(parameterID == "triggertwang")
     {
-        mFullClampedModes.trigger();
+        triggerSystem();
     }
     else if(parameterID == "decaytime")
     {
         mFullClampedModes.setDecayTime(newValue);
     }
+}
+
+void RulerTwangPlugin::resetSystem()
+{
+    mSawtoothRamp.reset();
+    mLowpassFilter.reset();
+    mHighpassFilter.reset();
+    mFullClampedModes.reset();
+    mFreeVibrationModes.reset();
+}
+
+void RulerTwangPlugin::triggerSystem()
+{
+    // This class has an internal ADSR which essentially
+    // retriggers the whole system
+    resetSystem();
+    mFullClampedModes.trigger();
+}
+
+void RulerTwangPlugin::setFundamentalFrequency(float fundamentalFrequency)
+{
+    mSawtoothRamp.setFrequency(fundamentalFrequency);
+    mFreeVibrationModes.setFundamentalFrequency(fundamentalFrequency);
 }
