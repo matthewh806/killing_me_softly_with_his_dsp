@@ -7,6 +7,7 @@
 namespace OUS
 {
     #define NUM_FREE_HARMONICS 5
+    #define LAMBDA_FREE_FUNDAMENTAL 4.7300407f
 
     /*
      This class models the vibrational modes of an excited free bar
@@ -44,5 +45,7 @@ namespace OUS
         
         const std::array<float, NUM_FREE_HARMONICS> mHarmonicRatios { 1.0f, 2.7565f, 5.4039f, 8.9330f, 13.3443f };
         std::array<juce::dsp::StateVariableTPTFilter<float>, NUM_FREE_HARMONICS> mBandpassFilters;
+        
+        float mSampleRate {44100.0f};
     };
 }

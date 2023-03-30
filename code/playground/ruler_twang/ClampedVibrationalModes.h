@@ -7,6 +7,7 @@
 namespace OUS
 {
     #define NUM_CLAMPED_HARMONICS 5
+    #define LAMBDA_CLAMPED_FUNDAMENTAL 1.8751041f
 
     /*
         This class models the vibrational modes of a ruler clamped at one end.

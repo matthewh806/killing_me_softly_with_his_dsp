@@ -15,13 +15,23 @@ RulerTwangPlugin::RulerTwangPlugin()
 , mState(*this, nullptr, "pluginstate",
 {
     std::make_unique<juce::AudioParameterBool>("triggertwang", "Trigger Twang", 0.0f),
-    std::make_unique<juce::AudioParameterFloat>("vibrationfrequency", "Vibration Frequency", 0.1f, 1000.0f, 220.0f),
     std::make_unique<juce::AudioParameterFloat>("decaytime", "Decay Time (ms)", 10.0f, 2000.0f, 450.0f),
+    std::make_unique<juce::AudioParameterFloat>("youngsmodulus", "Youngs Modulus", 1000000000.0f, 200000000000.0f, 1000000000.0f),
+    std::make_unique<juce::AudioParameterFloat>("rulerlength", "Ruler Length", 100.0f, 1000.0f, 300.0f),
+    std::make_unique<juce::AudioParameterFloat>("rulerheight", "Ruler Height", 1.0f, 100.0f, 3.5f),
+    std::make_unique<juce::AudioParameterFloat>("rulerdensity", "Ruler Density", 10.0f, 1000.0f, 750.0f),
+    std::make_unique<juce::AudioParameterFloat>("freevibrationfrequency", "Free Vibration Frequency", 0.1f, 3000.0f, 220.0f),
+    std::make_unique<juce::AudioParameterFloat>("clampedvibrationfrequency", "Clamped Vibration Frequency", 0.1f, 3000.0f, 220.0f),
 })
 , mFullClampedModes({1.0f, 6.2669f, 17.5475f, 34.3861f, 56.8426f})
 {
     mState.addParameterListener("triggertwang", this);
-    mState.addParameterListener("vibrationfrequency", this);
+    mState.addParameterListener("youngsmodulus", this);
+    mState.addParameterListener("rulerlength", this);
+    mState.addParameterListener("rulerheight", this);
+    mState.addParameterListener("rulerdensity", this);
+    mState.addParameterListener("freevibrationfrequency", this);
+    mState.addParameterListener("clampedvibrationfrequency", this);
     mState.addParameterListener("decaytime", this);
     mState.state.addChild({"uiState", {{"width", 400}, {"height", 250}}, {}}, -1, nullptr);
     
@@ -39,7 +49,12 @@ RulerTwangPlugin::RulerTwangPlugin()
 RulerTwangPlugin::~RulerTwangPlugin()
 {
     mState.removeParameterListener("decaytime", this);
-    mState.removeParameterListener("vibrationfrequency", this);
+    mState.removeParameterListener("freevibrationfrequency", this);
+    mState.removeParameterListener("clampedvibrationfrequency", this);
+    mState.removeParameterListener("youngsmodulus", this);
+    mState.removeParameterListener("rulerlength", this);
+    mState.removeParameterListener("rulerheight", this);
+    mState.removeParameterListener("rulerdensity", this);
     mState.removeParameterListener("triggertwang", this);
 }
 
@@ -58,8 +73,19 @@ void RulerTwangPlugin::prepareToPlay(double sampleRate,
     
     auto const processSpec = juce::dsp::ProcessSpec {sampleRate, static_cast<uint32>(maximumExpectedSamplesPerBlock), 2 };
     
+    auto const freeVibrationFrequency = calculateFundamentalFrequency(LAMBDA_FREE_FUNDAMENTAL);
+    auto const clampedVibrationFrequency = calculateFundamentalFrequency(LAMBDA_CLAMPED_FUNDAMENTAL);
+    
+    auto* freeVibrationFreqParam = mState.getParameter("freevibrationfrequency");
+    auto normalisedFreeFreq = freeVibrationFreqParam->convertTo0to1(freeVibrationFrequency);
+    freeVibrationFreqParam->setValueNotifyingHost(normalisedFreeFreq);
+    
+    auto* clampedVibrationFreqParam = mState.getParameter("clampedvibrationfrequency");
+    auto normalisedClampedFreq = freeVibrationFreqParam->convertTo0to1(clampedVibrationFrequency);
+    clampedVibrationFreqParam->setValueNotifyingHost(normalisedClampedFreq);
+    
     mSawtoothRamp.prepare(processSpec);
-    mSawtoothRamp.setFrequency(*mState.getRawParameterValue("vibrationfrequency"));
+    mSawtoothRamp.setFrequency(clampedVibrationFrequency);
     
     mLowpassFilter.prepare(processSpec);
     mHighpassFilter.prepare(processSpec);
@@ -67,7 +93,7 @@ void RulerTwangPlugin::prepareToPlay(double sampleRate,
     mFullClampedModes.prepare(processSpec);
     
     mFreeVibrationModes.prepare(processSpec);
-    mFreeVibrationModes.setFundamentalFrequency(*mState.getRawParameterValue("vibrationfrequency"));
+    mFreeVibrationModes.setFundamentalFrequency(freeVibrationFrequency);
     
     mSawtoothRampBuffer.setSize(2, maximumExpectedSamplesPerBlock);
     mClampedBarBuffer.setSize(2, maximumExpectedSamplesPerBlock);
@@ -140,9 +166,35 @@ void RulerTwangPlugin::setStateInformation(const void* data, int sizeInBytes)
 
 void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float newValue)
 {
-    if(parameterID == "vibrationfrequency")
+    if(parameterID == "youngsmodulus" || parameterID == "rulerlength" || parameterID == "rulerheight" || parameterID == "rulerdensity")
     {
-        setFundamentalFrequency(newValue);
+        auto const freeFundamental = calculateFundamentalFrequency(LAMBDA_FREE_FUNDAMENTAL);
+        auto const clampedFundamental = calculateFundamentalFrequency(LAMBDA_CLAMPED_FUNDAMENTAL);
+        
+        auto* freeVibrationFreqParam = mState.getParameter("freevibrationfrequency");
+        auto normalisedFreeFreq = freeVibrationFreqParam->convertTo0to1(freeFundamental);
+        freeVibrationFreqParam->setValueNotifyingHost(normalisedFreeFreq);
+        
+        auto* clampedVibrationFreqParam = mState.getParameter("clampedvibrationfrequency");
+        auto normalisedClampedFreq = freeVibrationFreqParam->convertTo0to1(clampedFundamental);
+        clampedVibrationFreqParam->setValueNotifyingHost(normalisedClampedFreq);
+    }
+    else if(parameterID == "freevibrationfrequency")
+    {
+        mFreeVibrationModes.setFundamentalFrequency(newValue);
+        if(auto* ed = this->createEditorIfNeeded())
+        {
+            ed->repaint();
+        }
+    }
+    else if(parameterID == "clampedvibrationfrequency")
+    {
+        mSawtoothRamp.setFrequency(newValue);
+        mFreeVibrationModes.setFundamentalFrequency(newValue);
+        if(auto* ed = this->createEditorIfNeeded())
+        {
+            ed->repaint();
+        }
     }
     else if(parameterID == "triggertwang")
     {
@@ -152,6 +204,19 @@ void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float n
     {
         mFullClampedModes.setDecayTime(newValue);
     }
+}
+
+float RulerTwangPlugin::calculateFundamentalFrequency(float lambda)
+{
+    auto constexpr oneOverSquareRootTwelve = 0.2886751346f;
+    
+    auto const youngsModulus = mState.getRawParameterValue("youngsmodulus")->load();
+    auto const rulerHeight = mState.getRawParameterValue("rulerheight")->load() / 1000.0f;
+    auto const rulerLength = mState.getRawParameterValue("rulerlength")->load() / 1000.0f;
+    auto const rulerDensity = mState.getRawParameterValue("rulerdensity")->load() / 1000.0f;
+    auto const kappa = oneOverSquareRootTwelve * rulerHeight;
+    
+    return std::sqrt(youngsModulus * kappa * kappa / rulerDensity) * lambda * lambda / (rulerLength * rulerLength * juce::MathConstants<float>::twoPi);
 }
 
 void RulerTwangPlugin::resetSystem()
@@ -169,10 +234,4 @@ void RulerTwangPlugin::triggerSystem()
     // retriggers the whole system
     resetSystem();
     mFullClampedModes.trigger();
-}
-
-void RulerTwangPlugin::setFundamentalFrequency(float fundamentalFrequency)
-{
-    mSawtoothRamp.setFrequency(fundamentalFrequency);
-    mFreeVibrationModes.setFundamentalFrequency(fundamentalFrequency);
 }

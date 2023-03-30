@@ -46,6 +46,7 @@ namespace OUS
             - Apply 16th power envelope to the envelope to give transient to the attack.
             - Use 4th order band pass filters for the noise src
             - Figure out what the magic numbers used in the Pd are doing
+            - Presets for different ruler properties
      */
     //==============================================================================
     class RulerTwangPlugin
@@ -88,17 +89,24 @@ namespace OUS
 
     private:
         //==============================================================================
+        float calculateFundamentalFrequency(float lambda);
         
         void resetSystem();
         void triggerSystem();
-        void setFundamentalFrequency(float fundamentalFrequency);
         
         int mBlockSize;
         int mSampleRate;
         
-        juce::AudioParameterBool* mTriggerTwang;
+        std::unique_ptr<juce::AudioParameterBool> mTriggerTwang;
         juce::AudioParameterFloat* mDecayTime;
-        juce::AudioParameterFloat* mVibrationFrequency;
+        
+        juce::AudioParameterFloat* mYoungsModulus; // N/m^2
+        juce::AudioParameterFloat* mRulerLength;   // mm
+        juce::AudioParameterFloat* mRulerHeight;   // mm
+        juce::AudioParameterFloat* mRulerDensity;  // kg / m^2
+        
+        juce::AudioParameterFloat* mFreeVibrationFrequency;
+        juce::AudioParameterFloat* mClampedVibrationFrequency;
         
         juce::AudioProcessorValueTreeState mState;
         

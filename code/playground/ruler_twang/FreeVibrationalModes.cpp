@@ -15,7 +15,7 @@ void FreeVibrationalModes::setFundamentalFrequency(float fundFrequency)
     for(size_t i = 0; i < NUM_FREE_HARMONICS; ++i)
     {
         auto const freq = fundFrequency * mHarmonicRatios[i];
-        mBandpassFilters[i].setCutoffFrequency(freq);
+        mBandpassFilters[i].setCutoffFrequency(freq < 0.5f * mSampleRate ? freq : 0.0f);
     }
 }
 
@@ -29,6 +29,8 @@ void FreeVibrationalModes::reset() noexcept
 
 void FreeVibrationalModes::prepare (const juce::dsp::ProcessSpec& spec)
 {
+    mSampleRate = static_cast<float>(spec.sampleRate);
+    
     for(auto& filter : mBandpassFilters)
     {
         filter.prepare (spec);
