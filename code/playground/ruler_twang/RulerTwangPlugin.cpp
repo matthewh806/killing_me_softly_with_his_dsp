@@ -14,14 +14,11 @@ RulerTwangPlugin::RulerTwangPlugin()
                                         .withOutput("Output", juce::AudioChannelSet::stereo()))
 , mState(*this, nullptr, "pluginstate",
 {
-    std::make_unique<juce::AudioParameterBool>("triggertwang", "Trigger Twang", 0.0f),
     std::make_unique<juce::AudioParameterFloat>("decaytime", "Decay Time (ms)", 10.0f, 2000.0f, 450.0f),
     std::make_unique<juce::AudioParameterFloat>("youngsmodulus", "Youngs Modulus", 1000000000.0f, 200000000000.0f, 1000000000.0f),
     std::make_unique<juce::AudioParameterFloat>("rulerlength", "Ruler Length", 100.0f, 1000.0f, 300.0f),
     std::make_unique<juce::AudioParameterFloat>("rulerheight", "Ruler Height", 1.0f, 100.0f, 3.5f),
     std::make_unique<juce::AudioParameterFloat>("rulerdensity", "Ruler Density", 10.0f, 1000.0f, 750.0f),
-    std::make_unique<juce::AudioParameterFloat>("freevibrationfrequency", "Free Vibration Frequency", 0.1f, 3000.0f, 220.0f),
-    std::make_unique<juce::AudioParameterFloat>("clampedvibrationfrequency", "Clamped Vibration Frequency", 0.1f, 3000.0f, 220.0f),
 })
 , mFullClampedModes({1.0f, 6.2669f, 17.5475f, 34.3861f, 56.8426f})
 {
@@ -75,14 +72,6 @@ void RulerTwangPlugin::prepareToPlay(double sampleRate,
     
     auto const freeVibrationFrequency = calculateFundamentalFrequency(LAMBDA_FREE_FUNDAMENTAL);
     auto const clampedVibrationFrequency = calculateFundamentalFrequency(LAMBDA_CLAMPED_FUNDAMENTAL);
-    
-    auto* freeVibrationFreqParam = mState.getParameter("freevibrationfrequency");
-    auto normalisedFreeFreq = freeVibrationFreqParam->convertTo0to1(freeVibrationFrequency);
-    freeVibrationFreqParam->setValueNotifyingHost(normalisedFreeFreq);
-    
-    auto* clampedVibrationFreqParam = mState.getParameter("clampedvibrationfrequency");
-    auto normalisedClampedFreq = freeVibrationFreqParam->convertTo0to1(clampedVibrationFrequency);
-    clampedVibrationFreqParam->setValueNotifyingHost(normalisedClampedFreq);
     
     mSawtoothRamp.prepare(processSpec);
     mSawtoothRamp.setFrequency(clampedVibrationFrequency);
@@ -171,34 +160,17 @@ void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float n
         auto const freeFundamental = calculateFundamentalFrequency(LAMBDA_FREE_FUNDAMENTAL);
         auto const clampedFundamental = calculateFundamentalFrequency(LAMBDA_CLAMPED_FUNDAMENTAL);
         
-        auto* freeVibrationFreqParam = mState.getParameter("freevibrationfrequency");
-        auto normalisedFreeFreq = freeVibrationFreqParam->convertTo0to1(freeFundamental);
-        freeVibrationFreqParam->setValueNotifyingHost(normalisedFreeFreq);
+        mFreeVibrationModes.setFundamentalFrequency(freeFundamental);
+        if(auto* editor = getActiveEditor())
+        {
+            dynamic_cast<RulerTwangPluginProcessorEditor*>(editor)->setFreeFrequency(freeFundamental);
+        }
         
-        auto* clampedVibrationFreqParam = mState.getParameter("clampedvibrationfrequency");
-        auto normalisedClampedFreq = freeVibrationFreqParam->convertTo0to1(clampedFundamental);
-        clampedVibrationFreqParam->setValueNotifyingHost(normalisedClampedFreq);
-    }
-    else if(parameterID == "freevibrationfrequency")
-    {
-        mFreeVibrationModes.setFundamentalFrequency(newValue);
-        if(auto* ed = this->createEditorIfNeeded())
+        mSawtoothRamp.setFrequency(clampedFundamental);
+        if(auto* editor = getActiveEditor())
         {
-            ed->repaint();
+            dynamic_cast<RulerTwangPluginProcessorEditor*>(editor)->setClampedFrequency(clampedFundamental);
         }
-    }
-    else if(parameterID == "clampedvibrationfrequency")
-    {
-        mSawtoothRamp.setFrequency(newValue);
-        mFreeVibrationModes.setFundamentalFrequency(newValue);
-        if(auto* ed = this->createEditorIfNeeded())
-        {
-            ed->repaint();
-        }
-    }
-    else if(parameterID == "triggertwang")
-    {
-        triggerSystem();
     }
     else if(parameterID == "decaytime")
     {

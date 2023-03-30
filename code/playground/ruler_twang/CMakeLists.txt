@@ -1,14 +1,14 @@
 juce_add_plugin(RulerTwang
     PRODUCT_NAME "RulerTwang"
     MICROPHONE_PERMISSION_ENABLED   TRUE
-    FORMATS Standalone VST3)
+    FORMATS VST3)
 
 juce_generate_juce_header(RulerTwang)
 
 set(RulerTwangApplicationSources
     ${UISources}
 )
-source_group("Source/ApplicationSources" FILES ${MultDelayApplicationSources})
+source_group("Source/ApplicationSources" FILES ${RulerTwangApplicationSources})
 
 target_sources(RulerTwang PRIVATE
     ${CMAKE_SOURCE_DIR}/playground/ruler_twang/RulerTwangPlugin.h
@@ -17,7 +17,9 @@ target_sources(RulerTwang PRIVATE
     ${CMAKE_SOURCE_DIR}/playground/ruler_twang/FreeVibrationalModes.cpp
     ${CMAKE_SOURCE_DIR}/playground/ruler_twang/ClampedVibrationalModes.h
     ${CMAKE_SOURCE_DIR}/playground/ruler_twang/ClampedVibrationalModes.cpp
-    ${MultDelayApplicationSources}
+    ${CMAKE_SOURCE_DIR}/playground/ruler_twang/RulerTwangPluginEditor.h
+    ${CMAKE_SOURCE_DIR}/playground/ruler_twang/RulerTwangPluginEditor.cpp
+    ${RulerTwangApplicationSources}
 )
 
 target_compile_definitions(RulerTwang PRIVATE

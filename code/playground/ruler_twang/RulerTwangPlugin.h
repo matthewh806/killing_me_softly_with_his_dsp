@@ -7,6 +7,7 @@
 #include "../../ui/CustomLookAndFeel.h"
 #include "ClampedVibrationalModes.h"
 #include "FreeVibrationalModes.h"
+#include "RulerTwangPluginEditor.h"
 
 namespace OUS
 {
@@ -67,8 +68,14 @@ namespace OUS
         void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) override;
 
         //==============================================================================
-        juce::AudioProcessorEditor* createEditor() override { return nullptr; }
-        bool hasEditor() const override { return false; }
+        juce::AudioProcessorEditor* createEditor() override
+        {
+            return new RulerTwangPluginProcessorEditor(*this, mState, [&](){
+                triggerSystem();
+            });
+        }
+        
+        bool hasEditor() const override { return true; }
         const String getName() const override { return "RulerTwangPlugin"; }
         bool acceptsMidi() const override { return false; }
         bool producesMidi() const override { return false; }
@@ -96,17 +103,6 @@ namespace OUS
         
         int mBlockSize;
         int mSampleRate;
-        
-        std::unique_ptr<juce::AudioParameterBool> mTriggerTwang;
-        juce::AudioParameterFloat* mDecayTime;
-        
-        juce::AudioParameterFloat* mYoungsModulus; // N/m^2
-        juce::AudioParameterFloat* mRulerLength;   // mm
-        juce::AudioParameterFloat* mRulerHeight;   // mm
-        juce::AudioParameterFloat* mRulerDensity;  // kg / m^2
-        
-        juce::AudioParameterFloat* mFreeVibrationFrequency;
-        juce::AudioParameterFloat* mClampedVibrationFrequency;
         
         juce::AudioProcessorValueTreeState mState;
         
