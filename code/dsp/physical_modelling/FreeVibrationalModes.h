@@ -43,9 +43,13 @@ namespace OUS
         std::array<juce::HeapBlock<char>, NUM_FREE_HARMONICS> mTempBuffersMemory;
         std::array<juce::dsp::AudioBlock<float>, NUM_FREE_HARMONICS> mTempBuffers;
         
+        juce::dsp::StateVariableTPTFilter<float> mLowpassFilter;
+        
         const std::array<float, NUM_FREE_HARMONICS> mHarmonicRatios { 1.0f, 2.7565f, 5.4039f, 8.9330f, 13.3443f };
         std::array<juce::dsp::StateVariableTPTFilter<float>, NUM_FREE_HARMONICS> mBandpassFilters;
         
         float mSampleRate {44100.0f};
+        
+        juce::Random random;
     };
 }

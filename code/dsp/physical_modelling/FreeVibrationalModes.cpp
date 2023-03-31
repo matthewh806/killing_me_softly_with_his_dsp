@@ -4,6 +4,9 @@ using namespace OUS;
 
 FreeVibrationalModes::FreeVibrationalModes()
 {
+    mLowpassFilter.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
+    mLowpassFilter.setCutoffFrequency(4000);
+    
     for(auto& filter : mBandpassFilters)
     {
         filter.setType(juce::dsp::StateVariableTPTFilterType::bandpass);
@@ -22,6 +25,8 @@ void FreeVibrationalModes::setFundamentalFrequency(float fundFrequency)
 
 void FreeVibrationalModes::reset() noexcept
 {
+    mLowpassFilter.reset();
+    
     for(auto& filter : mBandpassFilters)
     {
         filter.reset();
@@ -31,6 +36,8 @@ void FreeVibrationalModes::reset() noexcept
 void FreeVibrationalModes::prepare (const juce::dsp::ProcessSpec& spec)
 {
     mSampleRate = static_cast<float>(spec.sampleRate);
+    
+    mLowpassFilter.prepare(spec);
     
     for(auto& filter : mBandpassFilters)
     {
@@ -48,6 +55,19 @@ void FreeVibrationalModes::process (const juce::dsp::ProcessContextReplacing<flo
 {
     auto& outputBuffer = context.getOutputBlock();
     auto const numSamples = outputBuffer.getNumSamples();
+    
+    for(size_t s = 0; s < numSamples; ++s)
+    {
+        // generate white noise
+        auto const noiseVal = random.nextFloat() * 2.0f - 1.0f;
+        auto const outVal = outputBuffer.getSample(0, static_cast<int>(s));
+        
+        outputBuffer.setSample(0, static_cast<int>(s), noiseVal * outVal);
+        outputBuffer.setSample(1, static_cast<int>(s), noiseVal * outVal);
+    }
+    
+    // lpf mfreebarbuffer
+    mLowpassFilter.process(context);
     
     for(size_t i = 0; i < NUM_FREE_HARMONICS; i++)
     {

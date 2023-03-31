@@ -7,9 +7,6 @@ RulerVibrationalModes::RulerVibrationalModes()
 {
     mSawtoothRamp.initialise([](float x) { return juce::jmap(x, -juce::MathConstants<float>::pi, juce::MathConstants<float>::pi, 0.0f, 1.0f); }, 128);
     
-    mLowpassFilter.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
-    mLowpassFilter.setCutoffFrequency(4000);
-    
     mHighpassFilter.setType(juce::dsp::StateVariableTPTFilterType::highpass);
     mHighpassFilter.setCutoffFrequency(90);
     
@@ -70,7 +67,6 @@ void RulerVibrationalModes::triggerSystem()
 void RulerVibrationalModes::reset() noexcept
 {
     mSawtoothRamp.reset();
-    mLowpassFilter.reset();
     mHighpassFilter.reset();
     mFullClampedModes.reset();
     mFreeVibrationModes.reset();
@@ -81,7 +77,6 @@ void RulerVibrationalModes::prepare (const juce::dsp::ProcessSpec& spec)
     mSawtoothRamp.prepare(spec);
     mSawtoothRamp.setFrequency(220.0f);
     
-    mLowpassFilter.prepare(spec);
     mHighpassFilter.prepare(spec);
     
     mFullClampedModes.prepare(spec);
@@ -113,21 +108,18 @@ void RulerVibrationalModes::process (const juce::dsp::ProcessContextReplacing<fl
     auto const numSamples = static_cast<int>(outputBlock.getNumSamples());
     for(auto i = 0; i < numSamples; ++i)
     {
-        // generate white noise
-        auto const noiseVal = random.nextFloat() * 2.0f - 1.0f;
+        // generate value to modulate free bar excitation with
         auto const squaredRampVal = sawtoothRampBlock.getSample(0, i) * sawtoothRampBlock.getSample(0, i);
         auto const modulatedClampedVal = clampedBlock.getSample(0, i) * squaredRampVal;
         
         // modulate with clamped vibration values
-        auto const freeBarExcitation = noiseVal * modulatedClampedVal;
-        mFreeBarBuffer.setSample(0, i, freeBarExcitation);
-        mFreeBarBuffer.setSample(1, i, freeBarExcitation);
+        mFreeBarBuffer.setSample(0, i, modulatedClampedVal);
+        mFreeBarBuffer.setSample(1, i, modulatedClampedVal);
     }
     
     juce::dsp::AudioBlock<float> freeBlock(mFreeBarBuffer, 0);
     juce::dsp::ProcessContextReplacing<float> freeBlockProcessingContext(freeBlock);
-    // lpf mfreebarbuffer
-    mLowpassFilter.process(freeBlockProcessingContext);
+    
     // pass to free bar vibration processor
     mFreeVibrationModes.process(freeBlockProcessingContext);
     

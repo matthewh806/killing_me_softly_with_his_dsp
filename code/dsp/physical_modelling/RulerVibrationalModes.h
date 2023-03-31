@@ -33,7 +33,6 @@ namespace OUS
     private:
         
         juce::dsp::Oscillator<float> mSawtoothRamp;
-        juce::dsp::StateVariableTPTFilter<float> mLowpassFilter;
         juce::dsp::StateVariableTPTFilter<float> mHighpassFilter;
         
         ClampedVibrationalModes mFullClampedModes;
@@ -45,8 +44,6 @@ namespace OUS
         
         float mFreeFundamentalFrequency;
         float mClampedFundamentalFrequency;
-        
-        juce::Random random;
         
         juce::dsp::Gain<float> mGain;
     };
