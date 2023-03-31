@@ -10,10 +10,14 @@ namespace OUS
 {
     class RulerTwangPluginProcessorEditor
     : public juce::AudioProcessorEditor
-    , private juce::AudioProcessorValueTreeState::Listener
     {
     public:
-        RulerTwangPluginProcessorEditor(juce::AudioProcessor& owner, juce::AudioProcessorValueTreeState& state, std::function<void()> onTriggerClicked = nullptr);
+        RulerTwangPluginProcessorEditor(juce::AudioProcessor& owner,
+                                        juce::AudioProcessorValueTreeState& state,
+                                        std::function<void()> onTriggerClicked = nullptr,
+                                        std::function<void(juce::String)> onRulerPresetChanged = nullptr,
+                                        std::function<void()> onSavePreset = nullptr);
+        
         ~RulerTwangPluginProcessorEditor() override;
         
         void setFreeFrequency(float frequency);
@@ -22,9 +26,8 @@ namespace OUS
         void paint(juce::Graphics& g) override;
         void resized() override;
         
-        void parameterChanged (const String& parameterID, float newValue) override;
-        
     private:
+        std::function<void(juce::String)> onRulerPresetChangedCallback = nullptr;
         
         juce::AudioProcessorValueTreeState& mState;
         
@@ -37,6 +40,9 @@ namespace OUS
         
         NumberFieldWithLabel mFreeFrequencyField;
         NumberFieldWithLabel mClampedFrequencyField;
+        
+        ComboBoxWithLabel mRulerPresetsCombobox {"Ruler Presets"} ;
+        juce::TextButton mSavePresetButton { juce::String("Save Preset") };
         
         juce::AudioProcessorValueTreeState::SliderAttachment mDecayTimeAttachement;
         juce::AudioProcessorValueTreeState::SliderAttachment mYoungsModulusAttachement;

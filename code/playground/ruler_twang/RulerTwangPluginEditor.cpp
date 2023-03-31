@@ -2,7 +2,7 @@
 
 using namespace OUS;
 
-RulerTwangPluginProcessorEditor::RulerTwangPluginProcessorEditor(juce::AudioProcessor& owner, juce::AudioProcessorValueTreeState& state, std::function<void()> onTriggerClicked)
+RulerTwangPluginProcessorEditor::RulerTwangPluginProcessorEditor(juce::AudioProcessor& owner, juce::AudioProcessorValueTreeState& state, std::function<void()> onTriggerClicked, std::function<void(juce::String)> onRulerPresetChanged, std::function<void()> onSavePreset)
 : juce::AudioProcessorEditor(owner)
 , mState(state)
 , mDecayTimeSlider("Decay Time", " ms")
@@ -17,12 +17,29 @@ RulerTwangPluginProcessorEditor::RulerTwangPluginProcessorEditor(juce::AudioProc
 , mRulerDensityAttachement(state, "rulerdensity", mRulerDensitySlider)
 , mFreeFrequencyField("Free frequency", "Hz", 2, false, 0.0)
 , mClampedFrequencyField("Clamped frequency", "Hz", 2, false, 0.0)
+, onRulerPresetChangedCallback(onRulerPresetChanged)
 {
     addAndMakeVisible(mTriggerButton);
     if(onTriggerClicked)
     {
         mTriggerButton.onClick = onTriggerClicked;
     }
+    
+    addAndMakeVisible(mRulerPresetsCombobox);
+    mRulerPresetsCombobox.comboBox.addItem("Initial", 1);
+    mRulerPresetsCombobox.comboBox.addItem("Wooden Ruler", 2);
+    if(onRulerPresetChanged)
+    {
+        mRulerPresetsCombobox.comboBox.onChange = [&]()
+        {
+            auto const idx = mRulerPresetsCombobox.comboBox.getSelectedItemIndex();
+            auto const presetName = mRulerPresetsCombobox.comboBox.getItemText(idx);
+            onRulerPresetChangedCallback(presetName);
+        };
+    }
+    
+    addAndMakeVisible(mSavePresetButton);
+    mSavePresetButton.onClick = onSavePreset;
     
     addAndMakeVisible(mDecayTimeSlider);
     mDecayTimeSlider.mLabels.add({0.0f, "10"});
@@ -76,30 +93,31 @@ void RulerTwangPluginProcessorEditor::resized()
     auto bounds = getLocalBounds();
     bounds.reduce(20, 20);
     
-    auto triggerBounds = bounds.removeFromTop(40);
-    mTriggerButton.setBounds(triggerBounds.removeFromLeft(150));
+    auto functionsGridBounds = bounds.removeFromTop(40);
+    juce::Grid functionsGrid;
+    functionsGrid.templateRows = { juce::Grid::TrackInfo(juce::Grid::Fr(1)) };
+    functionsGrid.templateColumns = { juce::Grid::TrackInfo(juce::Grid::Fr(1)), juce::Grid::TrackInfo(juce::Grid::Fr(3)), juce::Grid::TrackInfo(juce::Grid::Fr(1)) };
+    functionsGrid.items = { juce::GridItem(mTriggerButton), juce::GridItem(mRulerPresetsCombobox), juce::GridItem(mSavePresetButton) };
+    functionsGrid.performLayout(functionsGridBounds);
     
-    juce::Grid grid;
-    grid.templateRows = { juce::Grid::TrackInfo(juce::Grid::Fr(1)), juce::Grid::TrackInfo(juce::Grid::Fr(1)) };
-    grid.templateColumns = { juce::Grid::TrackInfo(juce::Grid::Fr(1)), juce::Grid::TrackInfo(juce::Grid::Fr(1)), juce::Grid::TrackInfo(juce::Grid::Fr(1))};
+    bounds.removeFromTop(40);
     
-    grid.items = {  juce::GridItem(mDecayTimeSlider),
+    juce::Grid rulerPropertiesGrid;
+    rulerPropertiesGrid.templateRows = { juce::Grid::TrackInfo(juce::Grid::Fr(1)), juce::Grid::TrackInfo(juce::Grid::Fr(1)) };
+    rulerPropertiesGrid.templateColumns = { juce::Grid::TrackInfo(juce::Grid::Fr(1)), juce::Grid::TrackInfo(juce::Grid::Fr(1)), juce::Grid::TrackInfo(juce::Grid::Fr(1))};
+    
+    rulerPropertiesGrid.items = {  juce::GridItem(mDecayTimeSlider),
                     juce::GridItem(mYoungsModulusSlider),
                     juce::GridItem(mRulerLengthSlider),
                     juce::GridItem(mRulerHeightSlider),
                     juce::GridItem(mRulerDensitySlider)
     };
     
-    auto gridBounds = bounds.removeFromTop(300);
-    grid.performLayout(gridBounds);
+    auto rulerPropertiesGridBounds = bounds.removeFromTop(300);
+    rulerPropertiesGrid.performLayout(rulerPropertiesGridBounds);
     
     auto frequencyBounds = bounds.removeFromTop(40);
-    mFreeFrequencyField.setBounds(frequencyBounds.removeFromLeft(100));
-    frequencyBounds.removeFromLeft(20);
-    mClampedFrequencyField.setBounds(frequencyBounds.removeFromLeft(100));
-}
-
-void RulerTwangPluginProcessorEditor::parameterChanged(const juce::String& parameterID, float newValue)
-{
-    
+    mFreeFrequencyField.setBounds(frequencyBounds.removeFromLeft(200));
+    frequencyBounds.removeFromLeft(30);
+    mClampedFrequencyField.setBounds(frequencyBounds.removeFromLeft(200));
 }

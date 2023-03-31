@@ -70,8 +70,18 @@ namespace OUS
         //==============================================================================
         juce::AudioProcessorEditor* createEditor() override
         {
-            return new RulerTwangPluginProcessorEditor(*this, mState, [&](){
+            return new RulerTwangPluginProcessorEditor(*this, mState,
+            [&]()
+            {
                 triggerSystem();
+            },
+            [&](juce::String presetName)
+            {
+                loadPreset(presetName);
+            },
+            [&]()
+            {
+                savePreset();
             });
         }
         
@@ -83,7 +93,8 @@ namespace OUS
         int getNumPrograms() override { return 1; }
         int getCurrentProgram() override { return 0; }
         void setCurrentProgram(int) override {}
-        const String getProgramName(int) override { return "None"; }
+        const juce::String getProgramName(int) override { return "None"; }
+        
         void changeProgramName(int, const String&) override {}
         bool isVST2() const noexcept { return (wrapperType == wrapperType_VST); }
 
@@ -101,8 +112,16 @@ namespace OUS
         void resetSystem();
         void triggerSystem();
         
+        juce::File getPresetsFolder();
+        void savePreset();
+        void loadPreset(juce::String presetName);
+        
+        std::unique_ptr<juce::FileChooser> mFileChooser = nullptr;
+        
         int mBlockSize;
         int mSampleRate;
+        
+        int mCurrentProgram {0};
         
         juce::AudioProcessorValueTreeState mState;
         

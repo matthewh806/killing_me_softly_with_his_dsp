@@ -145,15 +145,24 @@ void RulerTwangPlugin::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
 
 void RulerTwangPlugin::getStateInformation(MemoryBlock& destData)
 {
-    MemoryOutputStream stream(destData, true);
+    auto state = mState.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void RulerTwangPlugin::setStateInformation(const void* data, int sizeInBytes)
 {
-    MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    if(xmlState.get() != nullptr)
+    {
+        if(xmlState->hasTagName(mState.state.getType()))
+        {
+            mState.replaceState(juce::ValueTree::fromXml(*xmlState));
+        }
+    }
 }
 
-void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float newValue)
+void RulerTwangPlugin::parameterChanged(const juce::    String& parameterID, float newValue)
 {
     if(parameterID == "youngsmodulus" || parameterID == "rulerlength" || parameterID == "rulerheight" || parameterID == "rulerdensity")
     {
@@ -206,4 +215,61 @@ void RulerTwangPlugin::triggerSystem()
     // retriggers the whole system
     resetSystem();
     mFullClampedModes.trigger();
+}
+
+juce::File RulerTwangPlugin::getPresetsFolder()
+{
+    File rootFolder = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
+    
+#ifdef JUCE_MAC
+    rootFolder = rootFolder.getChildFile("Audio").getChildFile("Presets");
+#endif
+    
+    rootFolder = rootFolder.getChildFile("the office of unspecified services").getChildFile("RulerTwang");
+    Result res = rootFolder.createDirectory();
+    
+    return rootFolder;
+}
+
+void RulerTwangPlugin::savePreset()
+{
+    mFileChooser = std::make_unique<juce::FileChooser>("Save Preset",
+                                                       getPresetsFolder(), "*.xml");
+    
+    auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles;
+    mFileChooser->launchAsync(folderChooserFlags, [this](juce::FileChooser const& chooser)
+    {
+        auto file(chooser.getResult());
+        try
+        {
+            auto state = mState.copyState();
+            std::unique_ptr<juce::XmlElement> xml(state.createXml());
+            xml->writeTo(file);
+        }
+        catch (std::exception e)
+        {
+            juce::AlertWindow::showAsync(MessageBoxOptions()
+                                             .withIconType(MessageBoxIconType::WarningIcon)
+                                             .withTitle("Failed to save preset")
+                                             .withMessage(e.what())
+                                             .withButton("OK"),
+                                         nullptr);
+        }
+    });
+}
+
+void RulerTwangPlugin::loadPreset(juce::String presetName)
+{
+    File presetToLoad = getPresetsFolder().getChildFile(presetName + ".xml");
+    if(presetToLoad.existsAsFile())
+    {
+        std::unique_ptr presetXml = juce::XmlDocument::parse(presetToLoad);
+        if(presetXml.get() != nullptr)
+        {
+            if(presetXml->hasTagName(mState.state.getType()))
+            {
+                mState.replaceState(juce::ValueTree::fromXml(*presetXml));
+            }
+        }
+    }
 }
