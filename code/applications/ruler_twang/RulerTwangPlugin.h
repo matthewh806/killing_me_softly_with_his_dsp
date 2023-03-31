@@ -5,8 +5,7 @@
 // clang-format on
 
 #include "../../ui/CustomLookAndFeel.h"
-#include "ClampedVibrationalModes.h"
-#include "FreeVibrationalModes.h"
+#include "../../dsp/physical_modelling/RulerVibrationalModes.h"
 #include "RulerTwangPluginEditor.h"
 
 namespace OUS
@@ -38,8 +37,6 @@ namespace OUS
         These two vibrational modes are summed before being output.
      
         TODO:
-            - Base the fundamental frequency on physical properties of the ruler
-              (instead of directly inputting the Hz value)
             - Model Part length clamped vibrational modes (due to the ruler hitting
               the desk)
             - Vibrato on the fundamental frequency to simulate moving the ruler during
@@ -125,18 +122,7 @@ namespace OUS
         
         juce::AudioProcessorValueTreeState mState;
         
-        juce::dsp::Oscillator<float> mSawtoothRamp;
-        juce::dsp::StateVariableTPTFilter<float> mLowpassFilter;
-        juce::dsp::StateVariableTPTFilter<float> mHighpassFilter;
-        
-        ClampedVibrationalModes mFullClampedModes;
-        FreeVibrationalModes mFreeVibrationModes;
-        
-        juce::AudioBuffer<float> mSawtoothRampBuffer;
-        juce::AudioBuffer<float> mClampedBarBuffer;
-        juce::AudioBuffer<float> mFreeBarBuffer;
-        
-        juce::Random random;
+        RulerVibrationalModes mRulerVibrationalModes;
 
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RulerTwangPlugin)

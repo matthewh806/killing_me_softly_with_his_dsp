@@ -16,6 +16,7 @@ void FreeVibrationalModes::setFundamentalFrequency(float fundFrequency)
     {
         auto const freq = fundFrequency * mHarmonicRatios[i];
         mBandpassFilters[i].setCutoffFrequency(freq < 0.5f * mSampleRate ? freq : 0.0f);
+        mBandpassFilters[i].setResonance(1.0f);
     }
 }
 
