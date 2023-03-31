@@ -23,6 +23,16 @@ void RulerVibrationalModes::setDecayTime(float decayTimeMs)
     mFullClampedModes.setDecayTime(decayTimeMs);
 }
 
+void RulerVibrationalModes::setVibrationalModeBalance(float balance)
+{
+    mFreeToClampedMixRatio = std::clamp(balance, 0.0f, 1.0f);
+}
+
+void RulerVibrationalModes::setModulateFreeVibrationalModes(bool modulate)
+{
+    mModulateFreeVibrationalModes = modulate;
+}
+
 float RulerVibrationalModes::getFreeFundamentalFrequency()
 {
     return mFreeFundamentalFrequency;
@@ -106,15 +116,28 @@ void RulerVibrationalModes::process (const juce::dsp::ProcessContextReplacing<fl
     mFullClampedModes.process(juce::dsp::ProcessContextReplacing<float>(clampedBlock));
     
     auto const numSamples = static_cast<int>(outputBlock.getNumSamples());
-    for(auto i = 0; i < numSamples; ++i)
+    
+    if(mModulateFreeVibrationalModes)
     {
-        // generate value to modulate free bar excitation with
-        auto const squaredRampVal = sawtoothRampBlock.getSample(0, i) * sawtoothRampBlock.getSample(0, i);
-        auto const modulatedClampedVal = clampedBlock.getSample(0, i) * squaredRampVal;
-        
-        // modulate with clamped vibration values
-        mFreeBarBuffer.setSample(0, i, modulatedClampedVal);
-        mFreeBarBuffer.setSample(1, i, modulatedClampedVal);
+        for(auto i = 0; i < numSamples; ++i)
+        {
+            // generate value to modulate free bar excitation with
+            auto const squaredRampVal = sawtoothRampBlock.getSample(0, i) * sawtoothRampBlock.getSample(0, i);
+            auto const modulatedClampedVal = clampedBlock.getSample(0, i) * squaredRampVal;
+            
+            // modulate with clamped vibration values
+            mFreeBarBuffer.setSample(0, i, modulatedClampedVal);
+            mFreeBarBuffer.setSample(1, i, modulatedClampedVal);
+        }
+    }
+    else
+    {
+        // set all the values equal to 1 which means the free bar vibrations wont be shaped / modulated at all
+        for(auto i = 0; i < numSamples; ++i)
+        {
+            mFreeBarBuffer.setSample(0, i, 1.0f);
+            mFreeBarBuffer.setSample(1, i, 1.0f);
+        }
     }
     
     juce::dsp::AudioBlock<float> freeBlock(mFreeBarBuffer, 0);
@@ -126,7 +149,7 @@ void RulerVibrationalModes::process (const juce::dsp::ProcessContextReplacing<fl
     // sum the two modes and output!
     for(auto i = 0; i < numSamples; ++i)
     {
-        auto const value = 0.5f * mFreeBarBuffer.getSample(0, i) + 0.5f * mClampedBarBuffer.getSample(0, i);
+        auto const value = (1.0f - mFreeToClampedMixRatio) * mFreeBarBuffer.getSample(0, i) + mFreeToClampedMixRatio * mClampedBarBuffer.getSample(0, i);
         outputBlock.setSample(0, i, value);
         outputBlock.setSample(1, i, value);
     }

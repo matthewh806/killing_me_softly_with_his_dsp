@@ -19,6 +19,8 @@ RulerTwangPlugin::RulerTwangPlugin()
     std::make_unique<juce::AudioParameterFloat>("rulerlength", "Ruler Length", 100.0f, 1000.0f, 300.0f),
     std::make_unique<juce::AudioParameterFloat>("rulerheight", "Ruler Height", 1.0f, 100.0f, 3.5f),
     std::make_unique<juce::AudioParameterFloat>("rulerdensity", "Ruler Density", 10.0f, 1000.0f, 750.0f),
+    std::make_unique<juce::AudioParameterFloat>("vibrationmodebalance", "Vibration Mode", 0.0f, 1.0f, 0.5f),
+    std::make_unique<juce::AudioParameterBool>("modulatefreevibrations", "Modulate Free vibrations", 1.0f)
 })
 {
     mState.addParameterListener("triggertwang", this);
@@ -29,11 +31,15 @@ RulerTwangPlugin::RulerTwangPlugin()
     mState.addParameterListener("freevibrationfrequency", this);
     mState.addParameterListener("clampedvibrationfrequency", this);
     mState.addParameterListener("decaytime", this);
+    mState.addParameterListener("vibrationmodebalance", this);
+    mState.addParameterListener("modulatefreevibrations", this);
     mState.state.addChild({"uiState", {{"width", 400}, {"height", 250}}, {}}, -1, nullptr);
 }
 
 RulerTwangPlugin::~RulerTwangPlugin()
 {
+    mState.removeParameterListener("modulatefreevibrations", this);
+    mState.removeParameterListener("vibrationmodebalance", this);
     mState.removeParameterListener("decaytime", this);
     mState.removeParameterListener("freevibrationfrequency", this);
     mState.removeParameterListener("clampedvibrationfrequency", this);
@@ -93,7 +99,7 @@ void RulerTwangPlugin::setStateInformation(const void* data, int sizeInBytes)
     }
 }
 
-void RulerTwangPlugin::parameterChanged(const juce::    String& parameterID, float newValue)
+void RulerTwangPlugin::parameterChanged(const juce::String& parameterID, float newValue)
 {
     if(parameterID == "youngsmodulus" || parameterID == "rulerlength" || parameterID == "rulerheight" || parameterID == "rulerdensity")
     {
@@ -117,6 +123,14 @@ void RulerTwangPlugin::parameterChanged(const juce::    String& parameterID, flo
     else if(parameterID == "decaytime")
     {
         mRulerVibrationalModes.setDecayTime(newValue);
+    }
+    else if(parameterID == "vibrationmodebalance")
+    {
+        mRulerVibrationalModes.setVibrationalModeBalance(newValue);
+    }
+    else if(parameterID == "modulatefreevibrations")
+    {
+        mRulerVibrationalModes.setModulateFreeVibrationalModes(newValue == 0.0 ? false : true);
     }
 }
 
